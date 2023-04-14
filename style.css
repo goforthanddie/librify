@@ -1,0 +1,38 @@
+/* Remove default bullets */
+ul {
+    list-style-type: none;
+}
+
+/* Hide the nested list */
+.nested {
+    display: none;
+}
+
+/* Show the nested list when the user clicks on the caret/arrow (with JavaScript) */
+.active {
+    display: block;
+}
+
+/* Set font to monospace */
+body {
+    font-family: monospace, monospace;
+    color: gray;
+    background-color: #121212;
+}
+
+button, option, select {
+    font-family: monospace, monospace;
+    background-color: gray;
+}
+
+.caret {
+    cursor: pointer;
+}
+
+.expandable::before {
+    content: '+ ';
+}
+
+.collapsable::before {
+    content: '- ';
+}
