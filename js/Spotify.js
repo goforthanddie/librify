@@ -107,6 +107,7 @@ class Spotify {
                     this.getSavedAlbums(offset+limit, limit);
                 } else { // no more albums
                     this.arrayLibraryDescriptive = Spotify.getArrayLibraryDescriptive(this.arrayLibrary, this.arrayArtistIdName, this.arrayAlbumIdName);
+                    console.log(JSON.stringify(this.arrayLibraryDescriptive));
                     localStorage.setItem('arrayLibraryDescriptive', JSON.stringify(this.arrayLibraryDescriptive));
                     this.populateViewLibrary(this.arrayLibraryDescriptive);
                 }
