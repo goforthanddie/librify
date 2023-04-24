@@ -104,8 +104,10 @@ class Spotify {
 
                 // test if there are more albums
                 if(data.next != null) {
+                    console.log('get more albums');
                     this.getSavedAlbums(offset+limit, limit);
                 } else { // no more albums
+                    console.log('no more albums');
                     this.arrayLibraryDescriptive = Spotify.getArrayLibraryDescriptive(this.arrayLibrary, this.arrayArtistIdName, this.arrayAlbumIdName);
                     console.log(JSON.stringify(this.arrayLibraryDescriptive));
                     localStorage.setItem('arrayLibraryDescriptive', JSON.stringify(this.arrayLibraryDescriptive));
