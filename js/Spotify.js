@@ -9,7 +9,7 @@ class Spotify {
         this.arrayDevices = new Array();
     }
 
-    getAccessToken() {
+    getAccessToken() { // aktualisieren mit neuer methode
         $.ajax({
             url: 'https://accounts.spotify.com/api/token',
             type: 'POST',
@@ -107,6 +107,7 @@ class Spotify {
                     this.getSavedAlbums(offset+limit, limit);
                 } else { // no more albums
                     this.arrayLibraryDescriptive = Spotify.getArrayLibraryDescriptive(this.arrayLibrary, this.arrayArtistIdName, this.arrayAlbumIdName);
+                    localStorage.setItem('arrayLibraryDescriptive', JSON.stringify(this.arrayLibraryDescriptive));
                     this.populateViewLibrary(this.arrayLibraryDescriptive);
                 }
                 console.log(this.arrayAlbumIdName);
