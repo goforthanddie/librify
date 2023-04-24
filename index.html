@@ -28,6 +28,9 @@
     (function() {
         let spotify;
 
+        const clientId = 'f77bc91de5834f398680d65c02bdfe94';
+        const redirectUri = 'https://librify.coderbutze.de';
+
         /**
          * Generates a random string containing numbers and letters
          * @param  {number} length The length of the string
@@ -79,8 +82,7 @@
         let codeVerifier = localStorage.getItem('code_verifier');
 
         if(code && access_token == null) {
-            const clientId = 'f77bc91de5834f398680d65c02bdfe94';
-            const redirectUri = 'https://librify.coderbutze.de';
+
             let body = new URLSearchParams({
                 grant_type: 'authorization_code',
                 code: code,
@@ -135,8 +137,6 @@
 
         document.getElementById('login-button').addEventListener('click', function() {
             console.log('login-button:click()');
-            const clientId = 'f77bc91de5834f398680d65c02bdfe94';
-            const redirectUri = 'http://localhost:63342/SpotifyTree/index.html';
 
             let codeVerifier = generateRandomString(128);
 
