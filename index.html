@@ -6,6 +6,8 @@
     <link rel="stylesheet" href="style.css" />
     <script src="js/jquery-3.6.4.min.js"></script>
     <script src="js/AccessToken.js"></script>
+    <script src="js/Artist.js"></script>
+    <script src="js/Album.js"></script>
     <script src="js/Spotify.js"></script>
     <script src="js/init.js"></script>
 
@@ -29,7 +31,8 @@
         let spotify;
 
         const clientId = 'f77bc91de5834f398680d65c02bdfe94';
-        const redirectUri = 'https://librify.coderbutze.de';
+        //const redirectUri = 'https://librify.coderbutze.de';
+        const redirectUri = 'http://localhost:63342/SpotifyTree/index.html';
 
         /**
          * Generates a random string containing numbers and letters
@@ -115,7 +118,7 @@
                 $('#loggedin').hide();
             });
         } else {
-            console.log('storing accesse_token');
+            console.log('storing access_token');
             access_token = localStorage.getItem('access_token');
             console.log(access_token);
             if(access_token != null) {

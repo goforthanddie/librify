@@ -1,10 +1,9 @@
 class Spotify {
+    artists;
+
     constructor() {
+        this.artists = new Array();
         this.accessToken = null;
-        this.arrayLibrary = new Map();
-        this.arrayLibraryDescriptive = new Map();
-        this.arrayArtistIdName = new Map();
-        this.arrayAlbumIdName = new Map();
         this.arrayGenres = new Array();
         this.arrayDevices = new Array();
     }
@@ -77,20 +76,21 @@ class Spotify {
             },
             success: function(data) {
                 console.log(data);
-                console.log(this.arrayAlbumIdName);
                 // iterate over returned albums
                 data.items.forEach(item => {
-                    this.arrayAlbumIdName.set(item.album.id, item.album.name);
+                    //console.log(item.album.id);
+                    let album = new Album(item.album.id, item.album.name);
                     // iterate over artists of album
                     item.album.artists.forEach(artist => {
-                        this.arrayArtistIdName.set(artist.id, artist.name);
-                        if (!this.arrayLibrary.has(artist.id)) {
-                            //console.log(itemb.id + ' not existing in arrayLibrary');
-                            this.arrayLibrary.set(artist.id, new Map());
-                        } else {
-                            //console.log(itemb.id + ' existing in arrayLibrary');
+                        // test if artist is already in list
+                        let idArtist = this.artists.findIndex(element => element.id == artist.id);
+                        if (idArtist == -1) { // artist id not found, add new artist
+                            let artst = new Artist(artist.id, artist.name);
+                            artst.addAlbum(album);
+                            this.artists.push(artst);
+                        } else { // artist id found, add album to existing artist
+                            this.artists[idArtist].addAlbum(album);
                         }
-                        this.arrayLibrary.get(artist.id).set(item.album.id, item.album.name);
                     });
 
                     // iterate over genres of album
@@ -108,15 +108,16 @@ class Spotify {
                     this.getSavedAlbums(offset+limit, limit);
                 } else { // no more albums
                     console.log('no more albums');
-                    this.arrayLibraryDescriptive = Spotify.getArrayLibraryDescriptive(this.arrayLibrary, this.arrayArtistIdName, this.arrayAlbumIdName);
-                    console.log(JSON.stringify(this.arrayLibraryDescriptive));
-                    localStorage.setItem('arrayLibraryDescriptive', JSON.stringify(this.arrayLibraryDescriptive));
-                    this.populateViewLibrary(this.arrayLibraryDescriptive);
+                    this.artists.sort((a, b) => a.name.localeCompare(b.name));
+                    console.log(this.artists);
+
+                    localStorage.setItem('artists', JSON.stringify(this.artists));
+                    this.populateViewLibraryFromArtists(this.artists);
                 }
-                console.log(this.arrayAlbumIdName);
-                console.log(this.arrayArtistIdName);
-                console.log(this.arrayLibrary);
-                console.log(this.arrayGenres);
+                //console.log(this.arrayAlbumIdName);
+                //console.log(this.arrayArtistIdName);
+                //console.log(this.arrayLibrary);
+                //console.log(this.arrayGenres);
 
             }
         });
@@ -139,6 +140,46 @@ class Spotify {
             success: function(data) {
                 console.log(data);
             }
+        });
+    }
+
+    populateViewLibraryFromArtists(artists) {
+        const ulLibrary = document.getElementById('ulLibrary');
+        ulLibrary.innerHTML = '';
+        artists.forEach(artist => {
+            let ulAlbums = document.createElement('ul');
+            ulAlbums.className = 'nested';
+
+            let liArtist = document.createElement('li');
+            /*liArtist.classList.add('caret');
+            liArtist.classList.add('expandable');*/
+
+            let spanArtistName = document.createElement('span');
+            spanArtistName.innerHTML = artist.name;
+            spanArtistName.classList.add('caret');
+            spanArtistName.classList.add('expandable');
+
+            spanArtistName.addEventListener('click',() => {
+                ulAlbums.classList.toggle('active');
+                spanArtistName.classList.toggle('expandable');
+                spanArtistName.classList.toggle('collapsable');
+            });
+
+            liArtist.append(spanArtistName);
+            ulLibrary.appendChild(liArtist);
+
+            // sort albums (Todo: different location?)
+            artist.albums.sort((a, b) => a.name.localeCompare(b.name));
+
+            artist.albums.forEach((album) => {
+                let liAlbum = document.createElement('li');
+                liAlbum.innerHTML = album.name;
+                liAlbum.addEventListener('click', () => {
+                    this.startPlayback(album.id);
+                });
+                ulAlbums.appendChild(liAlbum);
+            })
+            liArtist.appendChild(ulAlbums);
         });
     }
 
