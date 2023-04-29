@@ -5,7 +5,7 @@ function loginOk(spotify, access_token) {
     //let spotify = new Spotify();
     spotify.accessToken = new AccessToken(access_token, 'Bearer');
     spotify.getDevices();
-    spotify.getSavedAlbums(2700, 50);
+    spotify.getSavedAlbums(0, 50);
 
     console.log('login ok');
 }
