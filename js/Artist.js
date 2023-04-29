@@ -1,4 +1,7 @@
 class Artist {
+
+    dataType = 'Artist';
+
     id;
     name;
     albums;

@@ -13,6 +13,8 @@ function loginOk(spotify, access_token) {
 // Listeners
 window.addEventListener("load", function () {
     const spotify = new Spotify();
+    // debug reasons only:
+    window.sptf = spotify;
     //$('#loggedin').hide();
     //$('#selectDevices').hide();
 
@@ -30,9 +32,9 @@ window.addEventListener("load", function () {
         loginOk(spotify, access_token);
     }
 
-    document.getElementById('buttonReloadLibrary').addEventListener('click', function () {
-        spotify.getSavedAlbums(2650, 50);
-    }, false);
+    $('#buttonReloadLibrary').click(function () {
+        spotify.getSavedAlbums(0, 50);
+    });
 
     document.getElementById('buttonReloadDevices').addEventListener('click', function () {
         spotify.getDevices();

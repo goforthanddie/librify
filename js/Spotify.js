@@ -1,6 +1,6 @@
 const clientId = 'f77bc91de5834f398680d65c02bdfe94';
-//const redirectUri = 'https://librify.coderbutze.de';
-const redirectUri = 'http://localhost:63342/SpotifyTree/index.html';
+const redirectUri = 'https://librify.coderbutze.de';
+//const redirectUri = 'http://localhost:63342/SpotifyTree/index.html';
 
 class Spotify {
 
@@ -9,7 +9,8 @@ class Spotify {
     constructor() {
         let artists = localStorage.getItem('artists');
         if(artists != null) {
-            this.artists = JSON.parse(artists);
+            console.log('populating library view from stored artists');
+            this.artists = JSON.parse(artists, Utils.reviver);
             this.populateViewLibraryFromArtists(this.artists);
         } else {
             this.artists = new Array();
@@ -86,21 +87,21 @@ class Spotify {
                 'Authorization': this.accessToken.type + '  ' + this.accessToken.token
             },
             success: function (data) {
-                console.log(data);
+                //console.log(data);
                 // iterate over returned albums
                 data.items.forEach(item => {
                     //console.log(item.album.id);
                     let album = new Album(item.album.id, item.album.name);
                     // iterate over artists of album
-                    item.album.artists.forEach(artist => {
+                    item.album.artists.forEach(_artist => {
                         // test if artist is already in list
-                        let idArtist = this.artists.findIndex(element => element.id == artist.id);
+                        let idArtist = this.artists.findIndex(element => element.id == _artist.id);
                         if (idArtist == -1) { // artist id not found, add new artist
-                            let artst = new Artist(artist.id, artist.name);
-                            artst.addAlbum(album);
-                            this.artists.push(artst);
+                            let artist = new Artist(_artist.id, _artist.name);
+                            artist.addAlbum(album);
+                            this.artists.push(artist);
                         } else { // artist id found, add album to existing artist
-                            console.log(this.artists[idArtist]);
+                            //console.log(this.artists[idArtist]);
                             this.artists[idArtist].addAlbum(album);
                         }
                     });
@@ -114,9 +115,11 @@ class Spotify {
                     });
                 });
 
+                console.log(Math.min(offset+limit, data.total) + '/' + data.total);
+                $('#viewStatus').html('Loading ' + Math.min(offset+limit, data.total) + '/' + data.total);
+
                 // test if there are more albums
                 if (data.next != null) {
-                    console.log('get more albums');
                     this.getSavedAlbums(offset + limit, limit);
                 } else { // no more albums
                     console.log('no more albums');
@@ -125,6 +128,8 @@ class Spotify {
 
                     localStorage.setItem('artists', JSON.stringify(this.artists));
                     this.populateViewLibraryFromArtists(this.artists);
+
+                    $('#viewStatus').html('');
                 }
                 //console.log(this.arrayAlbumIdName);
                 //console.log(this.arrayArtistIdName);
@@ -156,11 +161,11 @@ class Spotify {
     }
 
     populateViewLibraryFromArtists(artists) {
-        const ulLibrary = document.getElementById('ulLibrary');
-        ulLibrary.innerHTML = '';
+        const ulLibraryNew = document.createElement('ul');
+        ulLibraryNew.id = 'ulLibrary';
         artists.forEach(artist => {
             let ulAlbums = document.createElement('ul');
-            ulAlbums.className = 'nested';
+            ulAlbums.classList.add('nested');
 
             let liArtist = document.createElement('li');
             /*liArtist.classList.add('caret');
@@ -168,17 +173,32 @@ class Spotify {
 
             let spanArtistName = document.createElement('span');
             spanArtistName.innerHTML = artist.name;
+            spanArtistName.id = artist.id;
             spanArtistName.classList.add('caret');
-            spanArtistName.classList.add('expandable');
+
+            // test if span already exists
+            let existingSpanArtistName = $('span#'+artist.id);
+            //console.log('testing ' + 'span#'+artist.id);
+            //console.log('existingSpanArtistName.length='+existingSpanArtistName.length);
+            if(existingSpanArtistName.length > 0 && existingSpanArtistName.hasClass('collapsable')) {
+                //console.log('existingSpanArtistName' + ' span#'+artist.id);
+                // restore expanded state
+                spanArtistName.classList.add('collapsable');
+                ulAlbums.classList.add('active');
+            } else {
+                //console.log('existingSpanArtistName existiert nicht');
+                spanArtistName.classList.add('expandable');
+            }
 
             spanArtistName.addEventListener('click', () => {
+                console.log('addEventListener call');
                 ulAlbums.classList.toggle('active');
                 spanArtistName.classList.toggle('expandable');
                 spanArtistName.classList.toggle('collapsable');
             });
 
             liArtist.append(spanArtistName);
-            ulLibrary.appendChild(liArtist);
+            ulLibraryNew.appendChild(liArtist);
 
             // sort albums (Todo: different location?)
             artist.albums.sort((a, b) => a.name.localeCompare(b.name));
@@ -193,6 +213,10 @@ class Spotify {
             })
             liArtist.appendChild(ulAlbums);
         });
+
+        // switch content of old ul to new ul because we need to keep the expanded items expanded
+        $('#divLibrary').empty();
+        $('#divLibrary').append(ulLibraryNew);
     }
 
     /**
@@ -250,7 +274,6 @@ class Spotify {
     }
 
     getAccessToken(code) {
-
         let codeVerifier = localStorage.getItem('code_verifier');
 
         let body = new URLSearchParams({
