@@ -16,155 +16,15 @@
 <div id="login">
     <h1>Welcome to librify. A shelter for the audiophile at heart.</h1>
     <p>Having always used a distinct structure for my music library, I slowly figured that the way Spotify is presenting music to me has changed my listening behaviour. It changed from a very self-determined genre- and album-centric way to catching myself listening to either radios based on a recently played song or the same albums that I have been playing for the last days over and over again. I was missing my tree-like structure badly and figured that what Spotify is offering just did not suit me. So I ended up developing this tool to help me keep better track of my library and being able to quickly and comprehensively browse through the library.</p>
-    <button id="login-button">Log in with Spotify</button>
+    <button id="buttonLogin">Log in with Spotify</button>
 </div>
-<div id="loggedin">
-    <div id="viewSelectDevices"><label for="selectDevices">Device:</label> <select id="selectDevices"></select></div>
+<div id="loggedin" style="display: none;">
+    <div id="viewSelectDevices"><label for="selectDevices">Device:</label> <select id="selectDevices"></select><button id="buttonReloadDevices">Reload</button></div>
     <button id="buttonLogout">Logout</button>
-    <button id="library-button">Get library</button>
+    <button id="buttonReloadLibrary">Reload library</button>
     <div id="divLibrary">
         <ul id="ulLibrary"></ul>
     </div>
 </div>
-<script>
-    (function() {
-        let spotify;
-
-        const clientId = 'f77bc91de5834f398680d65c02bdfe94';
-        //const redirectUri = 'https://librify.coderbutze.de';
-        const redirectUri = 'http://localhost:63342/SpotifyTree/index.html';
-
-        /**
-         * Generates a random string containing numbers and letters
-         * @param  {number} length The length of the string
-         * @return {string} The generated string
-         */
-        function generateRandomString(length) {
-            let text = '';
-            let possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-
-            for (let i = 0; i < length; i++) {
-                text += possible.charAt(Math.floor(Math.random() * possible.length));
-            }
-            return text;
-        }
-
-        async function generateCodeChallenge(codeVerifier) {
-            function base64encode(string) {
-                return btoa(String.fromCharCode.apply(null, new Uint8Array(string)))
-                    .replace(/\+/g, '-')
-                    .replace(/\//g, '_')
-                    .replace(/=+$/, '');
-            }
-
-            const encoder = new TextEncoder();
-            const data = encoder.encode(codeVerifier);
-            const digest = await window.crypto.subtle.digest('SHA-256', data);
-
-            return base64encode(digest);
-        }
-
-        function loginOk(access_token) {
-            spotify = new Spotify();
-            spotify.accessToken = new AccessToken(access_token, 'Bearer');
-            spotify.getDevices();
-            spotify.getSavedAlbums(2700, 50);
-
-            console.log('login ok');
-
-            $('#login').hide();
-            $('#loggedin').show();
-        }
-
-        $('#loggedin').hide();
-
-        const urlParams = new URLSearchParams(window.location.search);
-        let code = urlParams.get('code');
-
-        let access_token = localStorage.getItem('access_token');
-        let codeVerifier = localStorage.getItem('code_verifier');
-
-        if(code && access_token == null) {
-
-            let body = new URLSearchParams({
-                grant_type: 'authorization_code',
-                code: code,
-                redirect_uri: redirectUri,
-                client_id: clientId,
-                code_verifier: codeVerifier
-            });
-            const response = fetch('https://accounts.spotify.com/api/token', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded'
-                },
-                body: body
-            }).then(response => {
-                if (!response.ok) {
-                    throw new Error('HTTP status ' + response.status);
-                }
-                 return response.json();
-            }).then(data => {
-                console.log('data');
-                console.log(data);
-
-                localStorage.setItem('access_token', data.access_token);
-                loginOk(data.access_token);
-                $('#login').hide();
-                $('#loggedin').show();
-            }).catch(error => {
-                console.error('Error:', error);
-                $('#login').show();
-                $('#loggedin').hide();
-            });
-        } else {
-            console.log('storing access_token');
-            access_token = localStorage.getItem('access_token');
-            console.log(access_token);
-            if(access_token != null) {
-                loginOk(access_token);
-            } else {
-
-            }
-        }
-
-        document.getElementById('library-button').addEventListener('click', function() {
-            spotify.getSavedAlbums(2700, 50);
-        }, false);
-
-        document.getElementById('buttonLogout').addEventListener('click', function() {
-            localStorage.clear();
-            $('#login').show();
-            $('#loggedin').hide();
-        }, false);
-
-        document.getElementById('login-button').addEventListener('click', function() {
-            console.log('login-button:click()');
-
-            let codeVerifier = generateRandomString(128);
-
-            generateCodeChallenge(codeVerifier).then(codeChallenge => {
-                let state = generateRandomString(16);
-                let scope = 'user-library-read user-modify-playback-state user-read-playback-state';
-
-                localStorage.setItem('code_verifier', codeVerifier);
-                console.log('set code_verifier='+codeVerifier);
-
-                let args = new URLSearchParams({
-                    response_type: 'code',
-                    client_id: clientId,
-                    scope: scope,
-                    redirect_uri: redirectUri,
-                    state: state,
-                    code_challenge_method: 'S256',
-                    code_challenge: codeChallenge
-                });
-
-                window.location = 'https://accounts.spotify.com/authorize?' + args;
-            });
-        }, false);
-
-    })();
-</script>
 </body>
 </html>
