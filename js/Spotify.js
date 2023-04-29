@@ -72,6 +72,7 @@ class Spotify {
     }
 
     getSavedAlbums(offset = 0, limit = 50) {
+        if(localStorage.getItem('login') != '1') return;
         console.log('getSavedAlbums(' + offset + ',' + limit + ')');
         //console.log(this);
         //console.log(this.accessToken);

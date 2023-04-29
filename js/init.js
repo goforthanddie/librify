@@ -2,6 +2,8 @@ function loginOk(spotify, access_token) {
     $('#login').hide();
     $('#loggedin').show();
 
+    localStorage.setItem('login', '1');
+
     //let spotify = new Spotify();
     spotify.accessToken = new AccessToken(access_token, 'Bearer');
     spotify.getDevices();
