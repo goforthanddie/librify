@@ -283,38 +283,33 @@ class Spotify {
 			localStorage.setItem('refresh_token', data.refresh_token);
 			Utils.login(this, data.access_token);
 		};
-		let fnError = function(data) {
+		let fnError = function(error) {
+			console.error('Error:', error);
 			Utils.logout();
 		};
 		this.sendRequest(url, type, data, fnSuccess, fnError);
 	}
 
 	refreshAccessToken(refreshToken) {
-		let body = new URLSearchParams({
+		console.log('refreshAccessToken()');
+		let url = 'https://accounts.spotify.com/api/token';
+		let type = 'POST';
+		let data = {
 			grant_type: 'refresh_token',
 			refresh_token: refreshToken,
 			client_id: clientId
-		});
-		const response = fetch('https://accounts.spotify.com/api/token', {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/x-www-form-urlencoded'
-			},
-			body: body
-		}).then(response => {
-			if(!response.ok) {
-				throw new Error('HTTP status ' + response.status);
-			}
-			return response.json();
-		}).then(data => {
+		};
+		let fnSuccess = function(data) {
 			console.log('data');
 			console.log(data);
 
 			localStorage.setItem('access_token', data.access_token);
 			Utils.login(this, data.access_token);
-		}).catch(error => {
+		};
+		let fnError = function(error) {
 			console.error('Error:', error);
 			Utils.logout();
-		});
+		}
+		this.sendRequest(url, type, data, fnSuccess, fnError);
 	}
 }
