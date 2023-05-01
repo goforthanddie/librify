@@ -5,6 +5,8 @@ const redirectUri = 'http://localhost:63342/SpotifyTree/index.html';
 class Spotify {
 
 	artists;
+	accessToken;
+	arrayDevices;
 
 	constructor() {
 		let artists = localStorage.getItem('artists');
@@ -16,7 +18,6 @@ class Spotify {
 			this.artists = new Array();
 		}
 		this.accessToken = null;
-		this.arrayGenres = new Array();
 		this.arrayDevices = new Array();
 	}
 
@@ -113,14 +114,6 @@ class Spotify {
 					} else { // artist id found, add album to existing artist
 						//console.log(this.artists[idArtist]);
 						this.artists[idArtist].addAlbum(album);
-					}
-				});
-
-				// iterate over genres of album
-				item.album.genres.forEach(genre => {
-					this.arrayGenres.push(genre);
-					if(!this.arrayGenres.includes(genre)) {
-						this.arrayGenres.push(genre);
 					}
 				});
 			});
