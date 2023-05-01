@@ -11,7 +11,6 @@ class Artist {
 		this.id = id;
 		this.name = name;
 		this.albums = new Array();
-		this.genres = new Array();
 	}
 
 	addAlbum(album) {

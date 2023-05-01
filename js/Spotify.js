@@ -57,6 +57,35 @@ class Spotify {
 		});
 	}
 
+	getGenres() {
+		console.log('artists.length='+this.artists.length);
+		let numMaxIds = 50;
+		for(let i = 0; i < Math.ceil(this.artists.length/numMaxIds); i++) {
+			let start = i*numMaxIds;
+			let end = Math.min((i+1)*numMaxIds, artists.length);
+			console.log('start='+start+',end='+end);
+			let artistIds = '';
+			this.artists.slice(start, end).forEach((artist) => {
+				artistIds += artist.id+',';
+			});
+			//console.log(artistIds);
+			let url = 'https://api.spotify.com/v1/artists'
+			let data = {
+				'ids': artistIds.substring(0, artistIds.length-1)
+			};
+			let type = 'GET';
+			let fnSuccess = function(data) {
+				data.artists.forEach(_artist => {
+					let artistId = this.artists.findIndex(element => element.id === _artist.id);
+					if(artistId !== -1) { // artist id found
+						this.artists[artistId].genres = _artist.genres;
+					}
+				});
+			}
+			this.sendRequest(url, type, data, fnSuccess, null);
+		}
+	}
+
 	getDevices() {
 		let url = 'https://api.spotify.com/v1/me/player/devices';
 		let type = 'GET';
@@ -70,7 +99,7 @@ class Spotify {
 			console.log('getDevices()');
 			console.log(data);
 		};
-		this.sendRequest(url, type, {}, fnSuccess, {});
+		this.sendRequest(url, type, {}, fnSuccess, null);
 	}
 
 	static populateSelectDevices(arrayDevices) {
@@ -106,14 +135,15 @@ class Spotify {
 				// iterate over artists of album
 				item.album.artists.forEach(_artist => {
 					// test if artist is already in list
-					let idArtist = this.artists.findIndex(element => element.id === _artist.id);
-					if(idArtist === -1) { // artist id not found, add new artist
+					let artistId = this.artists.findIndex(element => element.id === _artist.id);
+					if(artistId === -1) { // artist id not found, add new artist
 						let artist = new Artist(_artist.id, _artist.name);
+						//artist.genres = this.getGenres(_artist.id);
 						artist.addAlbum(album);
 						this.artists.push(artist);
 					} else { // artist id found, add album to existing artist
 						//console.log(this.artists[idArtist]);
-						this.artists[idArtist].addAlbum(album);
+						this.artists[artistId].addAlbum(album);
 					}
 				});
 			});
@@ -130,6 +160,7 @@ class Spotify {
 				//console.log(this.artists);
 
 				localStorage.setItem('artists', JSON.stringify(this.artists));
+				this.getGenres(this.artists);
 				this.populateViewLibraryFromArtists(this.artists);
 
 				$('#viewStatus').html('');
