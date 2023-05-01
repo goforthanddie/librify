@@ -1,6 +1,6 @@
 class Album {
 
-    dataType = 'Album';
+    dataType = Album.name;
 
     id;
     name;

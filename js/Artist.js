@@ -1,6 +1,6 @@
 class Artist {
 
-    dataType = 'Artist';
+    dataType = Artist.name;
 
     id;
     name;
@@ -14,7 +14,7 @@ class Artist {
 
     addAlbum(album) {
         // add only if album id ist not yet existing
-        if(this.albums.find(element => element.id == album.id) === undefined) {
+        if(this.albums.find(element => element.id === album.id) === undefined) {
             this.albums.push(album);
         }
     }
