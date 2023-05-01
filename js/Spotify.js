@@ -60,6 +60,7 @@ class Spotify {
 		let url = 'https://api.spotify.com/v1/me/player/devices';
 		let type = 'GET';
 		let fnSuccess = function(data) {
+			this.arrayDevices = new Array();
 			data.devices.forEach(device => {
 				this.arrayDevices.push(new Device(device.id, device.name, device.is_active));
 			});
@@ -68,11 +69,13 @@ class Spotify {
 			console.log('getDevices()');
 			console.log(data);
 		};
-		this.sendRequest(url, type, {}, fnSuccess);
+		this.sendRequest(url, type, {}, fnSuccess, {});
 	}
 
 	static populateSelectDevices(arrayDevices) {
 		console.log(arrayDevices);
+		const selectDevices = $('#selectDevices');
+		selectDevices.empty();
 		arrayDevices.forEach(device => {
 			const option = document.createElement('option');
 			option.id = device.id;
@@ -80,7 +83,7 @@ class Spotify {
 			if(device.active) {
 				option.selected = true;
 			}
-			document.getElementById('selectDevices').appendChild(option);
+			selectDevices.append(option);
 		});
 	}
 
@@ -210,8 +213,9 @@ class Spotify {
 		});
 
 		// switch content of old ul to new ul because we need to keep the expanded items expanded
-		$('#divLibrary').empty();
-		$('#divLibrary').append(ulLibraryNew);
+		const divLibrary = $('#divLibrary');
+		divLibrary.empty();
+		divLibrary.append(ulLibraryNew);
 	}
 
 	static generateRandomString(length) {
