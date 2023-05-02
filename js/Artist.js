@@ -10,7 +10,9 @@ class Artist {
 	constructor(id, name) {
 		this.id = id;
 		this.name = name;
-		this.albums = new Array();
+		this.albums = [];
+		// add default genre where the artist gets listed even if spotify does not return any genre
+		this.genres = ['None'];
 	}
 
 	addAlbum(album) {
