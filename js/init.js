@@ -24,6 +24,10 @@ window.addEventListener("load", function () {
         spotify.getSavedAlbums(0, 50);
     });
 
+    $('#buttonGetGenres').click(function() {
+        spotify.getGenres();
+    });
+
     document.getElementById('buttonReloadDevices').addEventListener('click', function () {
         spotify.getDevices();
     }, false);

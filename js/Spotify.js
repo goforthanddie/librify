@@ -2,6 +2,8 @@ const clientId = 'f77bc91de5834f398680d65c02bdfe94';
 //const redirectUri = 'https://librify.coderbutze.de';
 const redirectUri = 'http://localhost:63342/SpotifyTree/index.html';
 
+const URL_AUTH = 'https://accounts.spotify.com/api/token';
+
 class Spotify {
 
 	artists;
@@ -18,6 +20,7 @@ class Spotify {
 		} else {
 			this.artists = [];
 		}
+		// add the default genre so all artists without a genre other than the default genre will end up in this genre
 		this.genres = [GENRE_DEFAULT];
 		this.accessToken = null;
 		this.arrayDevices = [];
@@ -40,7 +43,7 @@ class Spotify {
 			context: this,
 			headers: {
 				'Content-Type': 'application/x-www-form-urlencoded',
-				'Authorization': (this.accessToken !== null) ? this.accessToken.type + '  ' + this.accessToken.token : ''
+				'Authorization': (this.accessToken !== null && url !== URL_AUTH) ? this.accessToken.type + '  ' + this.accessToken.token : ''
 			},
 			statusCode: {
 				401: function() { // 401: Unauthorized - The request requires user authentication or, if the request included authorization credentials, authorization has been refused for those credentials.
@@ -82,14 +85,20 @@ class Spotify {
 					if(artistIdx !== -1) { // artist id found
 						this.artists[artistIdx].genres = _artist.genres;
 						_artist.genres.forEach(_genre => {
-							let genreIdx = this.genres.findIndex(element => element === _genre);
+							let genreIdx = this.genres.findIndex(element => element.name === _genre);
 							if(genreIdx === -1) { // genre not found
-								this.genres.push(_genre);
+								let genre = new Genre(_genre);
+								genre.addArtist(this.artists[artistIdx])
+								this.genres.push(genre);
+							} else { // genre found, add artist to list
+								this.genres[genreIdx].addArtist(this.artists[artistIdx]);
 							}
 						});
 
 					}
 				});
+				// todo: would be enough to call it once in the final fnSuccess call
+				this.genres.sort((a, b) => a.name.localeCompare(b.name));
 			}
 			this.sendRequest(url, type, data, fnSuccess, null);
 		}
@@ -165,6 +174,7 @@ class Spotify {
 				this.getSavedAlbums(offset + limit, limit);
 			} else { // no more albums
 				console.log('no more albums');
+				// sort artists alphabetically
 				this.artists.sort((a, b) => a.name.localeCompare(b.name));
 				//console.log(this.artists);
 
@@ -303,7 +313,7 @@ class Spotify {
 	getAccessToken(code) {
 		let codeVerifier = localStorage.getItem('code_verifier');
 
-		let url = 'https://accounts.spotify.com/api/token';
+		let url = URL_AUTH;
 		let type = 'POST';
 		let data = {
 			grant_type: 'authorization_code',
@@ -329,7 +339,7 @@ class Spotify {
 
 	refreshAccessToken(refreshToken) {
 		console.log('refreshAccessToken()');
-		let url = 'https://accounts.spotify.com/api/token';
+		let url = URL_AUTH;
 		let type = 'POST';
 		let data = {
 			grant_type: 'refresh_token',
@@ -345,7 +355,7 @@ class Spotify {
 		};
 		let fnError = function(error) {
 			console.error('Error:', error);
-			Utils.logout();
+			//Utils.logout();
 		}
 		this.sendRequest(url, type, data, fnSuccess, fnError);
 	}
