@@ -5,6 +5,7 @@ const redirectUri = 'http://localhost:63342/SpotifyTree/index.html';
 class Spotify {
 
 	artists;
+	genres;
 	accessToken;
 	arrayDevices;
 
@@ -17,6 +18,7 @@ class Spotify {
 		} else {
 			this.artists = [];
 		}
+		this.genres = [GENRE_DEFAULT];
 		this.accessToken = null;
 		this.arrayDevices = [];
 	}
@@ -62,7 +64,7 @@ class Spotify {
 		let numMaxIds = 50;
 		for(let i = 0; i < Math.ceil(this.artists.length/numMaxIds); i++) {
 			let start = i*numMaxIds;
-			let end = Math.min((i+1)*numMaxIds, artists.length);
+			let end = Math.min((i+1)*numMaxIds, this.artists.length);
 			console.log('start='+start+',end='+end);
 			let artistIds = '';
 			this.artists.slice(start, end).forEach((artist) => {
@@ -76,9 +78,16 @@ class Spotify {
 			let type = 'GET';
 			let fnSuccess = function(data) {
 				data.artists.forEach(_artist => {
-					let artistId = this.artists.findIndex(element => element.id === _artist.id);
-					if(artistId !== -1) { // artist id found
-						this.artists[artistId].genres = _artist.genres;
+					let artistIdx = this.artists.findIndex(element => element.id === _artist.id);
+					if(artistIdx !== -1) { // artist id found
+						this.artists[artistIdx].genres = _artist.genres;
+						_artist.genres.forEach(_genre => {
+							let genreIdx = this.genres.findIndex(element => element === _genre);
+							if(genreIdx === -1) { // genre not found
+								this.genres.push(_genre);
+							}
+						});
+
 					}
 				});
 			}

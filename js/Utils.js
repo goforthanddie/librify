@@ -1,3 +1,5 @@
+const GENRE_DEFAULT = 'None';
+
 class Utils {
 
     static login(spotify, access_token) {
