@@ -15,10 +15,10 @@ class Spotify {
 			this.artists = JSON.parse(artists, Utils.reviver);
 			this.populateViewLibraryFromArtists(this.artists);
 		} else {
-			this.artists = new Array();
+			this.artists = [];
 		}
 		this.accessToken = null;
-		this.arrayDevices = new Array();
+		this.arrayDevices = [];
 	}
 
 	sendRequest(url, type, data, fnSuccess, fnError) {
@@ -90,7 +90,7 @@ class Spotify {
 		let url = 'https://api.spotify.com/v1/me/player/devices';
 		let type = 'GET';
 		let fnSuccess = function(data) {
-			this.arrayDevices = new Array();
+			this.arrayDevices = [];
 			data.devices.forEach(device => {
 				this.arrayDevices.push(new Device(device.id, device.name, device.is_active));
 			});
@@ -160,7 +160,7 @@ class Spotify {
 				//console.log(this.artists);
 
 				localStorage.setItem('artists', JSON.stringify(this.artists));
-				this.getGenres(this.artists);
+				this.getGenres();
 				this.populateViewLibraryFromArtists(this.artists);
 
 				$('#viewStatus').html('');
