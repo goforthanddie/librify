@@ -25,7 +25,15 @@ window.addEventListener("load", function () {
     });
 
     $('#buttonGetGenres').click(function() {
-        spotify.getGenres();
+        spotify.getGenres(0, 50);
+    });
+
+    $('#buttonShowByGenre').click(function() {
+        spotify.populateViewLibraryFromGenres(spotify.genres);
+    });
+
+    $('#buttonShowByArtist').click(function() {
+        spotify.populateViewLibraryFromArtists(spotify.artists);
     });
 
     document.getElementById('buttonReloadDevices').addEventListener('click', function () {

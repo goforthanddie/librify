@@ -2,10 +2,13 @@ class Genre {
 
 	dataType = Genre.name;
 
+	id;
 	name;
 	artists;
 
 	constructor(name) {
+		// todo: generate unique id
+		this.id = window.performance.now();
 		this.name = name;
 		this.artists = [];
 	}

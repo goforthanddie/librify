@@ -34,7 +34,8 @@ class Spotify {
 		if(fnSuccess === undefined || fnSuccess === null) console.error('parameter fnSuccess undefined or null');
 		if(fnError === undefined || fnError === null) {
 			console.log('parameter fnError undefined or null');
-			fnError = function() {};
+			fnError = function() {
+			};
 		}
 
 		$.ajax({
@@ -62,46 +63,50 @@ class Spotify {
 		});
 	}
 
-	getGenres() {
-		console.log('artists.length='+this.artists.length);
-		let numMaxIds = 50;
-		for(let i = 0; i < Math.ceil(this.artists.length/numMaxIds); i++) {
-			let start = i*numMaxIds;
-			let end = Math.min((i+1)*numMaxIds, this.artists.length);
-			console.log('start='+start+',end='+end);
-			let artistIds = '';
-			this.artists.slice(start, end).forEach((artist) => {
-				artistIds += artist.id+',';
-			});
-			//console.log(artistIds);
-			let url = 'https://api.spotify.com/v1/artists'
-			let data = {
-				'ids': artistIds.substring(0, artistIds.length-1)
-			};
-			let type = 'GET';
-			let fnSuccess = function(data) {
-				data.artists.forEach(_artist => {
-					let artistIdx = this.artists.findIndex(element => element.id === _artist.id);
-					if(artistIdx !== -1) { // artist id found
-						this.artists[artistIdx].genres = _artist.genres;
-						_artist.genres.forEach(_genre => {
-							let genreIdx = this.genres.findIndex(element => element.name === _genre);
-							if(genreIdx === -1) { // genre not found
-								let genre = new Genre(_genre);
-								genre.addArtist(this.artists[artistIdx])
-								this.genres.push(genre);
-							} else { // genre found, add artist to list
-								this.genres[genreIdx].addArtist(this.artists[artistIdx]);
-							}
-						});
+	getGenres(offset = 0, limit = 50) {
+		console.log('artists.length=' + this.artists.length);
 
-					}
-				});
-				// todo: would be enough to call it once in the final fnSuccess call
+		let start = offset;
+		let end = Math.min(offset + limit, this.artists.length);
+		console.log('start=' + start + ',end=' + end);
+
+		let artistIds = '';
+		this.artists.slice(start, end).forEach((artist) => {
+			artistIds += artist.id + ',';
+		});
+
+		let url = 'https://api.spotify.com/v1/artists'
+		let data = {
+			'ids': artistIds.substring(0, artistIds.length - 1)
+		};
+		let type = 'GET';
+		let fnSuccess = function(data) {
+			console.log('start=' + start + ',end=' + end);
+			data.artists.forEach(_artist => {
+				let artistIdx = this.artists.findIndex(element => element.id === _artist.id);
+				if(artistIdx !== -1) { // artist id found
+					this.artists[artistIdx].genres = _artist.genres;
+					_artist.genres.forEach(_genre => {
+						let genreIdx = this.genres.findIndex(element => element.name === _genre);
+						if(genreIdx === -1) { // genre not found
+							let genre = new Genre(_genre);
+							genre.addArtist(this.artists[artistIdx])
+							this.genres.push(genre);
+						} else { // genre found, add artist to list
+							this.genres[genreIdx].addArtist(this.artists[artistIdx]);
+						}
+					});
+				}
+			});
+			// test if there are more genres
+			if(offset + limit < this.artists.length) {
+				this.getGenres(offset + limit, limit);
+			} else { // no more genres
 				this.genres.sort((a, b) => a.name.localeCompare(b.name));
 			}
-			this.sendRequest(url, type, data, fnSuccess, null);
+
 		}
+		this.sendRequest(url, type, data, fnSuccess, null);
 	}
 
 	getDevices() {
@@ -179,7 +184,7 @@ class Spotify {
 				//console.log(this.artists);
 
 				localStorage.setItem('artists', JSON.stringify(this.artists));
-				this.getGenres();
+				this.getGenres(0, 50);
 				this.populateViewLibraryFromArtists(this.artists);
 
 				$('#viewStatus').html('');
@@ -201,7 +206,7 @@ class Spotify {
 		this.sendRequest(url, type, data, fnSuccess);
 	}
 
-	populateViewLibraryFromArtists(artists) {
+	generateUlFromArtists(artists) {
 		const ulLibraryNew = document.createElement('ul');
 		ulLibraryNew.id = 'ulLibrary';
 		artists.forEach(artist => {
@@ -253,6 +258,60 @@ class Spotify {
 				ulAlbums.appendChild(liAlbum);
 			})
 			liArtist.appendChild(ulAlbums);
+		});
+		return ulLibraryNew;
+	}
+
+	populateViewLibraryFromArtists(artists) {
+		const ulLibraryNew = this.generateUlFromArtists(artists);
+
+		// switch content of old ul to new ul because we need to keep the expanded items expanded
+		const divLibrary = $('#divLibrary');
+		divLibrary.empty();
+		divLibrary.append(ulLibraryNew);
+	}
+
+	populateViewLibraryFromGenres(genres) {
+		const ulLibraryNew = document.createElement('ul');
+		ulLibraryNew.id = 'ulLibrary';
+		console.log(genres);
+		genres.forEach(genre => {
+			let ulArtists = this.generateUlFromArtists(genre.artists);
+			ulArtists.classList.add('nested');
+
+			let liGenre = document.createElement('li');
+
+			let spanGenreName = document.createElement('span');
+			spanGenreName.innerHTML = genre.name;
+			spanGenreName.id = genre.id;
+			spanGenreName.classList.add('caret');
+
+			// test if span already exists
+			let existingSpanGenreName = $('span#' + genre.id);
+			if(existingSpanGenreName.length > 0 && existingSpanGenreName.hasClass('collapsable')) {
+				//console.log('existingSpanArtistName' + ' span#'+artist.id);
+				// restore expanded state
+				spanGenreName.classList.add('collapsable');
+				ulArtists.classList.add('active');
+			} else {
+				//console.log('existingSpanArtistName existiert nicht');
+				spanGenreName.classList.add('expandable');
+			}
+
+			spanGenreName.addEventListener('click', () => {
+				console.log('addEventListener call');
+				ulArtists.classList.toggle('active');
+				spanGenreName.classList.toggle('expandable');
+				spanGenreName.classList.toggle('collapsable');
+			});
+
+			liGenre.append(spanGenreName);
+			ulLibraryNew.appendChild(liGenre);
+
+
+
+			liGenre.appendChild(ulArtists);
+
 		});
 
 		// switch content of old ul to new ul because we need to keep the expanded items expanded
