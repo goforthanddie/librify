@@ -28,6 +28,10 @@ window.addEventListener("load", function () {
         spotify.getGenres(0, 50);
     });
 
+    $('#buttonReduceGenres').click(function() {
+        spotify.reduceGenres();
+    });
+
     $('#buttonShowByGenre').click(function() {
         spotify.populateViewLibraryFromGenres(spotify.genres);
     });

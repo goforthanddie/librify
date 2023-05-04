@@ -12,7 +12,7 @@ class Artist {
 		this.name = name;
 		this.albums = [];
 		// add default genre where the artist gets listed even if spotify does not return any genre
-		this.genres = [GENRE_DEFAULT];
+		this.genres = [GENRE_DEFAULT.name];
 	}
 
 	addAlbum(album) {

@@ -8,7 +8,7 @@ class Genre {
 
 	constructor(name) {
 		// todo: generate unique id
-		this.id = window.performance.now();
+		this.id = name.replace(/\s/g,'').replace(/&/g, '').replace(/\'/g, '');
 		this.name = name;
 		this.artists = [];
 	}
