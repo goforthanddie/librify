@@ -33,8 +33,11 @@ window.addEventListener("load", function () {
     });
 
     let selectSortAlbums = $('#selectSortAlbums');
+    selectSortAlbums.append($('<option />').val(SORT_BY_NAME).text(SORT_BY_NAME));
+    selectSortAlbums.append($('<option />').val(SORT_BY_YEAR).text(SORT_BY_YEAR).attr('selected', 'selected'));
     selectSortAlbums.change(function() {
-        spotify.options.sortAlbums = selectSortAlbums.children(':selected').attr('id');
+        console.log(spotify.options.sortAlbums);
+        spotify.options.sortAlbums = selectSortAlbums.children(':selected').attr('value');
         spotify.populateViewLibraryFromArtists(spotify.artists);
     });
 

@@ -7,23 +7,28 @@ const URL_AUTH = 'https://accounts.spotify.com/api/token';
 class Spotify {
 
 	artists;
-	options = {};
+	options;
 	genres;
 	accessToken;
 	arrayDevices;
 
 	constructor() {
+		this.options = new Options();
+		this.genres = [GENRE_DEFAULT];
+		this.accessToken = null;
+
 		let artists = localStorage.getItem('artists');
 		if(artists != null) {
 			console.log('populating library view from stored artists');
 			this.artists = JSON.parse(artists, Utils.reviver);
 			this.populateViewLibraryFromArtists(this.artists);
+			this.getGenres(0, 50);
 		} else {
 			this.artists = [];
 		}
 		// add the default genre so all artists without a genre other than the default genre will end up in this genre
-		this.genres = [GENRE_DEFAULT];
-		this.accessToken = null;
+
+
 		this.arrayDevices = [];
 	}
 
@@ -300,7 +305,8 @@ class Spotify {
 
 			// sort albums (Todo: different location?)
 			artist.albums.sort((a, b) => a.name.localeCompare(b.name));
-			if(this.options.sortAlbums === 'year') {
+
+			if(this.options.sortAlbums === SORT_BY_YEAR) {
 				artist.albums.sort((a, b) => new Date(a.releaseDate) < new Date(b.releaseDate) ? -1 : 1);
 			}
 
