@@ -32,6 +32,12 @@ window.addEventListener("load", function () {
         spotify.reduceGenres();
     });
 
+    let selectSortAlbums = $('#selectSortAlbums');
+    selectSortAlbums.change(function() {
+        spotify.options.sortAlbums = selectSortAlbums.children(':selected').attr('id');
+        spotify.populateViewLibraryFromArtists(spotify.artists);
+    });
+
     $('#buttonShowByGenre').click(function() {
         spotify.populateViewLibraryFromGenres(spotify.genres);
     });
@@ -40,16 +46,16 @@ window.addEventListener("load", function () {
         spotify.populateViewLibraryFromArtists(spotify.artists);
     });
 
-    document.getElementById('buttonReloadDevices').addEventListener('click', function () {
+    $('#buttonReloadDevices').click(function() {
         spotify.getDevices();
-    }, false);
+    });
 
-    document.getElementById('buttonLogout').addEventListener('click', function () {
+    $('#buttonLogout').click(function() {
         Utils.logout();
-    }, false);
+    });
 
-    document.getElementById('buttonLogin').addEventListener('click', function () {
+    $('#buttonLogin').click(function() {
         console.log('login-button:click()');
         Spotify.authorize();
-    }, false);
+    });
 });

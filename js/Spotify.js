@@ -7,6 +7,7 @@ const URL_AUTH = 'https://accounts.spotify.com/api/token';
 class Spotify {
 
 	artists;
+	options = {};
 	genres;
 	accessToken;
 	arrayDevices;
@@ -299,6 +300,10 @@ class Spotify {
 
 			// sort albums (Todo: different location?)
 			artist.albums.sort((a, b) => a.name.localeCompare(b.name));
+			if(this.options.sortAlbums === 'year') {
+				artist.albums.sort((a, b) => new Date(a.releaseDate) < new Date(b.releaseDate) ? -1 : 1);
+			}
+
 
 			artist.albums.forEach((album) => {
 				let liAlbum = document.createElement('li');
@@ -358,11 +363,7 @@ class Spotify {
 
 			liGenre.append(spanGenreName);
 			ulLibraryNew.appendChild(liGenre);
-
-
-
 			liGenre.appendChild(ulArtists);
-
 		});
 
 		// switch content of old ul to new ul because we need to keep the expanded items expanded
