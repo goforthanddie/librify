@@ -34,7 +34,7 @@ class Utils {
                 });
                 return artist;
             } else if(value.dataType === Album.name) {
-                return new Album(value.id, value.name);
+                return new Album(value.id, value.name, value.releaseDate, value.releaseDatePrecision);
             }
         }
         return value;

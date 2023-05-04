@@ -202,8 +202,9 @@ class Spotify {
 			//console.log(data);
 			// iterate over returned albums
 			data.items.forEach(item => {
-				//console.log(item.album.id);
-				let album = new Album(item.album.id, item.album.name);
+				//console.log(item.album);
+				let album = new Album(item.album.id, item.album.name, item.album.release_date, item.album.release_date_precision);
+				//console.log(album);
 				// iterate over artists of album
 				item.album.artists.forEach(_artist => {
 					// test if artist is already in list
@@ -221,7 +222,7 @@ class Spotify {
 			});
 
 			console.log(Math.min(offset + limit, data.total) + '/' + data.total);
-			$('#viewStatus').html('Loading ' + Math.min(offset + limit, data.total) + '/' + data.total);
+			$('#viewStatus').html('Loading albums ' + Math.min(offset + limit, data.total) + '/' + data.total);
 
 			// test if there are more albums
 			if(data.next != null) {
@@ -250,7 +251,7 @@ class Spotify {
 			'position_ms': 0,
 		});
 		let fnSuccess = function(data) {
-			console.log('startPlayback successfull');
+			console.log('startPlayback successful');
 			console.log(data);
 		};
 		this.sendRequest(url, type, data, fnSuccess);
@@ -301,7 +302,7 @@ class Spotify {
 
 			artist.albums.forEach((album) => {
 				let liAlbum = document.createElement('li');
-				liAlbum.innerHTML = album.name;
+				liAlbum.innerHTML = new Date(album.releaseDate).getFullYear() + ' ' + album.name;
 				liAlbum.addEventListener('click', () => {
 					this.startPlayback(album.id);
 				});
