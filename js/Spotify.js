@@ -14,20 +14,24 @@ class Spotify {
 
 	constructor() {
 		this.options = new Options();
-		this.genres = [GENRE_DEFAULT];
+
 		this.accessToken = null;
 
 		let artists = localStorage.getItem('artists');
 		if(artists != null) {
-			console.log('populating library view from stored artists');
 			this.artists = JSON.parse(artists, Utils.reviver);
-			this.populateViewLibraryFromArtists(this.artists);
-			this.getGenres(0, 50);
+			console.log('retrieved ' + this.artists.length + ' artists');
 		} else {
 			this.artists = [];
 		}
-		// add the default genre so all artists without a genre other than the default genre will end up in this genre
 
+		let genres = localStorage.getItem('genres');
+		if(artists != null) {
+			this.genres = JSON.parse(genres, Utils.reviver);
+		} else {
+			// add the default genre so all artists without a genre other than the default genre will end up in this genre
+			this.genres = [GENRE_DEFAULT];
+		}
 
 		this.arrayDevices = [];
 	}
@@ -52,7 +56,7 @@ class Spotify {
 				'Content-Type': 'application/x-www-form-urlencoded',
 				'Authorization': (this.accessToken !== null && url !== URL_AUTH) ? this.accessToken.type + '  ' + this.accessToken.token : ''
 			},
-			statusCode: {
+			statusCode: { // todo: wenn das token refreshed wurde muss der letzte request erneut abgesetzt werden :o?
 				401: function() { // 401: Unauthorized - The request requires user authentication or, if the request included authorization credentials, authorization has been refused for those credentials.
 					console.log('Got 401. Refreshing the token.');
 					let refreshToken = localStorage.getItem('refresh_token');
@@ -116,6 +120,10 @@ class Spotify {
 				this.getGenres(offset + limit, limit);
 			} else { // no more genres
 				this.genres.sort((a, b) => a.name.localeCompare(b.name));
+				localStorage.removeItem('genres');
+				localStorage.removeItem('artists');
+				localStorage.setItem('genres', JSON.stringify(this.genres));
+				localStorage.setItem('artists', JSON.stringify(this.artists));
 			}
 
 		}
@@ -126,12 +134,12 @@ class Spotify {
 		// this function reduces the amount of genres by going through each artists spotify genres and keeping only the genre with the most occurrences within the library
 		let reducedGenres = [];
 		this.artists.forEach(_artist => {
-			//console.log('_artist='+_artist.name);
-			//console.log(_artist);
+			console.log('_artist=' + _artist.name);
+			console.log(_artist);
 			let maxArtistsGenre = 0;
 			let maxArtistsGenreIdx;
 			_artist.genres.forEach(_genre => {
-				console.debug('_genre='+_genre);
+				console.debug('_genre=' + _genre);
 				// find genre with most entries
 				let genreIdx = this.genres.findIndex(element => element.name === _genre);
 				//console.log('genreIdx='+genreIdx);
@@ -149,8 +157,9 @@ class Spotify {
 					console.debug(_genre.name + ' not found in this.genres :O');
 				}
 			});
-			console.debug('_genre mit meisten artists:' + this.genres[maxArtistsGenreIdx].name);
 			console.debug(maxArtistsGenreIdx);
+			console.debug('_genre mit meisten artists:' + this.genres[maxArtistsGenreIdx].name);
+
 			// test if genre is not already in the new array
 			if(reducedGenres.findIndex(element => element.id === this.genres[maxArtistsGenreIdx].id) === -1) {
 				console.debug('pushing ' + this.genres[maxArtistsGenreIdx].name)
@@ -162,6 +171,62 @@ class Spotify {
 
 		this.genres = reducedGenres;
 		this.genres.sort((a, b) => a.name.localeCompare(b.name));
+		this.populateViewLibrary();
+	}
+
+	furtherReduceGenres() {
+		console.log('furtherReduceGenres()');
+		let foundMainGenres = [];
+		let foundSubGenres = [];
+		console.log(this.genres);
+		// identify sub genres, i.e., genres where the name of another genre is part of the name
+		this.genres.forEach(_genre => {
+			let subGenres = this.genres.filter(element => element.name.includes(_genre.name) && element !== _genre);
+			// test for length > 1 because it will always find itself
+			if(subGenres.length > 0) {
+				subGenres.forEach(_subgenre => {
+					console.log('subgenre ' + _subgenre.name);
+					// add all the artists of the found sub genres to the main genre
+					_subgenre.artists.forEach(_artist => {
+						_genre.addArtist(_artist);
+					});
+
+					_genre.addSubGenre(_subgenre);
+					// test if the sub genre is already in the foundSubGenres array, if not, add it
+					if(foundSubGenres.findIndex(element => element.id === _subgenre.id) === -1) {
+						foundSubGenres.push(_subgenre);
+					}
+				});
+			}
+		});
+		// identify main genres, i.e., genres that are not sub genres
+		this.genres.forEach(_genre => {
+			if(foundSubGenres.findIndex(element => element.id === _genre.id) === -1) {
+					// test if the main genre is already in the foundMainGenres array, if not, add it
+					if(foundMainGenres.findIndex(element => element.id === _genre.id) === -1) {
+						foundMainGenres.push(_genre);
+					}
+			}
+		});
+		console.log(foundMainGenres);
+		console.log(foundSubGenres);
+		foundMainGenres.forEach(_genre => {
+			_genre.artists.sort((a, b) => a.name.localeCompare(b.name));
+		});
+		this.genres = foundMainGenres;
+
+		// test if we still got all the artists
+		let compArtists = [];
+		this.genres.forEach(_genre => {
+			_genre.artists.forEach(_artist => {
+				if(compArtists.findIndex(element => element.id === _artist.id) === -1) {
+					compArtists.push(_artist)
+				}
+			})
+		});
+		console.log('compArtists.length=' + compArtists.length);
+		console.log(compArtists.sort((a, b) => a.name.localeCompare(b.name)));
+		this.populateViewLibrary();
 	}
 
 	getDevices() {
@@ -173,14 +238,14 @@ class Spotify {
 				this.arrayDevices.push(new Device(device.id, device.name, device.is_active));
 			});
 
-			Spotify.populateSelectDevices(this.arrayDevices);
+			this.populateSelectDevices(this.arrayDevices);
 			console.log('getDevices()');
 			console.log(data);
 		};
 		this.sendRequest(url, type, {}, fnSuccess, null);
 	}
 
-	static populateSelectDevices(arrayDevices) {
+	populateSelectDevices(arrayDevices) {
 		console.log(arrayDevices);
 		const selectDevices = $('#selectDevices');
 		selectDevices.empty();
@@ -189,6 +254,7 @@ class Spotify {
 			option.id = device.id;
 			option.innerHTML = device.name;
 			if(device.active) {
+				this.options.selectedDevice = device.id;
 				option.selected = true;
 			}
 			selectDevices.append(option);
@@ -250,7 +316,7 @@ class Spotify {
 	}
 
 	startPlayback(albumId) {
-		let url = 'https://api.spotify.com/v1/me/player/play?device_id=' + $('#selectDevices').children(':selected').attr('id');
+		let url = 'https://api.spotify.com/v1/me/player/play?device_id=' + this.options.selectedDevice;
 		let type = 'PUT';
 		let data = JSON.stringify({
 			'context_uri': 'spotify:album:' + albumId,
@@ -258,7 +324,6 @@ class Spotify {
 		});
 		let fnSuccess = function(data) {
 			console.log('startPlayback successful');
-			console.log(data);
 		};
 		this.sendRequest(url, type, data, fnSuccess);
 	}
@@ -322,6 +387,14 @@ class Spotify {
 			liArtist.appendChild(ulAlbums);
 		});
 		return ulLibraryNew;
+	}
+
+	populateViewLibrary() {
+		if(this.options.view === VIEW_ARTIST) {
+			this.populateViewLibraryFromArtists(this.artists);
+		} else if(this.options.view === VIEW_GENRE) {
+			this.populateViewLibraryFromGenres(this.genres);
+		}
 	}
 
 	populateViewLibraryFromArtists(artists) {
@@ -473,6 +546,7 @@ class Spotify {
 		};
 		let fnError = function(error) {
 			console.error('Error:', error);
+			// todo: logout if refreshAccessToken fails
 			//Utils.logout();
 		}
 		this.sendRequest(url, type, data, fnSuccess, fnError);

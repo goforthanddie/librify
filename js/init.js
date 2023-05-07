@@ -32,21 +32,38 @@ window.addEventListener("load", function () {
         spotify.reduceGenres();
     });
 
+    $('#buttonFurtherReduceGenres').click(function() {
+        spotify.furtherReduceGenres();
+    });
+
     let selectSortAlbums = $('#selectSortAlbums');
     selectSortAlbums.append($('<option />').val(SORT_BY_NAME).text(SORT_BY_NAME));
-    selectSortAlbums.append($('<option />').val(SORT_BY_YEAR).text(SORT_BY_YEAR).attr('selected', 'selected'));
+    selectSortAlbums.append($('<option />').val(SORT_BY_YEAR).text(SORT_BY_YEAR));
+
+    // preselect default option
+    $('#selectSortAlbums > option[value='+spotify.options.sortAlbums+']').attr('selected', 'selected');
+
     selectSortAlbums.change(function() {
         console.log(spotify.options.sortAlbums);
         spotify.options.sortAlbums = selectSortAlbums.children(':selected').attr('value');
-        spotify.populateViewLibraryFromArtists(spotify.artists);
+        spotify.populateViewLibrary();
     });
 
-    $('#buttonShowByGenre').click(function() {
-        spotify.populateViewLibraryFromGenres(spotify.genres);
+    let selectView = $('#selectView');
+    selectView.append($('<option />').val(VIEW_ARTIST).text(VIEW_ARTIST));
+    selectView.append($('<option />').val(VIEW_GENRE).text(VIEW_GENRE));
+
+    // preselect default option
+    $('#selectView > option[value='+spotify.options.view+']').attr('selected', 'selected');
+
+    selectView.change(function() {
+        console.log(spotify.options.view);
+        spotify.options.view = selectView.children(':selected').attr('value');
+        spotify.populateViewLibrary();
     });
 
-    $('#buttonShowByArtist').click(function() {
-        spotify.populateViewLibraryFromArtists(spotify.artists);
+    $('#selectDevices').change(function() {
+        spotify.options.selectedDevice = $('#selectDevices').children(':selected').attr('id');
     });
 
     $('#buttonReloadDevices').click(function() {

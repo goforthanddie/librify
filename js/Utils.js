@@ -8,6 +8,10 @@ class Utils {
 
         spotify.accessToken = new AccessToken(access_token, 'Bearer');
         spotify.getDevices();
+
+        console.log('populating library view from stored artists');
+        spotify.populateViewLibrary();
+        //spotify.getGenres(0, 50);
         //spotify.getSavedAlbums(0, 50);
 
         console.log('login ok');
@@ -26,6 +30,7 @@ class Utils {
         if(typeof value === 'object' && value !== null) {
             if (value.dataType === Artist.name) {
                 let artist = new Artist(value.id, value.name);
+                artist.genres = value.genres;
                 value.albums.forEach(_album => {
                     // re-stringify and parse to force invocation of === 'Album'
                     let album = JSON.parse(JSON.stringify(_album), Utils.reviver);
@@ -35,6 +40,13 @@ class Utils {
                 return artist;
             } else if(value.dataType === Album.name) {
                 return new Album(value.id, value.name, value.releaseDate, value.releaseDatePrecision);
+            } else if(value.dataType === Genre.name) {
+                let genre = new Genre(value.name);
+                value.artists.forEach(_artist => {
+                    let artist = JSON.parse(JSON.stringify(_artist), Utils.reviver);
+                    genre.addArtist(artist);
+                });
+                return genre;
             }
         }
         return value;
