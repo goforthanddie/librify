@@ -32,8 +32,12 @@ window.addEventListener("load", function () {
         spotify.reduceGenres();
     });
 
-    $('#buttonFurtherReduceGenres').click(function() {
-        spotify.furtherReduceGenres();
+    $('#buttonReduceGenresFurther').click(function() {
+        spotify.reduceGenresFurther();
+    });
+
+    $('#buttonReduceGenresManually').click(function() {
+        spotify.reduceGenresManually();
     });
 
     let selectSortAlbums = $('#selectSortAlbums');

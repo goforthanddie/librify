@@ -20,7 +20,7 @@ body {
     background-color: #121212;
 }
 
-button, option, select {
+button, option, select, input {
     font-family: monospace, monospace;
     background-color: gray;
 }

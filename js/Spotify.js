@@ -19,15 +19,16 @@ class Spotify {
 
 		let artists = localStorage.getItem('artists');
 		if(artists != null) {
-			this.artists = JSON.parse(artists, Utils.reviver);
+			this.artists = JSON.parse(artists, Utils.reviverArtists);
 			console.log('retrieved ' + this.artists.length + ' artists');
 		} else {
 			this.artists = [];
 		}
 
+		// must parse artists before genres. artists in genres are only identified by an id and retrieved during the revive process.
 		let genres = localStorage.getItem('genres');
-		if(artists != null) {
-			this.genres = JSON.parse(genres, Utils.reviver);
+		if(genres != null) {
+			this.genres = JSON.parse(genres, this.reviverGenres);
 		} else {
 			// add the default genre so all artists without a genre other than the default genre will end up in this genre
 			this.genres = [GENRE_DEFAULT];
@@ -36,7 +37,27 @@ class Spotify {
 		this.arrayDevices = [];
 	}
 
-	sendRequest(url, type, data, fnSuccess, fnError) {
+	// custom reviver to parse the stringified genres back into objects
+	reviverGenres = (function(key, value) {
+		//console.log(this);
+		let artist;
+		if(typeof value === 'object' && value !== null) {
+			if(value.dataType === Artist.name) {
+				artist = this.artists.find(element => element.id === value.id);
+				return artist;
+			} else if(value.dataType === Genre.name) {
+				let genre = new Genre(value.name);
+				value.artists.forEach(_artist => {
+					artist = JSON.parse(JSON.stringify(_artist), Utils.reviverArtists);
+					genre.addArtist(artist);
+				});
+				return genre;
+			}
+		}
+		return value;
+	}).bind(this); // bind the context to the reviver so that this.artists can be accessed
+
+	sendRequest(url, type, data, fnSuccess, fnError, counter = 1) {
 		console.debug('sendRequest()');
 		if(url === undefined || url === null) console.error('parameter url undefined or null');
 		if(type === undefined || type === null) console.error('parameter type undefined or null');
@@ -61,6 +82,12 @@ class Spotify {
 					console.log('Got 401. Refreshing the token.');
 					let refreshToken = localStorage.getItem('refresh_token');
 					this.refreshAccessToken(refreshToken);
+					// fire request again but maximum of 5 times
+					console.log('counter=' + counter);
+					if(counter < 5) {
+						console.log('retry number ' + counter);
+						this.sendRequest(url, type, data, fnSuccess, fnError, ++counter);
+					}
 				}
 			},
 			data: data,
@@ -121,9 +148,11 @@ class Spotify {
 			} else { // no more genres
 				this.genres.sort((a, b) => a.name.localeCompare(b.name));
 				localStorage.removeItem('genres');
+				localStorage.setItem('genres', JSON.stringify(this.genres, Utils.replacerGenres));
 				localStorage.removeItem('artists');
-				localStorage.setItem('genres', JSON.stringify(this.genres));
 				localStorage.setItem('artists', JSON.stringify(this.artists));
+
+				this.populateViewLibrary();
 			}
 
 		}
@@ -171,11 +200,13 @@ class Spotify {
 
 		this.genres = reducedGenres;
 		this.genres.sort((a, b) => a.name.localeCompare(b.name));
+		localStorage.removeItem('genres');
+		localStorage.setItem('genres', JSON.stringify(this.genres, Utils.replacerGenres));
 		this.populateViewLibrary();
 	}
 
-	furtherReduceGenres() {
-		console.log('furtherReduceGenres()');
+	reduceGenresFurther() {
+		console.log('reduceGenresFurther()');
 		let foundMainGenres = [];
 		let foundSubGenres = [];
 		console.log(this.genres);
@@ -202,10 +233,10 @@ class Spotify {
 		// identify main genres, i.e., genres that are not sub genres
 		this.genres.forEach(_genre => {
 			if(foundSubGenres.findIndex(element => element.id === _genre.id) === -1) {
-					// test if the main genre is already in the foundMainGenres array, if not, add it
-					if(foundMainGenres.findIndex(element => element.id === _genre.id) === -1) {
-						foundMainGenres.push(_genre);
-					}
+				// test if the main genre is already in the foundMainGenres array, if not, add it
+				if(foundMainGenres.findIndex(element => element.id === _genre.id) === -1) {
+					foundMainGenres.push(_genre);
+				}
 			}
 		});
 		console.log(foundMainGenres);
@@ -226,7 +257,79 @@ class Spotify {
 		});
 		console.log('compArtists.length=' + compArtists.length);
 		console.log(compArtists.sort((a, b) => a.name.localeCompare(b.name)));
+
+		localStorage.removeItem('genres');
+		localStorage.setItem('genres', JSON.stringify(this.genres, Utils.replacerGenres));
 		this.populateViewLibrary();
+	}
+
+	populateSelectGenresSub() {
+		console.log('populateSelectGenresSub')
+		let selectGenreMain = $('select#genreMain');
+		let selectGenresSub = $('select#genresSub');
+		let inputGenresSubKeyword = $('input#genresSubKeyword');
+		selectGenresSub.attr('size', Math.ceil(this.genres.length / 10));
+		selectGenresSub.empty();
+		let selectedGenreMainValue = selectGenreMain.children(':selected').attr('value');
+		this.genres.forEach(_genre => {
+			//console.log(inputGenresSubKeyword.val());
+			if(selectedGenreMainValue !== _genre.id && _genre.name.includes(inputGenresSubKeyword.val())) {
+				selectGenresSub.append($('<option />').val(_genre.id).text(_genre.name));
+			}
+		});
+	}
+
+	reduceGenresManually() {
+		let selectGenreMain = $('select#genreMain');
+		let selectGenreSub = $('select#genresSub');
+		this.genres.forEach(_genre => {
+			selectGenreMain.append($('<option />').val(_genre.id).text(_genre.name));
+		});
+
+		$('select#genreMain').change(this.populateSelectGenresSub.bind(this));
+
+		$('input#genresSubKeyword').on('input', this.populateSelectGenresSub.bind(this));
+
+		$('button#buttonStoreGenresSub').click(() => {
+			console.log('buttonStoreGenresSub click');
+
+			let genreMain = this.genres.find(element => element.id === selectGenreMain.val());
+			console.log(genreMain);
+			if(genreMain !== undefined) {
+				console.log(selectGenreSub.children(':selected'));
+				// add all the artists of the found sub genres to the main genre
+				selectGenreSub.val().forEach(_idGenreSub => {
+					console.log(_idGenreSub);
+					let genreSubIdx = this.genres.findIndex(element => element.id === _idGenreSub);
+					console.log(this.genres[genreSubIdx]);
+					if(genreSubIdx !== -1) {
+						this.genres[genreSubIdx].artists.forEach(_artist => {
+							genreMain.addArtist(_artist);
+						});
+						genreMain.addSubGenre(this.genres[genreSubIdx]);
+
+						// remove sub genre from main array
+						this.genres.splice(genreSubIdx, 1);
+					}
+				});
+
+				$('input#genresSubKeyword').val('');
+				let selectGenreMain = $('select#genreMain');
+				selectGenreMain.empty();
+				this.genres.forEach(_genre => {
+					selectGenreMain.append($('<option />').val(_genre.id).text(_genre.name));
+				});
+				selectGenreMain.val(this.genres[0].id).trigger('change');
+
+				// sort artists
+				genreMain.artists.sort((a, b) => a.name.localeCompare(b.name));
+				// store new genres
+				localStorage.removeItem('genres');
+				localStorage.setItem('genres', JSON.stringify(this.genres, Utils.replacerGenres));
+				this.populateViewLibrary();
+			}
+		});
+
 	}
 
 	getDevices() {
@@ -259,6 +362,11 @@ class Spotify {
 			}
 			selectDevices.append(option);
 		});
+
+		let deviceActive = this.arrayDevices.find(element => element.active == true);
+		if(deviceActive === undefined) {
+			this.options.selectedDevice = arrayDevices[0].id;
+		}
 	}
 
 	getSavedAlbums(offset = 0, limit = 50) {
@@ -322,7 +430,7 @@ class Spotify {
 			'context_uri': 'spotify:album:' + albumId,
 			'position_ms': 0,
 		});
-		let fnSuccess = function(data) {
+		let fnSuccess = function() {
 			console.log('startPlayback successful');
 		};
 		this.sendRequest(url, type, data, fnSuccess);
@@ -332,6 +440,7 @@ class Spotify {
 		const ulLibraryNew = document.createElement('ul');
 		ulLibraryNew.id = 'ulLibrary';
 		artists.forEach(artist => {
+
 			let ulAlbums = document.createElement('ul');
 			ulAlbums.classList.add('nested');
 
@@ -359,7 +468,7 @@ class Spotify {
 			}
 
 			spanArtistName.addEventListener('click', () => {
-				console.log('addEventListener call');
+				//console.log('addEventListener call');
 				ulAlbums.classList.toggle('active');
 				spanArtistName.classList.toggle('expandable');
 				spanArtistName.classList.toggle('collapsable');
@@ -390,9 +499,9 @@ class Spotify {
 	}
 
 	populateViewLibrary() {
-		if(this.options.view === VIEW_ARTIST) {
+		if(this.options.view === VIEW_ARTIST && this.artists != null) {
 			this.populateViewLibraryFromArtists(this.artists);
-		} else if(this.options.view === VIEW_GENRE) {
+		} else if(this.options.view === VIEW_GENRE && this.genres != null) {
 			this.populateViewLibraryFromGenres(this.genres);
 		}
 	}
@@ -434,7 +543,7 @@ class Spotify {
 			}
 
 			spanGenreName.addEventListener('click', () => {
-				console.log('addEventListener call');
+				//console.log('addEventListener call');
 				ulArtists.classList.toggle('active');
 				spanGenreName.classList.toggle('expandable');
 				spanGenreName.classList.toggle('collapsable');
