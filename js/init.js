@@ -38,6 +38,7 @@ window.addEventListener("load", function () {
 
     $('#buttonReduceGenresManually').click(function() {
         spotify.reduceGenresManually();
+        $('#viewReduceGenresManually').toggle();
     });
 
     let selectSortAlbums = $('#selectSortAlbums');

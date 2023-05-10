@@ -29,9 +29,16 @@
     <button id="buttonReloadLibrary">Reload library</button>
     <button id="buttonGetGenres">Get genres</button>
     <button id="buttonReduceGenres">Reduce genres</button>
-    <button id="buttonFurtherReduceGenres">Further reduce genres</button>
+    <button id="buttonReduceGenresFurther">Reduce genres further</button>
+    <button id="buttonReduceGenresManually">Reduce genres manually</button>
     <button id="buttonLogout">Logout</button>
     <div id="viewStatus"></div>
+    <div id="viewReduceGenresManually" style="display: none;">
+        <label for="genreMain">Select main genre</label><br /><select id="genreMain"></select><br /><br />
+        <input id="genresSubKeyword" /><br />
+        <label for="genresSub">Select sub genres</label><br /><select multiple id="genresSub"></select><br />
+        <button id="buttonStoreGenresSub">Store</button>
+    </div>
     <div id="divLibrary">
         <ul id="ulLibrary"></ul>
     </div>

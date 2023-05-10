@@ -445,7 +445,8 @@ class Spotify {
 			ulAlbums.classList.add('nested');
 
 			let liArtist = document.createElement('li');
-			/*liArtist.classList.add('caret');
+			liArtist.draggable = true;
+			liArtist.classList.add('caret');/*
 			liArtist.classList.add('expandable');*/
 
 			let spanArtistName = document.createElement('span');
@@ -524,6 +525,7 @@ class Spotify {
 			ulArtists.classList.add('nested');
 
 			let liGenre = document.createElement('li');
+			liGenre.draggable = true;
 
 			let spanGenreName = document.createElement('span');
 			spanGenreName.innerHTML = genre.name + ' (' + genre.artists.length + ')';
