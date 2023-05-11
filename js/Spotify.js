@@ -12,6 +12,8 @@ class Spotify {
 	accessToken;
 	arrayDevices;
 
+	dragged;
+
 	constructor() {
 		this.options = new Options();
 
@@ -526,11 +528,58 @@ class Spotify {
 
 			let liGenre = document.createElement('li');
 			liGenre.draggable = true;
+			liGenre.id = genre.id;
+
+			liGenre.addEventListener('dragstart', (event) => {
+				this.dragged = event.target;
+			});
+
+			liGenre.addEventListener('dragenter', (event) => {
+				event.target.classList.add('highlight');
+			});
+
+			liGenre.addEventListener('dragover', (event) => {
+				event.preventDefault();
+			});
+
+			liGenre.addEventListener('dragleave', (event) => {
+				event.target.classList.remove('highlight');
+			});
+
+			liGenre.addEventListener('drop', (event) => {
+				event.target.classList.remove('highlight');
+				console.log(this.dragged);
+				// add all the artists of the found sub genres to the main genre
+				let idGenreMain = event.target.id;
+				let idGenreSub = this.dragged.id;
+				console.log('idGenreMain='+idGenreMain+'idGenreSub='+idGenreSub);
+				let genreMain = this.genres.find(element => element.id === idGenreMain);
+				let genreSubIdx = this.genres.findIndex(element => element.id === idGenreSub);
+				console.log(this.genres[genreSubIdx]);
+				if(genreMain !== undefined && genreSubIdx !== -1) {
+					this.genres[genreSubIdx].artists.forEach(_artist => {
+						genreMain.addArtist(_artist);
+					});
+					genreMain.addSubGenre(this.genres[genreSubIdx]);
+
+					// remove sub genre from main array
+					this.genres.splice(genreSubIdx, 1);
+
+					// todo: codeschnipsel kommt häufiger vor
+					// sort artists
+					genreMain.artists.sort((a, b) => a.name.localeCompare(b.name));
+					// store new genres
+					localStorage.removeItem('genres');
+					localStorage.setItem('genres', JSON.stringify(this.genres, Utils.replacerGenres));
+					this.populateViewLibrary();
+				}
+			});
 
 			let spanGenreName = document.createElement('span');
 			spanGenreName.innerHTML = genre.name + ' (' + genre.artists.length + ')';
 			spanGenreName.id = genre.id;
 			spanGenreName.classList.add('caret');
+			spanGenreName.classList.add('genre');
 
 			// test if span already exists
 			let existingSpanGenreName = $('span#' + genre.id);

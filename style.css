@@ -29,6 +29,10 @@ button, option, select, input {
     cursor: pointer;
 }
 
+.highlight {
+    font-weight: bold;
+}
+
 .expandable::before {
     content: '+ ';
 }
