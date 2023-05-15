@@ -83,13 +83,14 @@ class Spotify {
 				401: function() { // 401: Unauthorized - The request requires user authentication or, if the request included authorization credentials, authorization has been refused for those credentials.
 					console.log('Got 401. Refreshing the token.');
 					let refreshToken = localStorage.getItem('refresh_token');
-					this.refreshAccessToken(refreshToken);
-					// fire request again but maximum of 5 times
-					console.log('counter=' + counter);
-					if(counter < 5) {
-						console.log('retry number ' + counter);
-						this.sendRequest(url, type, data, fnSuccess, fnError, ++counter);
-					}
+					this.refreshAccessToken(refreshToken, () => {
+						// fire request again but maximum of 5 times
+						console.log('counter=' + counter);
+						if(counter < 5) {
+							console.log('retry number ' + counter);
+							this.sendRequest(url, type, data, fnSuccess, fnError, ++counter);
+						}
+					});
 				}
 			},
 			data: data,
@@ -447,14 +448,14 @@ class Spotify {
 			ulAlbums.classList.add('nested');
 
 			let liArtist = document.createElement('li');
-			liArtist.draggable = true;
-			liArtist.classList.add('caret');/*
-			liArtist.classList.add('expandable');*/
+			liArtist.classList.add('caret');
 
 			let spanArtistName = document.createElement('span');
 			spanArtistName.innerHTML = artist.name;
 			spanArtistName.id = artist.id;
 			spanArtistName.classList.add('caret');
+			spanArtistName.classList.add('artist');
+			spanArtistName.draggable = true;
 
 			// test if span already exists
 			let existingSpanArtistName = $('span#' + artist.id);
@@ -477,6 +478,13 @@ class Spotify {
 				spanArtistName.classList.toggle('collapsable');
 			});
 
+			spanArtistName.addEventListener('dragstart', (event) => {
+				// traverse DOM tree back to the genre span and read the id
+				let genreId = event.target.parentNode.parentNode.parentNode.children[0].id;
+				this.dragged = [genreId, event.target.id];
+				console.log(this.dragged);
+			});
+
 			liArtist.append(spanArtistName);
 			ulLibraryNew.appendChild(liArtist);
 
@@ -486,7 +494,6 @@ class Spotify {
 			if(this.options.sortAlbums === SORT_BY_YEAR) {
 				artist.albums.sort((a, b) => new Date(a.releaseDate) < new Date(b.releaseDate) ? -1 : 1);
 			}
-
 
 			artist.albums.forEach((album) => {
 				let liAlbum = document.createElement('li');
@@ -521,66 +528,91 @@ class Spotify {
 	populateViewLibraryFromGenres(genres) {
 		const ulLibraryNew = document.createElement('ul');
 		ulLibraryNew.id = 'ulLibrary';
+
 		console.log(genres);
 		genres.forEach(genre => {
 			let ulArtists = this.generateUlFromArtists(genre.artists);
 			ulArtists.classList.add('nested');
 
 			let liGenre = document.createElement('li');
-			liGenre.draggable = true;
-			liGenre.id = genre.id;
-
-			liGenre.addEventListener('dragstart', (event) => {
-				this.dragged = event.target;
-			});
-
-			liGenre.addEventListener('dragenter', (event) => {
-				event.target.classList.add('highlight');
-			});
-
-			liGenre.addEventListener('dragover', (event) => {
-				event.preventDefault();
-			});
-
-			liGenre.addEventListener('dragleave', (event) => {
-				event.target.classList.remove('highlight');
-			});
-
-			liGenre.addEventListener('drop', (event) => {
-				event.target.classList.remove('highlight');
-				console.log(this.dragged);
-				// add all the artists of the found sub genres to the main genre
-				let idGenreMain = event.target.id;
-				let idGenreSub = this.dragged.id;
-				console.log('idGenreMain='+idGenreMain+'idGenreSub='+idGenreSub);
-				let genreMain = this.genres.find(element => element.id === idGenreMain);
-				let genreSubIdx = this.genres.findIndex(element => element.id === idGenreSub);
-				console.log(this.genres[genreSubIdx]);
-				if(genreMain !== undefined && genreSubIdx !== -1) {
-					this.genres[genreSubIdx].artists.forEach(_artist => {
-						genreMain.addArtist(_artist);
-					});
-					genreMain.addSubGenre(this.genres[genreSubIdx]);
-
-					// remove sub genre from main array
-					this.genres.splice(genreSubIdx, 1);
-
-					// todo: codeschnipsel kommt häufiger vor
-					// sort artists
-					genreMain.artists.sort((a, b) => a.name.localeCompare(b.name));
-					// store new genres
-					localStorage.removeItem('genres');
-					localStorage.setItem('genres', JSON.stringify(this.genres, Utils.replacerGenres));
-					this.populateViewLibrary();
-				}
-			});
 
 			let spanGenreName = document.createElement('span');
 			spanGenreName.innerHTML = genre.name + ' (' + genre.artists.length + ')';
 			spanGenreName.id = genre.id;
 			spanGenreName.classList.add('caret');
 			spanGenreName.classList.add('genre');
+			spanGenreName.draggable = true;
 
+			spanGenreName.addEventListener('dragstart', (event) => {
+				this.dragged = event.target.id;
+			});
+
+			spanGenreName.addEventListener('dragenter', (event) => {
+				event.target.classList.add('highlight');
+			});
+
+			spanGenreName.addEventListener('dragover', (event) => {
+				event.preventDefault();
+			});
+
+			spanGenreName.addEventListener('dragleave', (event) => {
+				event.target.classList.remove('highlight');
+			});
+
+			spanGenreName.addEventListener('drop', (event) => {
+				event.target.classList.remove('highlight');
+				console.log(this.dragged);
+				let idGenreMain = event.target.id;
+				let genreMain = this.genres.find(element => element.id === idGenreMain);
+				console.log('idGenreMain=' + idGenreMain);
+
+				if(typeof this.dragged === 'string') {
+					console.log('sub genre has been dragged.')
+					// add all the artists of the found sub genres to the main genre
+					let idGenreSub = this.dragged;
+					console.log('idGenreSub=' + idGenreSub);
+
+					// need the genre index to remove the item from the this.genres array
+					let genreSubIdx = this.genres.findIndex(element => element.id === idGenreSub);
+
+					console.log(this.genres[genreSubIdx]);
+					if(genreMain !== undefined && genreSubIdx !== -1) {
+						this.genres[genreSubIdx].artists.forEach(_artist => {
+							genreMain.addArtist(_artist);
+						});
+						genreMain.addSubGenre(this.genres[genreSubIdx]);
+
+						// remove sub genre from main array
+						this.genres.splice(genreSubIdx, 1);
+
+						// todo: codeschnipsel kommt häufiger vor
+						// sort artists
+						genreMain.artists.sort((a, b) => a.name.localeCompare(b.name));
+					}
+				} else if (this.dragged instanceof Array) {
+					console.log('single artist has been dragged.')
+					if(genreMain !== undefined) {
+						console.log('moving to ' + genreMain.id);
+						let artist = this.artists.find(element => element.id === this.dragged[1]);
+						if(artist !== undefined) {
+							genreMain.addArtist(artist);
+						}
+					}
+					// aus gedraggtem genre entfernen. ggf lieber übers this.dragged identifizieren weil der artist in mehreren genres drin sein kann
+					let oldGenreIdx = this.genres.findIndex(element => element.id === this.dragged[0]);
+					if(oldGenreIdx !== -1) {
+						let artistIdx = this.genres[oldGenreIdx].artists.findIndex(element => element.id === this.dragged[1]);
+						if(artistIdx !== -1) {
+							this.genres[oldGenreIdx].artists.splice(artistIdx, 1);
+						}
+					}
+
+				}
+				// store new genres
+				localStorage.removeItem('genres');
+				localStorage.setItem('genres', JSON.stringify(this.genres, Utils.replacerGenres));
+				this.populateViewLibrary();
+			});
 			// test if span already exists
 			let existingSpanGenreName = $('span#' + genre.id);
 			if(existingSpanGenreName.length > 0 && existingSpanGenreName.hasClass('collapsable')) {
@@ -687,7 +719,7 @@ class Spotify {
 		this.sendRequest(url, type, data, fnSuccess, fnError);
 	}
 
-	refreshAccessToken(refreshToken) {
+	refreshAccessToken(refreshToken, fnSuccessB) {
 		console.log('refreshAccessToken()');
 		let url = URL_AUTH;
 		let type = 'POST';
@@ -703,6 +735,11 @@ class Spotify {
 			localStorage.setItem('access_token', data.access_token);
 			localStorage.setItem('refresh_token', data.refresh_token);
 			Utils.login(this, data.access_token);
+
+			// re-execute request that triggered the refreshAccessToken call
+			if(fnSuccessB != null) {
+				fnSuccessB.apply()
+			}
 		};
 		let fnError = function(error) {
 			console.error('Error:', error);
