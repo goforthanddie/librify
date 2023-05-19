@@ -1,8 +1,9 @@
 // Listeners
-window.addEventListener("load", function () {
-    const spotify = new Spotify();
+window.addEventListener("load", ()=> {
+    let spotify = new Spotify();
     // debug reasons only:
     window.sptf = spotify;
+
     //$('#loggedin').hide();
     //$('#selectDevices').hide();
 
@@ -82,5 +83,64 @@ window.addEventListener("load", function () {
     $('#buttonLogin').click(function() {
         console.log('login-button:click()');
         Spotify.authorize();
+    });
+
+    $('#buttonRedo').click(() => {
+        console.log('#buttonRedo.click()')
+        if(spotify.stateNavigator.currentStateIdx < spotify.stateNavigator.states.length - 1) {
+            console.log('#buttonRedo.click()');
+            let state = spotify.stateNavigator.redo();
+            localStorage.setItem('genres', state.genres);
+            localStorage.setItem('artists', state.artists);
+            spotify.readFromLocalStorage();
+            spotify.populateViewLibrary(false);
+        }
+    });
+
+    $('#buttonUndo').click(() => {
+        console.log('#buttonUndo.click()')
+        if(spotify.stateNavigator.currentStateIdx > 0) {
+            console.log('#buttonUndo.click() in if currentStateIdx=' + spotify.stateNavigator.currentStateIdx);
+            let state = spotify.stateNavigator.undo();
+            localStorage.setItem('genres', state.genres);
+            localStorage.setItem('artists', state.artists);
+            spotify.readFromLocalStorage();
+            spotify.populateViewLibrary(false);
+        }
+    });
+
+    $('#buttonSaveData').click(function () {
+        let data = "data:text/json;charset=utf-8," + encodeURIComponent('{"genres": '+spotify.stateNavigator.getCurrentState().genres+', "artists":'+spotify.stateNavigator.getCurrentState().artists+'}' );
+        let aSaveData = document.getElementById('aSaveData');
+        aSaveData.href = data;
+        aSaveData.download = 'librify.json';
+        aSaveData.click();
+    });
+
+    $('#buttonLoadData').click(function () {
+        let input = document.createElement('input');
+        input.type = 'file';
+        input.onchange = e => {
+            let file = input.files[0];
+            let fr = new FileReader();
+            fr.onload = function receivedText() {
+                let data = JSON.parse(fr.result);
+                if(data.artists !== null) {
+                    spotify.artists = JSON.parse(JSON.stringify(data.artists), Utils.reviverArtists);
+                    spotify.storeArtists();
+                }
+                if(data.genres !== null) {
+                    spotify.genres = JSON.parse(JSON.stringify(data.genres), spotify.reviverGenres);
+                    spotify.storeGenres();
+                }
+                spotify.populateViewLibrary();
+            };
+            fr.readAsText(file);
+        }
+        input.click();
+    });
+
+    $('input#searchKeyword').on('input', function() {
+        spotify.filterViewLibrary();
     });
 });

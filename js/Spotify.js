@@ -6,6 +6,7 @@ const URL_AUTH = 'https://accounts.spotify.com/api/token';
 
 class Spotify {
 
+	stateNavigator;
 	artists;
 	options;
 	genres;
@@ -16,9 +17,13 @@ class Spotify {
 
 	constructor() {
 		this.options = new Options();
-
+		this.stateNavigator = new StateNavigator();
 		this.accessToken = null;
+		this.readFromLocalStorage();
+		this.arrayDevices = [];
+	}
 
+	readFromLocalStorage() {
 		let artists = localStorage.getItem('artists');
 		if(artists != null) {
 			this.artists = JSON.parse(artists, Utils.reviverArtists);
@@ -35,8 +40,6 @@ class Spotify {
 			// add the default genre so all artists without a genre other than the default genre will end up in this genre
 			this.genres = [GENRE_DEFAULT];
 		}
-
-		this.arrayDevices = [];
 	}
 
 	// custom reviver to parse the stringified genres back into objects
@@ -149,12 +152,8 @@ class Spotify {
 			if(offset + limit < this.artists.length) {
 				this.getGenres(offset + limit, limit);
 			} else { // no more genres
-				this.genres.sort((a, b) => a.name.localeCompare(b.name));
-				localStorage.removeItem('genres');
-				localStorage.setItem('genres', JSON.stringify(this.genres, Utils.replacerGenres));
-				localStorage.removeItem('artists');
-				localStorage.setItem('artists', JSON.stringify(this.artists));
-
+				this.storeGenres();
+				this.storeArtists();
 				this.populateViewLibrary();
 			}
 
@@ -202,9 +201,7 @@ class Spotify {
 		console.debug(reducedGenres);
 
 		this.genres = reducedGenres;
-		this.genres.sort((a, b) => a.name.localeCompare(b.name));
-		localStorage.removeItem('genres');
-		localStorage.setItem('genres', JSON.stringify(this.genres, Utils.replacerGenres));
+		this.storeGenres();
 		this.populateViewLibrary();
 	}
 
@@ -250,6 +247,7 @@ class Spotify {
 		this.genres = foundMainGenres;
 
 		// test if we still got all the artists
+		/*
 		let compArtists = [];
 		this.genres.forEach(_genre => {
 			_genre.artists.forEach(_artist => {
@@ -258,11 +256,10 @@ class Spotify {
 				}
 			})
 		});
-		console.log('compArtists.length=' + compArtists.length);
-		console.log(compArtists.sort((a, b) => a.name.localeCompare(b.name)));
+		console.log('compArtists.length=' + compArtists.length);*/
+		//console.log(compArtists.sort((a, b) => a.name.localeCompare(b.name)));
 
-		localStorage.removeItem('genres');
-		localStorage.setItem('genres', JSON.stringify(this.genres, Utils.replacerGenres));
+		this.storeGenres();
 		this.populateViewLibrary();
 	}
 
@@ -297,14 +294,14 @@ class Spotify {
 			console.log('buttonStoreGenresSub click');
 
 			let genreMain = this.genres.find(element => element.id === selectGenreMain.val());
-			console.log(genreMain);
+			//console.log(genreMain);
 			if(genreMain !== undefined) {
-				console.log(selectGenreSub.children(':selected'));
+				//console.log(selectGenreSub.children(':selected'));
 				// add all the artists of the found sub genres to the main genre
 				selectGenreSub.val().forEach(_idGenreSub => {
 					console.log(_idGenreSub);
 					let genreSubIdx = this.genres.findIndex(element => element.id === _idGenreSub);
-					console.log(this.genres[genreSubIdx]);
+					//console.log(this.genres[genreSubIdx]);
 					if(genreSubIdx !== -1) {
 						this.genres[genreSubIdx].artists.forEach(_artist => {
 							genreMain.addArtist(_artist);
@@ -326,50 +323,29 @@ class Spotify {
 
 				// sort artists
 				genreMain.artists.sort((a, b) => a.name.localeCompare(b.name));
+
 				// store new genres
-				localStorage.removeItem('genres');
-				localStorage.setItem('genres', JSON.stringify(this.genres, Utils.replacerGenres));
+				this.storeGenres();
 				this.populateViewLibrary();
 			}
 		});
 
 	}
 
-	getDevices() {
-		let url = 'https://api.spotify.com/v1/me/player/devices';
-		let type = 'GET';
-		let fnSuccess = function(data) {
-			this.arrayDevices = [];
-			data.devices.forEach(device => {
-				this.arrayDevices.push(new Device(device.id, device.name, device.is_active));
-			});
+	storeGenres() {
+		// sort genres alphabetically
+		this.genres.sort((a, b) => a.name.localeCompare(b.name));
 
-			this.populateSelectDevices(this.arrayDevices);
-			console.log('getDevices()');
-			console.log(data);
-		};
-		this.sendRequest(url, type, {}, fnSuccess, null);
+		localStorage.removeItem('genres');
+		localStorage.setItem('genres', JSON.stringify(this.genres, Utils.replacerGenres));
 	}
 
-	populateSelectDevices(arrayDevices) {
-		console.log(arrayDevices);
-		const selectDevices = $('#selectDevices');
-		selectDevices.empty();
-		arrayDevices.forEach(device => {
-			const option = document.createElement('option');
-			option.id = device.id;
-			option.innerHTML = device.name;
-			if(device.active) {
-				this.options.selectedDevice = device.id;
-				option.selected = true;
-			}
-			selectDevices.append(option);
-		});
+	storeArtists() {
+		// sort artists alphabetically
+		this.artists.sort((a, b) => a.name.localeCompare(b.name));
 
-		let deviceActive = this.arrayDevices.find(element => element.active == true);
-		if(deviceActive === undefined) {
-			this.options.selectedDevice = arrayDevices[0].id;
-		}
+		localStorage.removeItem('artists');
+		localStorage.setItem('artists', JSON.stringify(this.artists));
 	}
 
 	getSavedAlbums(offset = 0, limit = 50) {
@@ -412,11 +388,10 @@ class Spotify {
 				this.getSavedAlbums(offset + limit, limit);
 			} else { // no more albums
 				console.log('no more albums');
-				// sort artists alphabetically
-				this.artists.sort((a, b) => a.name.localeCompare(b.name));
+
 				//console.log(this.artists);
 
-				localStorage.setItem('artists', JSON.stringify(this.artists));
+				this.storeArtists();
 				this.getGenres(0, 50);
 				this.populateViewLibraryFromArtists(this.artists);
 
@@ -445,6 +420,7 @@ class Spotify {
 		artists.forEach(artist => {
 
 			let ulAlbums = document.createElement('ul');
+			ulAlbums.id = 'ulLibrary';
 			ulAlbums.classList.add('nested');
 
 			let liArtist = document.createElement('li');
@@ -497,10 +473,13 @@ class Spotify {
 
 			artist.albums.forEach((album) => {
 				let liAlbum = document.createElement('li');
-				liAlbum.innerHTML = new Date(album.releaseDate).getFullYear() + ' ' + album.name;
-				liAlbum.addEventListener('click', () => {
+				let spanAlbum = document.createElement('span');
+				spanAlbum.classList.add('album');
+				spanAlbum.innerHTML = new Date(album.releaseDate).getFullYear() + ' ' + album.name;
+				spanAlbum.addEventListener('click', () => {
 					this.startPlayback(album.id);
 				});
+				liAlbum.appendChild(spanAlbum);
 				ulAlbums.appendChild(liAlbum);
 			})
 			liArtist.appendChild(ulAlbums);
@@ -508,12 +487,49 @@ class Spotify {
 		return ulLibraryNew;
 	}
 
-	populateViewLibrary() {
+	populateViewLibrary(saveCurrentState = true) {
 		if(this.options.view === VIEW_ARTIST && this.artists != null) {
 			this.populateViewLibraryFromArtists(this.artists);
 		} else if(this.options.view === VIEW_GENRE && this.genres != null) {
 			this.populateViewLibraryFromGenres(this.genres);
 		}
+		if(saveCurrentState) {
+			this.stateNavigator.saveCurrentState(this);
+		}
+		this.filterViewLibrary();
+	}
+
+	filterViewLibrary() {
+		// apply filter
+		let keyword = $('input#searchKeyword').val();
+		console.time('a');
+		// select only the not nested lis
+		//let lis = $('ul#ulLibrary > li:not(.caret)');
+		// select all lis which leads to filtering also artists
+		let lis = $('ul#ulLibrary > li');
+		lis.hide();
+		let filteredSpansAlbum = $('ul#ulLibrary > li > span.album:icontains(' + keyword + ')');
+		//console.log(filteredSpansAlbum);
+		filteredSpansAlbum.each(function() {
+			$(this).parents('li').show();
+		});
+
+		let filteredSpansArtist = $('ul#ulLibrary > li > span.artist:icontains(' + keyword + ')');
+		filteredSpansArtist.each(function() {
+			if($(this).parent('li').css('display') === 'none') {
+				$(this).parents('li').show();
+				$(this).siblings('ul').find('li').show();
+			}
+		});
+
+		let filteredSpansGenre = $('ul#ulLibrary > li > span.genre:icontains(' + keyword + ')');
+		filteredSpansGenre.each(function() {
+			if($(this).parent('li').css('display') === 'none') {
+				$(this).parents('li').show();
+				$(this).siblings('ul').find('li').show();
+			}
+		});
+		console.timeEnd('a');
 	}
 
 	populateViewLibraryFromArtists(artists) {
@@ -529,7 +545,7 @@ class Spotify {
 		const ulLibraryNew = document.createElement('ul');
 		ulLibraryNew.id = 'ulLibrary';
 
-		console.log(genres);
+		//console.log(genres);
 		genres.forEach(genre => {
 			let ulArtists = this.generateUlFromArtists(genre.artists);
 			ulArtists.classList.add('nested');
@@ -552,7 +568,17 @@ class Spotify {
 			});
 
 			spanGenreName.addEventListener('dragover', (event) => {
-				event.preventDefault();
+				if(typeof this.dragged === 'string') {
+					if(this.dragged !== event.target.id) {
+						event.preventDefault();
+					}
+				}
+				else if(this.dragged instanceof Array) {
+					if(this.dragged[0] !== event.target.id) {
+						event.preventDefault();
+					}
+				}
+
 			});
 
 			spanGenreName.addEventListener('dragleave', (event) => {
@@ -560,6 +586,7 @@ class Spotify {
 			});
 
 			spanGenreName.addEventListener('drop', (event) => {
+				console.log(this.stateNavigator);
 				event.target.classList.remove('highlight');
 				console.log(this.dragged);
 				let idGenreMain = event.target.id;
@@ -574,13 +601,16 @@ class Spotify {
 
 					// need the genre index to remove the item from the this.genres array
 					let genreSubIdx = this.genres.findIndex(element => element.id === idGenreSub);
+					let genreSub = this.genres[genreSubIdx];
 
 					console.log(this.genres[genreSubIdx]);
-					if(genreMain !== undefined && genreSubIdx !== -1) {
-						this.genres[genreSubIdx].artists.forEach(_artist => {
+					if(genreMain !== undefined && genreSubIdx !== -1 && genreMain.id !== genreSub.id) {
+						genreSub.artists.forEach(_artist => {
 							genreMain.addArtist(_artist);
 						});
-						genreMain.addSubGenre(this.genres[genreSubIdx]);
+
+						// add sub genre to main genre
+						genreMain.addSubGenre(genreSub);
 
 						// remove sub genre from main array
 						this.genres.splice(genreSubIdx, 1);
@@ -593,24 +623,26 @@ class Spotify {
 					console.log('single artist has been dragged.')
 					if(genreMain !== undefined) {
 						console.log('moving to ' + genreMain.id);
+						// aus gedraggtem genre entfernen. ggf lieber übers this.dragged identifizieren weil der artist in mehreren genres drin sein kann
+						let oldGenreIdx = this.genres.findIndex(element => element.id === this.dragged[0]);
+						if(oldGenreIdx !== -1) {
+							let artistIdx = this.genres[oldGenreIdx].artists.findIndex(element => element.id === this.dragged[1]);
+							if(artistIdx !== -1) {
+								this.genres[oldGenreIdx].artists.splice(artistIdx, 1);
+							}
+						}
+
 						let artist = this.artists.find(element => element.id === this.dragged[1]);
 						if(artist !== undefined) {
 							genreMain.addArtist(artist);
 						}
+						// todo: codeschnipsel kommt häufiger vor
+						// sort artists
+						genreMain.artists.sort((a, b) => a.name.localeCompare(b.name));
 					}
-					// aus gedraggtem genre entfernen. ggf lieber übers this.dragged identifizieren weil der artist in mehreren genres drin sein kann
-					let oldGenreIdx = this.genres.findIndex(element => element.id === this.dragged[0]);
-					if(oldGenreIdx !== -1) {
-						let artistIdx = this.genres[oldGenreIdx].artists.findIndex(element => element.id === this.dragged[1]);
-						if(artistIdx !== -1) {
-							this.genres[oldGenreIdx].artists.splice(artistIdx, 1);
-						}
-					}
-
 				}
 				// store new genres
-				localStorage.removeItem('genres');
-				localStorage.setItem('genres', JSON.stringify(this.genres, Utils.replacerGenres));
+				this.storeGenres();
 				this.populateViewLibrary();
 			});
 			// test if span already exists
@@ -642,7 +674,42 @@ class Spotify {
 		divLibrary.empty();
 		divLibrary.append(ulLibraryNew);
 	}
+	getDevices() {
+		let url = 'https://api.spotify.com/v1/me/player/devices';
+		let type = 'GET';
+		let fnSuccess = function(data) {
+			this.arrayDevices = [];
+			data.devices.forEach(device => {
+				this.arrayDevices.push(new Device(device.id, device.name, device.is_active));
+			});
 
+			this.populateSelectDevices(this.arrayDevices);
+			console.log('getDevices()');
+			console.log(data);
+		};
+		this.sendRequest(url, type, {}, fnSuccess, null);
+	}
+
+	populateSelectDevices(arrayDevices) {
+		console.log(arrayDevices);
+		const selectDevices = $('#selectDevices');
+		selectDevices.empty();
+		arrayDevices.forEach(device => {
+			const option = document.createElement('option');
+			option.id = device.id;
+			option.innerHTML = device.name;
+			if(device.active) {
+				this.options.selectedDevice = device.id;
+				option.selected = true;
+			}
+			selectDevices.append(option);
+		});
+
+		let deviceActive = this.arrayDevices.find(element => element.active == true);
+		if(deviceActive === undefined) {
+			this.options.selectedDevice = arrayDevices[0].id;
+		}
+	}
 	static generateRandomString(length) {
 		let text = '';
 		let possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';

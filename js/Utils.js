@@ -14,6 +14,8 @@ class Utils {
 		//spotify.getGenres(0, 50);
 		//spotify.getSavedAlbums(0, 50);
 
+		// remove parameters from url
+		window.history.replaceState(null, '', window.location.pathname);
 		console.log('login ok');
 	}
 
@@ -60,3 +62,9 @@ class Utils {
 		return value;
 	}
 }
+
+// case insensitive filter
+jQuery.expr[':'].icontains = function(a, i, m) {
+	return jQuery(a).text().toUpperCase()
+		.indexOf(m[3].toUpperCase()) >= 0;
+};
