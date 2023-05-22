@@ -24,7 +24,7 @@
     <button id="buttonLogin">Log in with Spotify</button>
 </div>
 <div id="loggedin" style="display: none;">
-    <div id="viewSelectDevices"><label for="selectDevices">Device:</label> <select id="selectDevices"></select> <button id="buttonReloadDevices">Reload devices</button></div><br />
+    <div id="viewSelectDevices"><div id="viewSelectDevicesWithoutButton" style="display: none;"><label for="selectDevices">Device:</label> <select id="selectDevices"></select></div> <button id="buttonReloadDevices">Reload devices</button></div><br />
     <label for="selectView">Select view:</label> <select id="selectView"></select><br /><br />
     <label for="selectSortAlbums">Sort albums by:</label> <select id="selectSortAlbums"></select><br /><br />
     <button id="buttonReloadLibrary">Reload library</button>
@@ -51,7 +51,9 @@
         <button id="buttonRedo">Redo</button>
         <button id="buttonUndo">Undo</button>
     </div>
-    <input id="searchKeyword" />
+    <label for="searchKeyword">Keyword:</label><input id="searchKeyword" /><br />
+    <input id="addGenre" /><button id="buttonAddGenre">Add Genre</button>
+    <button id="buttonRemoveEmptyGenres">Remove empty genres</button>
     <div id="divLibrary">
         <ul id="ulLibrary"></ul>
     </div>

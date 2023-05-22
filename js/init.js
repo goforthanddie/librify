@@ -1,5 +1,5 @@
 // Listeners
-window.addEventListener("load", ()=> {
+window.addEventListener("load", () => {
     let spotify = new Spotify();
     // debug reasons only:
     window.sptf = spotify;
@@ -25,19 +25,19 @@ window.addEventListener("load", ()=> {
         spotify.getSavedAlbums(0, 50);
     });
 
-    $('#buttonGetGenres').click(function() {
+    $('#buttonGetGenres').click(function () {
         spotify.getGenres(0, 50);
     });
 
-    $('#buttonReduceGenres').click(function() {
+    $('#buttonReduceGenres').click(function () {
         spotify.reduceGenres();
     });
 
-    $('#buttonReduceGenresFurther').click(function() {
+    $('#buttonReduceGenresFurther').click(function () {
         spotify.reduceGenresFurther();
     });
 
-    $('#buttonReduceGenresManually').click(function() {
+    $('#buttonReduceGenresManually').click(function () {
         spotify.reduceGenresManually();
         $('#viewReduceGenresManually').toggle();
     });
@@ -47,9 +47,9 @@ window.addEventListener("load", ()=> {
     selectSortAlbums.append($('<option />').val(SORT_BY_YEAR).text(SORT_BY_YEAR));
 
     // preselect default option
-    $('#selectSortAlbums > option[value='+spotify.options.sortAlbums+']').attr('selected', 'selected');
+    $('#selectSortAlbums > option[value=' + spotify.options.sortAlbums + ']').attr('selected', 'selected');
 
-    selectSortAlbums.change(function() {
+    selectSortAlbums.change(function () {
         console.log(spotify.options.sortAlbums);
         spotify.options.sortAlbums = selectSortAlbums.children(':selected').attr('value');
         spotify.populateViewLibrary();
@@ -60,34 +60,34 @@ window.addEventListener("load", ()=> {
     selectView.append($('<option />').val(VIEW_GENRE).text(VIEW_GENRE));
 
     // preselect default option
-    $('#selectView > option[value='+spotify.options.view+']').attr('selected', 'selected');
+    $('#selectView > option[value=' + spotify.options.view + ']').attr('selected', 'selected');
 
-    selectView.change(function() {
+    selectView.change(function () {
         console.log(spotify.options.view);
         spotify.options.view = selectView.children(':selected').attr('value');
         spotify.populateViewLibrary();
     });
 
-    $('#selectDevices').change(function() {
+    $('#selectDevices').change(function () {
         spotify.options.selectedDevice = $('#selectDevices').children(':selected').attr('id');
     });
 
-    $('#buttonReloadDevices').click(function() {
+    $('#buttonReloadDevices').click(function () {
         spotify.getDevices();
     });
 
-    $('#buttonLogout').click(function() {
+    $('#buttonLogout').click(function () {
         Utils.logout();
     });
 
-    $('#buttonLogin').click(function() {
+    $('#buttonLogin').click(function () {
         console.log('login-button:click()');
         Spotify.authorize();
     });
 
     $('#buttonRedo').click(() => {
         console.log('#buttonRedo.click()')
-        if(spotify.stateNavigator.currentStateIdx < spotify.stateNavigator.states.length - 1) {
+        if (spotify.stateNavigator.currentStateIdx < spotify.stateNavigator.states.length - 1) {
             console.log('#buttonRedo.click()');
             let state = spotify.stateNavigator.redo();
             localStorage.setItem('genres', state.genres);
@@ -99,7 +99,7 @@ window.addEventListener("load", ()=> {
 
     $('#buttonUndo').click(() => {
         console.log('#buttonUndo.click()')
-        if(spotify.stateNavigator.currentStateIdx > 0) {
+        if (spotify.stateNavigator.currentStateIdx > 0) {
             console.log('#buttonUndo.click() in if currentStateIdx=' + spotify.stateNavigator.currentStateIdx);
             let state = spotify.stateNavigator.undo();
             localStorage.setItem('genres', state.genres);
@@ -110,7 +110,7 @@ window.addEventListener("load", ()=> {
     });
 
     $('#buttonSaveData').click(function () {
-        let data = "data:text/json;charset=utf-8," + encodeURIComponent('{"genres": '+spotify.stateNavigator.getCurrentState().genres+', "artists":'+spotify.stateNavigator.getCurrentState().artists+'}' );
+        let data = "data:text/json;charset=utf-8," + encodeURIComponent('{"genres": ' + spotify.stateNavigator.getCurrentState().genres + ', "artists":' + spotify.stateNavigator.getCurrentState().artists + '}');
         let aSaveData = document.getElementById('aSaveData');
         aSaveData.href = data;
         aSaveData.download = 'librify.json';
@@ -125,11 +125,11 @@ window.addEventListener("load", ()=> {
             let fr = new FileReader();
             fr.onload = function receivedText() {
                 let data = JSON.parse(fr.result);
-                if(data.artists !== null) {
+                if (data.artists !== null) {
                     spotify.artists = JSON.parse(JSON.stringify(data.artists), Utils.reviverArtists);
                     spotify.storeArtists();
                 }
-                if(data.genres !== null) {
+                if (data.genres !== null) {
                     spotify.genres = JSON.parse(JSON.stringify(data.genres), spotify.reviverGenres);
                     spotify.storeGenres();
                 }
@@ -140,7 +140,26 @@ window.addEventListener("load", ()=> {
         input.click();
     });
 
-    $('input#searchKeyword').on('input', function() {
+    $('input#searchKeyword').on('input', function () {
         spotify.filterViewLibrary();
+    });
+
+    $('#buttonAddGenre').click(function () {
+        console.log('buttonAddGenre');
+        let genreName = $('input#addGenre').val();
+        console.log(genreName);
+        if (genreName.length > 0 && spotify.genres.find(element => element.name === genreName) === undefined) {
+            console.log('a');
+            let genre = new Genre(genreName);
+            spotify.genres.push(genre);
+            spotify.storeGenres();
+            spotify.populateViewLibrary();
+        } else {
+            console.log('genre already existing or name is empty. not adding.')
+        }
+    });
+
+    $('#buttonRemoveEmptyGenres').click(function () {
+       spotify.removeEmptyGenres();
     });
 });

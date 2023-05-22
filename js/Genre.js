@@ -5,14 +5,14 @@ class Genre {
 	id;
 	name;
 	artists;
-	subGenres;
+	//subGenres;
 
 	constructor(name) {
 		// todo: generate unique id
 		this.id = name.replace(/\s/g,'').replace(/&/g, '').replace(/\'/g, '');
 		this.name = name;
 		this.artists = [];
-		this.subGenres = [];
+		//this.subGenres = [];
 	}
 
 	addArtist(artist) {
@@ -22,12 +22,12 @@ class Genre {
 		}
 	}
 
-	addSubGenre(subGenre) {
+	/*addSubGenre(subGenre) {
 		// add only if artist id ist not yet existing
 		if(this.subGenres.find(element => element.id === subGenre.id) === undefined) {
 			this.subGenres.push(subGenre);
 		}
-	}
+	}*/
 }
 
 const GENRE_DEFAULT = new Genre('None');
