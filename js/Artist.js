@@ -21,4 +21,11 @@ class Artist {
 			this.albums.push(album);
 		}
 	}
+
+	addGenre(genre) {
+		// add only if artist id ist not yet existing
+		if(this.genres.find(element => element.id === genre.id) === undefined) {
+			this.genres.push(genre);
+		}
+	}
 }
