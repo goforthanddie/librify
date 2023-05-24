@@ -497,10 +497,12 @@ class Spotify {
 			spanArtistName.draggable = true;
 
 			// test if span already exists
-			let existingSpanArtistName = $('span#' + artist.id);
+			//let existingSpanArtistName = $('span#' + artist.id);
+			let existingSpanArtistName = document.getElementById(artist.id);
 			//console.log('testing ' + 'span#'+artist.id);
 			//console.log('existingSpanArtistName.length='+existingSpanArtistName.length);
-			if(existingSpanArtistName.length > 0 && existingSpanArtistName.hasClass('collapsable')) {
+			//if(existingSpanArtistName.length > 0 && existingSpanArtistName.hasClass('collapsable')) {
+			if(existingSpanArtistName !== null && existingSpanArtistName.classList.contains('collapsable')) {
 				//console.log('existingSpanArtistName' + ' span#'+artist.id);
 				// restore expanded state
 				spanArtistName.classList.add('collapsable');
@@ -572,9 +574,11 @@ class Spotify {
 	}
 
 	filterViewLibrary() {
+		console.debug('filterViewLibrary()');
+		//console.time('a');
 		// apply filter
 		let keyword = $('input#searchKeyword').val();
-		console.time('a');
+
 		// select only the not nested lis
 		//let lis = $('ul#ulLibrary > li:not(.caret)');
 		// select all lis which leads to filtering also artists
@@ -590,7 +594,7 @@ class Spotify {
 		filteredSpansArtist.each(function() {
 			if($(this).parent('li').css('display') === 'none') {
 				$(this).parents('li').show();
-				$(this).siblings('ul').find('li').show();
+				//$(this).siblings('ul').find('li').show();
 			}
 		});
 
@@ -601,7 +605,7 @@ class Spotify {
 				$(this).siblings('ul').find('li').show();
 			}
 		});
-		console.timeEnd('a');
+		//console.timeEnd('a');
 	}
 
 	populateViewLibraryFromArtists(artists) {
