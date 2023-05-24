@@ -142,26 +142,21 @@ class Spotify {
 					} else {
 						console.debug('got no genres setting default genre.')
 						artist.addGenre(GENRE_DEFAULT.name);
-						console.debug(_artist);
+						//console.debug(_artist);
 					}
 
 					artist.genres.forEach(_genre => {
-						console.debug(artist);
+						//console.debug(artist);
 						console.debug('artist.genres.length=' + artist.genres.length);
 						console.debug('artist.name=' + this.artists[artistIdx].name + ' _genre=' + _genre);
 						let genreIdx = this.genres.findIndex(element => element.name === _genre);
 						if(genreIdx === -1) { // genre not found
 							console.debug('genre ' + _genre + ' not found, adding to this.genres');
 							let genre = new Genre(_genre);
-							if(artist.name === 'Wolf King') {
-								console.log('artist.name===Wolf King _genre.name=' + _genre.name);
-							}
+
 							genre.addArtist(artist)
 							this.genres.push(genre);
 						} else { // genre found, add artist to list
-							if(artist.name === 'Wolf King') {
-								console.log('artist.name===Wolf King _genre.name=' + this.genres[genreIdx].name);
-							}
 							this.genres[genreIdx].addArtist(artist);
 						}
 					});

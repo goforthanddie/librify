@@ -18,7 +18,7 @@ class Genre {
 	addArtist(artist) {
 		// add only if artist id ist not yet existing
 		if(this.artists.find(element => element.id === artist.id) === undefined) {
-			console.debug('genre.name=' + this.name + ' addArtist(artist=' + artist.name + ')');
+			//console.debug('genre.name=' + this.name + ' addArtist(artist=' + artist.name + ')');
 			this.artists.push(artist);
 		}
 	}
