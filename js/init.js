@@ -21,7 +21,8 @@ window.addEventListener("load", () => {
         Utils.login(spotify, access_token);
     }
 
-    $('#buttonReloadLibrary').click(function () {
+    $('#buttonUpdateLibrary').click(function () {
+        $(this).attr('disabled', true);
         spotify.getSavedAlbums(0, 50);
     });
 
@@ -30,16 +31,18 @@ window.addEventListener("load", () => {
     });
 
     $('#buttonReduceGenres').click(function () {
+        $(this).attr('disabled', true);
         spotify.reduceGenres();
+        $(this).attr('disabled', false);
     });
 
     $('#buttonReduceGenresFurther').click(function () {
         spotify.reduceGenresFurther();
     });
 
-    $('#buttonReduceGenresManually').click(function () {
+    $('#buttonManageGenres').click(function () {
         spotify.reduceGenresManually();
-        $('#viewReduceGenresManually').toggle();
+        $('#viewManageGenres').toggle();
     });
 
     let selectSortAlbums = $('#selectSortAlbums');
@@ -73,6 +76,7 @@ window.addEventListener("load", () => {
     });
 
     $('#buttonReloadDevices').click(function () {
+        $(this).attr('disabled', true);
         spotify.getDevices();
     });
 
@@ -146,7 +150,8 @@ window.addEventListener("load", () => {
 
     $('#buttonAddGenre').click(function () {
         console.log('buttonAddGenre');
-        let genreName = $('input#addGenre').val();
+        let inputGenreName = $('input#addGenre');
+        let genreName = inputGenreName.val();
         console.log(genreName);
         if (genreName.length > 0 && spotify.genres.find(element => element.name === genreName) === undefined) {
             console.log('a');
@@ -154,12 +159,15 @@ window.addEventListener("load", () => {
             spotify.genres.push(genre);
             spotify.storeGenres();
             spotify.populateViewLibrary();
+            inputGenreName.val('');
         } else {
             console.log('genre already existing or name is empty. not adding.')
         }
     });
 
     $('#buttonRemoveEmptyGenres').click(function () {
+        $(this).attr('disabled', true);
        spotify.removeEmptyGenres();
+        $(this).attr('disabled', false);
     });
 });

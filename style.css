@@ -40,3 +40,4 @@ button, option, select, input {
 .collapsable::before {
     content: '- ';
 }
+

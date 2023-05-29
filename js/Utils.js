@@ -35,12 +35,22 @@ class Utils {
 		return value;
 	}
 
+	static replacerArtists(key, value) {
+		// remove genres to save space
+		//console.log(key);
+		if(key === 'genres') {
+			//console.log('genres');
+			return undefined;
+		}
+		return value;
+	}
+
 	// custom reviver to parse the stringified library back into objects
 	static reviverArtists(key, value) {
 		if(typeof value === 'object' && value !== null) {
 			if(value.dataType === Artist.name) {
 				let artist = new Artist(value.id, value.name);
-				artist.genres = value.genres;
+				//artist.genres = value.genres;
 				value.albums.forEach(_album => {
 					// re-stringify and parse to force invocation of === 'Album'
 					let album = JSON.parse(JSON.stringify(_album), Utils.reviverArtists);

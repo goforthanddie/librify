@@ -24,36 +24,51 @@
     <button id="buttonLogin">Log in with Spotify</button>
 </div>
 <div id="loggedin" style="display: none;">
-    <div id="viewSelectDevices"><div id="viewSelectDevicesWithoutButton" style="display: none;"><label for="selectDevices">Device:</label> <select id="selectDevices"></select></div> <button id="buttonReloadDevices">Reload devices</button></div><br />
-    <label for="selectView">Select view:</label> <select id="selectView"></select><br /><br />
-    <label for="selectSortAlbums">Sort albums by:</label> <select id="selectSortAlbums"></select><br /><br />
-    <button id="buttonReloadLibrary">Reload library</button>
-    <button id="buttonGetGenres">Get genres</button>
-    <button id="buttonReduceGenres">Reduce genres</button>
-    <button id="buttonReduceGenresFurther">Reduce genres further</button>
-    <button id="buttonReduceGenresManually">Reduce genres manually</button>
+    <button id="buttonUpdateLibrary">Update library</button>
+    <!--<button id="buttonGetGenres">Get genres</button>-->
 
-    <a id="aSaveData" style="display:none"></a>
-    <button id="buttonSaveData">Save</button>
-    <button id="buttonLoadData">Load</button>
+    <!--<button id="buttonReduceGenresFurther">Reduce genres further</button>-->
+    <button id="buttonManageGenres">Manage genres</button>
 
-    <button id="buttonLogout">Logout</button>
-    <div id="viewStatus"></div>
-
-    <div id="viewReduceGenresManually" style="display: none;">
-        <label for="genreMain">Select main genre</label><br /><select id="genreMain"></select><br /><br />
-        <input id="genresSubKeyword" /><br />
-        <label for="genresSub">Select sub genres</label><br /><select multiple id="genresSub"></select><br />
-        <button id="buttonStoreGenresSub">Store</button>
-    </div>
-
-    <div id="viewUndoRedo">
-        <button id="buttonRedo">Redo</button>
+    <span id="viewUndoRedo">
         <button id="buttonUndo">Undo</button>
+        <button id="buttonRedo">Redo</button>
+    </span>
+
+
+    <button id="buttonLoadData">Load</button>
+    <button id="buttonSaveData">Save</button>
+    <a id="aSaveData" style="display:none"></a>
+
+    <button id="buttonLogout" style="float: right;">Logout</button>
+
+
+    <div id="viewStats"></div>
+    <div id="viewStatus"></div>
+    <div id="viewSelectDevices"><span id="viewSelectDevicesWithoutButton" style="display: none;"><label for="selectDevices">Play on:</label> <select id="selectDevices"></select></span> <button id="buttonReloadDevices">Reload devices</button></div><br />
+
+    <label for="selectView">View by:</label> <select id="selectView"></select>
+    <br />
+    <label for="selectSortAlbums">Sort albums by:</label> <select id="selectSortAlbums"></select>
+    <br /><br />
+
+    <div id="viewManageGenres" style="display: none; float: right;">
+        <br />
+        <button id="buttonReduceGenres">Reduce genres</button>
+        <button id="buttonRemoveEmptyGenres">Remove empty genres</button>
+        <input id="addGenre" /><button id="buttonAddGenre">Add genre</button>
+        <br /><br />
+        <label for="genreMain">Select main genre</label><br /><select id="genreMain"></select>
+        <br /><br />
+        <input id="genresSubKeyword" />
+        <br />
+        <label for="genresSub">Select sub genres</label><br /><select multiple id="genresSub"></select>
+        <br />
+        <button id="buttonStoreGenresSub" disabled>Store</button>
+        <br /><br />
     </div>
-    <label for="searchKeyword">Keyword:</label><input id="searchKeyword" /><br />
-    <input id="addGenre" /><button id="buttonAddGenre">Add Genre</button>
-    <button id="buttonRemoveEmptyGenres">Remove empty genres</button>
+    <label for="searchKeyword">Keyword:</label><input id="searchKeyword" />
+    <br />
     <div id="divLibrary">
         <ul id="ulLibrary"></ul>
     </div>
