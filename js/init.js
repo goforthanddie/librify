@@ -124,7 +124,7 @@ window.addEventListener("load", () => {
     $('#buttonLoadData').click(function () {
         let input = document.createElement('input');
         input.type = 'file';
-        input.onchange = e => {
+        input.onchange = () => {
             let file = input.files[0];
             let fr = new FileReader();
             fr.onload = function receivedText() {

@@ -839,12 +839,14 @@ class Spotify {
 						let artist = this.artists.find(element => element.id === this.dragged[1]);
 						if(artist !== undefined) {
 							genreMain.addArtist(artist);
+
+							console.log('single artist ' + artist.name + ' has been dragged to ' + idGenreMain + '.');
 						}
 						// todo: codeschnipsel kommt häufiger vor
 						// sort artists
 						genreMain.artists.sort((a, b) => a.name.localeCompare(b.name));
 
-						console.log('single artist ' + artist.name + ' has been dragged to ' + idGenreMain + '.');
+
 					}
 				}
 				// store new genres
@@ -919,7 +921,7 @@ class Spotify {
 			selectDevices.append(option);
 		});
 
-		let deviceActive = this.arrayDevices.find(element => element.active == true);
+		let deviceActive = this.arrayDevices.find(element => element.active === true);
 		if(arrayDevices.length > 0) {
 			if(deviceActive === undefined) {
 				this.options.selectedDevice = arrayDevices[0].id;
