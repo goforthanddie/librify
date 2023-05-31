@@ -7,11 +7,11 @@ const URL_AUTH = 'https://accounts.spotify.com/api/token';
 class Spotify {
 
 
-	stateNavigator;
+	//stateNavigator;
 	library;
-	artists;
+	//artists;
 	options;
-	genres;
+	//genres;
 	accessToken;
 	arrayDevices;
 
@@ -19,34 +19,33 @@ class Spotify {
 
 	constructor() {
 		this.options = new Options();
-		this.stateNavigator = new StateNavigator();
+		//this.stateNavigator = new StateNavigator();
 		this.accessToken = null;
 		this.library = new Library();
-		this.library.addUpdateListener(this.reduceGenresManually);
-		this.library.addUpdateListener(this.populateViewLibrary);
+		this.library.addUpdateListener(this.reduceGenresManually.bind(this));
+		this.library.addUpdateListener(this.populateViewLibrary.bind(this));
 
-		this.genres = this.library.genres;
-		this.artists = this.library.artists;
-		this.readFromLocalStorage();
+		//this.readFromLocalStorage();
 		this.arrayDevices = [];
 	}
 
+	/*
 	readFromLocalStorage() {
 		let artists = localStorage.getItem('artists');
 		if(artists != null) {
-			this.artists = JSON.parse(artists, Utils.reviverArtists);
-			console.log('retrieved ' + this.artists.length + ' artists');
+			this.library.artists = JSON.parse(artists, Utils.reviverArtists);
+			console.log('retrieved ' + this.library.artists.length + ' artists');
 		} else {
-			this.artists = [];
+			this.library.artists = [];
 		}
 
 		// must parse artists before genres. artists in genres are only identified by an id and retrieved during the revive process.
 		let genres = localStorage.getItem('genres');
 		if(genres != null) {
-			this.genres = JSON.parse(genres, this.reviverGenres);
+			this.library.genres = JSON.parse(genres, this.reviverGenres);
 		} else {
 			// add the default genre so all artists without a genre other than the default genre will end up in this genre
-			this.genres = [GENRE_DEFAULT]; // das hier beim einlesen machen!
+			this.library.genres = [GENRE_DEFAULT]; // das hier beim einlesen machen!
 		}
 	}
 
@@ -56,7 +55,7 @@ class Spotify {
 		let artist;
 		if(typeof value === 'object' && value !== null) {
 			if(value.dataType === Artist.name) {
-				artist = this.artists.find(element => element.id === value.id);
+				artist = this.library.artists.find(element => element.id === value.id);
 				return artist;
 			} else if(value.dataType === Genre.name) {
 				let genre = new Genre(value.name);
@@ -68,7 +67,8 @@ class Spotify {
 			}
 		}
 		return value;
-	}).bind(this); // bind the context to the reviver so that this.artists can be accessed
+	}).bind(this); // bind the context to the reviver so that this.library.artists can be accessed
+*/
 
 	async sendRequest(url, type, data, fnSuccess, fnError, counter = 1) {
 		console.debug('sendRequest()');
@@ -130,27 +130,27 @@ class Spotify {
 	}
 
 	/*
-	getSavedAlbums() gets the user's stored albums from spotify and updates the this.artists array if necessary in a subsequent call
+	getSavedAlbums() gets the user's stored albums from spotify and updates the this.library.artists array if necessary in a subsequent call
 	this function does not remove albums from the library that have been removed through spotify
 	*/
 	getSavedAlbums(offset = 0, limit = 50) {
 		console.debug('getSavedAlbums(' + offset + ',' + limit + ')');
 
-		// if this.genres and this.artists are already defined, we make an update call on getGenres
+		// if this.library.genres and this.library.artists are already defined, we make an update call on getGenres
 
-		let update = (this.genres.length > 1 && this.artists.length > 0);
+		let update = (this.library.genres.length > 1 && this.library.artists.length > 0);
 		console.debug('update=' + update);
 
 		// only echo stats on first call
 		if(update && offset === 0) {
-			console.debug('getSavedAlbums() update call, previous num of artists=' + this.artists.length + ', previous num of albums=' + this.artists.reduce((numAlbums, _artist) => numAlbums + _artist.albums.length, 0))
-			console.debug(this.artists);
+			console.debug('getSavedAlbums() update call, previous num of artists=' + this.library.artists.length + ', previous num of albums=' + this.library.artists.reduce((numAlbums, _artist) => numAlbums + _artist.albums.length, 0))
+			console.debug(this.library.artists);
 		}
 
 		// empty array on first call, also on update
 		if(offset === 0) {
 			localStorage.removeItem('artists');
-			this.artists = [];
+			this.library.artists = [];
 			this.library.emptyArtists();
 		}
 
@@ -171,15 +171,15 @@ class Spotify {
 				// iterate over artists of album
 				item.album.artists.forEach(_artist => {
 					// test if artist is already in list
-					let artistIdx = this.artists.findIndex(element => element.id === _artist.id);
+					let artistIdx = this.library.artists.findIndex(element => element.id === _artist.id);
 					if(artistIdx === -1) { // artist id not found, add new artist
 						let artist = new Artist(_artist.id, _artist.name);
 						//artist.genres = this.getGenres(_artist.id);
 						artist.addAlbum(album);
-						this.artists.push(artist);
+						this.library.artists.push(artist);
 					} else { // artist id found, add album to existing artist
-						//console.log(this.artists[idArtist]);
-						this.artists[artistIdx].addAlbum(album);
+						//console.log(this.library.artists[idArtist]);
+						this.library.artists[artistIdx].addAlbum(album);
 					}
 				});
 			});
@@ -192,9 +192,10 @@ class Spotify {
 				this.getSavedAlbums(offset + limit, limit, update);
 			} else { // no more albums
 				// its okay if the num of albums differs from data.total because if an album is linked with two artists, the album is added twice
-				console.log('got: ' + this.artists.length + ' artists, ' + this.artists.reduce((numAlbums, _artist) => numAlbums + _artist.albums.length, 0) + ' albums');
-				console.debug(this.artists);
-				this.storeArtists();
+				console.log('got: ' + this.library.artists.length + ' artists, ' + this.library.artists.reduce((numAlbums, _artist) => numAlbums + _artist.albums.length, 0) + ' albums');
+				console.debug(this.library.artists);
+				//this.storeArtists();
+				this.library.saveToLocalStorage();
 				this.getGenres(0, 50, update);
 
 				$('#viewStatus').html('');
@@ -210,25 +211,25 @@ class Spotify {
 	}
 
 	getGenres(offset = 0, limit = 50, update = false) {
-		console.debug('artists.length=' + this.artists.length);
+		console.debug('artists.length=' + this.library.artists.length);
 		console.debug('getGenres(' + offset + ',' + limit + ',' + update + ')');
 
 		if(offset === 0 && update) {
-			console.debug('getGenres() update call, previous num of genres=' + this.genres.length);
+			console.debug('getGenres() update call, previous num of genres=' + this.library.genres.length);
 		}
 
 		// empty array on first call, only if this is not an update
 		if(offset === 0 && update === false) {
 			localStorage.removeItem('genres');
-			this.genres = [];
+			this.library.genres = [];
 		}
 
 		let start = offset;
-		let end = Math.min(offset + limit, this.artists.length);
+		let end = Math.min(offset + limit, this.library.artists.length);
 		//console.debug('start=' + start + ',end=' + end);
 
 		let artistIds = '';
-		this.artists.slice(start, end).forEach((artist) => {
+		this.library.artists.slice(start, end).forEach((artist) => {
 			artistIds += artist.id + ',';
 		});
 
@@ -240,13 +241,13 @@ class Spotify {
 		let fnSuccess = function(data) {
 			console.debug('start=' + start + ',end=' + end);
 			data.artists.forEach(_artist => {
-				let artistIdx = this.artists.findIndex(element => element.id === _artist.id);
+				let artistIdx = this.library.artists.findIndex(element => element.id === _artist.id);
 				if(artistIdx !== -1) { // artist id found
-					let artist = this.artists[artistIdx];
-					artist.getGenres(this.genres);
+					let artist = this.library.artists[artistIdx];
+					artist.getGenres(this.library.genres);
 
 					// test if artist is already linked to a genre, if so, skip because it is not a new artist
-					if(this.genres.find(_genre => _genre.artists.find(_artist => _artist.id === artist.id) !== undefined) === undefined) {
+					if(this.library.genres.find(_genre => _genre.artists.find(_artist => _artist.id === artist.id) !== undefined) === undefined) {
 						console.debug('processing ' + artist.name + ' because it is not already linked to a genre.');
 						// only overwrite the genres attribute if there are existing genres or we overwrite the default genre 'None'
 						if(_artist.genres.length > 0) {
@@ -260,11 +261,11 @@ class Spotify {
 						// if update then add the artist to an existing genre with most artists if possible
 						// needs to differentiate between update and no update because otherwise genres that come first get prioritized
 						if(update) {
-							let existingGenres = this.genres.filter(_genre => artist.genres.includes(_genre.name));
+							let existingGenres = this.library.genres.filter(_genre => artist.genres.includes(_genre.name));
 							if(existingGenres.length === 0) { // no existing genres, so just pick the first from spotify
 								let genre = new Genre(artist.genres[0]);
 								genre.addArtist(artist);
-								this.genres.push(genre);
+								this.library.genres.push(genre);
 
 								// set artist.genres to the new genre
 								artist.genres = [genre.name];
@@ -289,15 +290,15 @@ class Spotify {
 							artist.genres.forEach(_genre => {
 								//console.debug(artist);
 								//console.debug('artist.genres.length=' + artist.genres.length);
-								//console.debug('artist.name=' + this.artists[artistIdx].name + ' _genre=' + _genre);
-								let genreIdx = this.genres.findIndex(element => element.name === _genre);
+								//console.debug('artist.name=' + this.library.artists[artistIdx].name + ' _genre=' + _genre);
+								let genreIdx = this.library.genres.findIndex(element => element.name === _genre);
 								if(genreIdx === -1) { // genre not found
-									console.debug('genre ' + _genre + ' not found, adding to this.genres');
+									console.debug('genre ' + _genre + ' not found, adding to this.library.genres');
 									let genre = new Genre(_genre);
 									genre.addArtist(artist)
-									this.genres.push(genre);
+									this.library.genres.push(genre);
 								} else { // genre found, add artist to list
-									this.genres[genreIdx].addArtist(artist);
+									this.library.genres[genreIdx].addArtist(artist);
 								}
 							});
 						}
@@ -308,18 +309,19 @@ class Spotify {
 					}
 				}
 			});
-			console.log(Math.min(offset + limit, this.artists.length) + '/' + this.artists.length + ' artists.');
-			$('#viewStatus').html('Loading genres for artists ' + Math.min(offset + limit, this.artists.length) + '/' + this.artists.length);
+			console.log(Math.min(offset + limit, this.library.artists.length) + '/' + this.library.artists.length + ' artists.');
+			$('#viewStatus').html('Loading genres for artists ' + Math.min(offset + limit, this.library.artists.length) + '/' + this.library.artists.length);
 
 			// test if there are more genres
-			if(offset + limit < this.artists.length) {
+			if(offset + limit < this.library.artists.length) {
 				this.getGenres(offset + limit, limit, update);
 			} else { // no more genres
-				console.log('got: ' + this.genres.length + ' genres');
-				//console.debug(this.genres);
-				this.storeGenres();
+				console.log('got: ' + this.library.genres.length + ' genres');
+				//console.debug(this.library.genres);
+				/*this.storeGenres();
 				this.storeArtists();
-				this.populateViewLibrary();
+				this.populateViewLibrary();*/
+				this.library.saveToLocalStorage();
 
 				$('#viewStatus').html('');
 			}
@@ -331,25 +333,25 @@ class Spotify {
 	reduceGenres() {
 		// this function reduces the amount of genres by going through each artist's spotify genres and keeping only the genre with the most occurrences within the library
 		let reducedGenres = [];
-		this.artists.forEach(_artist => {
+		this.library.artists.forEach(_artist => {
 			console.log('_artist=' + _artist.name);
 			//console.log(_artist);
 			let maxArtistsGenre = 0;
 			let maxArtistsGenreIdx;
 
-			_artist.getGenres(this.genres);
+			_artist.getGenres(this.library.genres);
 
 			// _artist.genres should be empty after a first reduceGenres() call
 			//_artist.genres.forEach(_genre => {
 			_artist.genres.forEach(_genre => {
 				console.debug('_genre=' + _genre);
 				// find genre with most entries
-				let genreIdx = this.genres.findIndex(element => element.name === _genre);
+				let genreIdx = this.library.genres.findIndex(element => element.name === _genre);
 				//console.log('genreIdx='+genreIdx);
 				if(genreIdx !== -1) {
 					console.log('maxArtistsGenre=' + maxArtistsGenre);
-					console.debug('this.genres[genreIdx].artists.length=' + this.genres[genreIdx].artists.length);
-					let numArtists = this.genres[genreIdx].artists.length;
+					console.debug('this.library.genres[genreIdx].artists.length=' + this.library.genres[genreIdx].artists.length);
+					let numArtists = this.library.genres[genreIdx].artists.length;
 					if(numArtists > maxArtistsGenre) {
 						maxArtistsGenre = numArtists;
 						maxArtistsGenreIdx = genreIdx;
@@ -358,19 +360,19 @@ class Spotify {
 					}
 					//console.log('maxArtistsGenre='+maxArtistsGenre);
 				} else {
-					console.debug(_genre.name + ' not found in this.genres :O');
+					console.debug(_genre.name + ' not found in this.library.genres :O');
 				}
 			});
 			// if an artist has no associated genres maxArtistsGenreIdx === undefined
 			if(maxArtistsGenreIdx !== undefined) {
 				console.debug(maxArtistsGenreIdx);
-				console.debug('_genre mit meisten artists:' + this.genres[maxArtistsGenreIdx].name);
+				console.debug('_genre mit meisten artists:' + this.library.genres[maxArtistsGenreIdx].name);
 
 				// remove artist from genres with less artists than the main genre
 				_artist.genres.forEach(_genre => {
-					let genreIdx = this.genres.findIndex(element => element.name === _genre);
+					let genreIdx = this.library.genres.findIndex(element => element.name === _genre);
 					if(genreIdx !== -1 && genreIdx !== maxArtistsGenreIdx) {
-						this.genres[genreIdx].artists = this.genres[genreIdx].artists.filter(function(__artist) {
+						this.library.genres[genreIdx].artists = this.library.genres[genreIdx].artists.filter(function(__artist) {
 							//console.log('__artist.id=' + __artist.id + '!=' + '_artist.id=' + _artist.id);
 							return (__artist.id !== _artist.id)
 						});
@@ -381,10 +383,10 @@ class Spotify {
 				_artist.genres = [];
 
 				// test if genre is not already in the new array
-				if(reducedGenres.findIndex(element => element.id === this.genres[maxArtistsGenreIdx].id) === -1) {
-					console.debug('pushing ' + this.genres[maxArtistsGenreIdx].name)
-					console.debug(this.genres[maxArtistsGenreIdx]);
-					reducedGenres.push(this.genres[maxArtistsGenreIdx]);
+				if(reducedGenres.findIndex(element => element.id === this.library.genres[maxArtistsGenreIdx].id) === -1) {
+					console.debug('pushing ' + this.library.genres[maxArtistsGenreIdx].name)
+					console.debug(this.library.genres[maxArtistsGenreIdx]);
+					reducedGenres.push(this.library.genres[maxArtistsGenreIdx]);
 				}
 			} else {
 				console.log(_artist);
@@ -394,10 +396,12 @@ class Spotify {
 
 		// in case the function is called a second time reducedGenres will be empty and thus clean the db
 		if(reducedGenres.length > 0) {
-			this.genres = reducedGenres;
+			this.library.genres = reducedGenres;
+			/*
 			this.storeGenres();
 			this.storeArtists();
-			this.populateViewLibrary();
+			this.populateViewLibrary();*/
+			this.library.saveToLocalStorage();
 		} else {
 			console.log('reduceGenres() has delivered no change.');
 		}
@@ -407,10 +411,10 @@ class Spotify {
 		console.log('reduceGenresFurther()');
 		let foundMainGenres = [];
 		let foundSubGenres = [];
-		console.log(this.genres);
+		console.log(this.library.genres);
 		// identify sub genres, i.e., genres where the name of another genre is part of the name
-		this.genres.forEach(_genre => {
-			let subGenres = this.genres.filter(element => element.name.includes(_genre.name) && element.id !== _genre.id);
+		this.library.genres.forEach(_genre => {
+			let subGenres = this.library.genres.filter(element => element.name.includes(_genre.name) && element.id !== _genre.id);
 			// test for length > 1 because it will always find itself
 			if(subGenres.length > 0) {
 				subGenres.forEach(_subgenre => {
@@ -429,7 +433,7 @@ class Spotify {
 			}
 		});
 		// identify main genres, i.e., genres that are not sub genres
-		this.genres.forEach(_genre => {
+		this.library.genres.forEach(_genre => {
 			if(foundSubGenres.findIndex(element => element.id === _genre.id) === -1) {
 				// test if the main genre is already in the foundMainGenres array, if not, add it
 				if(foundMainGenres.findIndex(element => element.id === _genre.id) === -1) {
@@ -442,12 +446,12 @@ class Spotify {
 		foundMainGenres.forEach(_genre => {
 			_genre.artists.sort((a, b) => a.name.localeCompare(b.name));
 		});
-		this.genres = foundMainGenres;
+		this.library.genres = foundMainGenres;
 
 		// test if we still got all the artists
 		/*
 		let compArtists = [];
-		this.genres.forEach(_genre => {
+		this.library.genres.forEach(_genre => {
 			_genre.artists.forEach(_artist => {
 				if(compArtists.findIndex(element => element.id === _artist.id) === -1) {
 					compArtists.push(_artist)
@@ -456,20 +460,21 @@ class Spotify {
 		});
 		console.log('compArtists.length=' + compArtists.length);*/
 		//console.log(compArtists.sort((a, b) => a.name.localeCompare(b.name)));
-
+/*
 		this.storeGenres();
-		this.populateViewLibrary();
+		this.populateViewLibrary();*/
+		this.library.saveToLocalStorage();
 	}
 
 	populateSelectGenresSub() {
-		console.log('populateSelectGenresSub')
+		console.debug('populateSelectGenresSub()')
 		let selectGenreMain = $('select#genreMain');
 		let selectGenresSub = $('select#genresSub');
 		let inputGenresSubKeyword = $('input#genresSubKeyword');
-		selectGenresSub.attr('size', Math.ceil(this.genres.length / 10));
+		selectGenresSub.attr('size', Math.ceil(this.library.genres.length / 10));
 		selectGenresSub.empty();
 		let selectedGenreMainValue = selectGenreMain.children(':selected').attr('value');
-		this.genres.forEach(_genre => {
+		this.library.genres.forEach(_genre => {
 			//console.log(inputGenresSubKeyword.val());
 			if(selectedGenreMainValue !== _genre.id && _genre.name.includes(inputGenresSubKeyword.val())) {
 				selectGenresSub.append($('<option />').val(_genre.id).text(_genre.name));
@@ -478,7 +483,7 @@ class Spotify {
 	}
 
 	reduceGenresManually() {
-		console.log('reduceGenresManually()');
+		console.debug('reduceGenresManually()');
 		if($('#viewManageGenres').is(':visible')) {
 			let selectGenreMain = $('select#genreMain');
 			selectGenreMain.empty();
@@ -494,7 +499,7 @@ class Spotify {
 			});
 			this.populateSelectGenresSub();
 
-			this.genres.forEach(_genre => {
+			this.library.genres.forEach(_genre => {
 				selectGenreMain.append($('<option />').val(_genre.id).text(_genre.name));
 			});
 
@@ -507,41 +512,41 @@ class Spotify {
 
 				$('button#buttonStoreGenresSub').attr('disabled', true);
 
-				let genreMain = this.genres.find(element => element.id === selectGenreMain.val());
+				let genreMain = this.library.genres.find(element => element.id === selectGenreMain.val());
 				//console.log(genreMain);
 				if(genreMain !== undefined) {
 					//console.log(selectGenreSub.children(':selected'));
 					// add all the artists of the found sub genres to the main genre
 					selectGenreSub.val().forEach(_idGenreSub => {
 						console.log(_idGenreSub);
-						let genreSubIdx = this.genres.findIndex(element => element.id === _idGenreSub);
-						//console.log(this.genres[genreSubIdx]);
+						let genreSubIdx = this.library.genres.findIndex(element => element.id === _idGenreSub);
+						//console.log(this.library.genres[genreSubIdx]);
 						if(genreSubIdx !== -1) {
-							this.genres[genreSubIdx].artists.forEach(_artist => {
+							this.library.genres[genreSubIdx].artists.forEach(_artist => {
 								genreMain.addArtist(_artist);
 							});
-							//genreMain.addSubGenre(this.genres[genreSubIdx]);
+							//genreMain.addSubGenre(this.library.genres[genreSubIdx]);
 
 							// remove sub genre from main array
-							this.genres.splice(genreSubIdx, 1);
+							this.library.genres.splice(genreSubIdx, 1);
 						}
 					});
 
 					$('input#genresSubKeyword').val('');
 					let selectGenreMain = $('select#genreMain');
 					selectGenreMain.empty();
-					this.genres.forEach(_genre => {
+					this.library.genres.forEach(_genre => {
 						selectGenreMain.append($('<option />').val(_genre.id).text(_genre.name));
 					});
-					selectGenreMain.val(this.genres[0].id).trigger('change');
+					selectGenreMain.val(this.library.genres[0].id).trigger('change');
 
 					// sort artists
 					genreMain.artists.sort((a, b) => a.name.localeCompare(b.name));
 
 					// store new genres
 					this.library.saveToLocalStorage();
-					this.storeGenres();
-					this.populateViewLibrary();
+					//this.storeGenres();
+					//this.populateViewLibrary();
 				}
 			});
 		}
@@ -651,20 +656,18 @@ class Spotify {
 		return ulLibraryNew;
 	}
 
-	populateViewLibrary(saveCurrentState = true) {
+	populateViewLibrary() {
 		console.debug('populateViewLibrary()');
 
-		if(this.options.view === VIEW_ARTIST && this.artists != null) {
-			this.populateViewLibraryFromArtists(this.artists);
-		} else if(this.options.view === VIEW_GENRE && this.genres != null) {
-			this.populateViewLibraryFromGenres(this.genres);
+		if(this.options.view === VIEW_ARTIST && this.library.artists != null) {
+			this.populateViewLibraryFromArtists(this.library.artists);
+		} else if(this.options.view === VIEW_GENRE && this.library.genres != null) {
+			this.populateViewLibraryFromGenres(this.library.genres);
 		}
-		if(saveCurrentState) {
-			this.stateNavigator.saveCurrentState(this);
-		}
+
 		this.filterViewLibrary();
 
-		$('div#viewStats').text('Holding: ' + this.genres.length + ' Genres, ' + this.artists.length + ' Artists, ' + this.artists.reduce((numAlbums, _artist) => numAlbums + _artist.albums.length, 0) + ' Albums');
+		$('div#viewStats').text('Holding: ' + this.library.genres.length + ' Genres, ' + this.library.artists.length + ' Artists, ' + this.library.artists.reduce((numAlbums, _artist) => numAlbums + _artist.albums.length, 0) + ' Albums');
 	}
 
 	filterViewLibrary() {
@@ -817,7 +820,7 @@ class Spotify {
 				event.target.classList.remove('highlight');
 				//console.log(this.dragged);
 				let idGenreMain = event.target.id;
-				let genreMain = this.genres.find(element => element.id === idGenreMain);
+				let genreMain = this.library.genres.find(element => element.id === idGenreMain);
 				//console.log('idGenreMain=' + idGenreMain);
 
 				if(typeof this.dragged === 'string') {
@@ -825,11 +828,11 @@ class Spotify {
 					let idGenreSub = this.dragged;
 					//console.log('idGenreSub=' + idGenreSub);
 
-					// need the genre index to remove the item from the this.genres array
-					let genreSubIdx = this.genres.findIndex(element => element.id === idGenreSub);
-					let genreSub = this.genres[genreSubIdx];
+					// need the genre index to remove the item from the this.library.genres array
+					let genreSubIdx = this.library.genres.findIndex(element => element.id === idGenreSub);
+					let genreSub = this.library.genres[genreSubIdx];
 
-					//console.log(this.genres[genreSubIdx]);
+					//console.log(this.library.genres[genreSubIdx]);
 					if(genreMain !== undefined && genreSubIdx !== -1 && genreMain.id !== genreSub.id) {
 						genreSub.artists.forEach(_artist => {
 							genreMain.addArtist(_artist);
@@ -839,7 +842,7 @@ class Spotify {
 						//genreMain.addSubGenre(genreSub);
 
 						// remove sub genre from main array
-						this.genres.splice(genreSubIdx, 1);
+						this.library.genres.splice(genreSubIdx, 1);
 
 						// todo: codeschnipsel kommt häufiger vor
 						// sort artists
@@ -851,15 +854,15 @@ class Spotify {
 					if(genreMain !== undefined) {
 						//console.log('moving to ' + genreMain.id);
 						// aus gedraggtem genre entfernen. ggf lieber übers this.dragged identifizieren weil der artist in mehreren genres drin sein kann
-						let oldGenreIdx = this.genres.findIndex(element => element.id === this.dragged[0]);
+						let oldGenreIdx = this.library.genres.findIndex(element => element.id === this.dragged[0]);
 						if(oldGenreIdx !== -1) {
-							let artistIdx = this.genres[oldGenreIdx].artists.findIndex(element => element.id === this.dragged[1]);
+							let artistIdx = this.library.genres[oldGenreIdx].artists.findIndex(element => element.id === this.dragged[1]);
 							if(artistIdx !== -1) {
-								this.genres[oldGenreIdx].artists.splice(artistIdx, 1);
+								this.library.genres[oldGenreIdx].artists.splice(artistIdx, 1);
 							}
 						}
 
-						let artist = this.artists.find(element => element.id === this.dragged[1]);
+						let artist = this.library.artists.find(element => element.id === this.dragged[1]);
 						if(artist !== undefined) {
 							genreMain.addArtist(artist);
 
@@ -873,8 +876,9 @@ class Spotify {
 					}
 				}
 				// store new genres
-				this.storeGenres();
-				this.populateViewLibrary();
+				//this.storeGenres();
+				//this.populateViewLibrary();
+				this.library.saveToLocalStorage();
 			});
 			// test if span already exists
 			let existingSpanGenreName = $('span#' + genre.id);
@@ -955,12 +959,13 @@ class Spotify {
 		}
 	}
 
+	/*
 	storeGenres() {
 		// sort genres alphabetically
-		this.genres.sort((a, b) => a.name.localeCompare(b.name));
+		this.library.genres.sort((a, b) => a.name.localeCompare(b.name));
 
 		localStorage.removeItem('genres');
-		localStorage.setItem('genres', JSON.stringify(this.genres, Utils.replacerGenres));
+		localStorage.setItem('genres', JSON.stringify(this.library.genres, Utils.replacerGenres));
 
 
 		// could use some sort of genreUpdateListener here
@@ -972,18 +977,19 @@ class Spotify {
 
 	storeArtists() {
 		// sort artists alphabetically
-		this.artists.sort((a, b) => a.name.localeCompare(b.name));
+		this.library.artists.sort((a, b) => a.name.localeCompare(b.name));
 
 		localStorage.removeItem('artists');
 		// todo: remove genres from artists when storing, write replacer
-		localStorage.setItem('artists', JSON.stringify(this.artists, Utils.replacerArtists));
+		localStorage.setItem('artists', JSON.stringify(this.library.artists, Utils.replacerArtists));
 	}
 
+
 	removeEmptyGenres() {
-		this.genres = this.genres.filter(_genre => _genre.artists.length > 0);
+		this.library.genres = this.library.genres.filter(_genre => _genre.artists.length > 0);
 		this.storeGenres();
 		this.populateViewLibrary();
-	}
+	}*/
 
 	static generateRandomString(length) {
 		let text = '';

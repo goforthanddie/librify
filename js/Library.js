@@ -2,24 +2,27 @@ class Library {
 
 	artists;
 	genres;
-	updateListener;
+	updateListeners;
+	stateNavigator;
 
 	constructor() {
-		this.updateListener = [];
+		this.updateListeners = [];
+		this.stateNavigator = new StateNavigator();
 		this.readFromLocalStorage();
 	}
 
 	addUpdateListener(listener) {
-		this.updateListener.push(listener);
+		this.updateListeners.push(listener);
 	}
 
 	notifyUpdateListeners() {
-		for(let i = 0, I = this.updateListener.length; i < I; i++) {
-			this.updateListener[i]();
+		console.debug('notifyUpdateListeners()');
+		for(let i = 0, I = this.updateListeners.length; i < I; i++) {
+			this.updateListeners[i]();
 		}
 	}
 
-	readFromLocalStorage() {
+	readFromLocalStorage(saveCurrentState = true) {
 		let artists = localStorage.getItem('artists');
 		if(artists != null) {
 			this.artists = JSON.parse(artists, Utils.reviverArtists);
@@ -37,30 +40,29 @@ class Library {
 			this.genres = [GENRE_DEFAULT]; // das hier beim einlesen machen!
 		}
 
+		if(saveCurrentState) {
+			this.stateNavigator.saveCurrentState(this);
+		}
+
 		this.notifyUpdateListeners();
 	}
 
-	saveToLocalStorage() {
+	saveToLocalStorage(saveCurrentState = true) {
 		// sort genres alphabetically
 		this.genres.sort((a, b) => a.name.localeCompare(b.name));
 
 		localStorage.removeItem('genres');
 		localStorage.setItem('genres', JSON.stringify(this.genres, Utils.replacerGenres));
 
-
-		// could use some sort of genreUpdateListener here
-		/*
-		if($('#viewManageGenres').is(':visible')) {
-			console.log('viewManageGenres is visible')
-			this.reduceGenresManually();
-		}*/
-
 		// sort artists alphabetically
 		this.artists.sort((a, b) => a.name.localeCompare(b.name));
 
 		localStorage.removeItem('artists');
-		// todo: remove genres from artists when storing, write replacer
 		localStorage.setItem('artists', JSON.stringify(this.artists, Utils.replacerArtists));
+
+		if(saveCurrentState) {
+			this.stateNavigator.saveCurrentState(this);
+		}
 
 		this.notifyUpdateListeners();
 	}

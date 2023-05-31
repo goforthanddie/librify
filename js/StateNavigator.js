@@ -9,7 +9,7 @@ class StateNavigator {
 		this.states = [];
 	}
 
-	saveCurrentState(spotify) {
+	saveCurrentState(library) {
 		// if NUM_MAX_STATES is reached we have to remove the first element of the states array before pushing a new one
 		if(this.states.length >= NUM_MAX_STATES) {
 			//console.log('shifting one state')
@@ -17,8 +17,8 @@ class StateNavigator {
 		}
 		//console.log(spotify.artists);
 		this.currentStateIdx = this.states.push({
-			artists: JSON.stringify(spotify.artists),
-			genres: JSON.stringify(spotify.genres, Utils.replacerGenres)
+			artists: JSON.stringify(library.artists),
+			genres: JSON.stringify(library.genres, Utils.replacerGenres)
 		}) - 1;
 
 		this.updateControlElements();

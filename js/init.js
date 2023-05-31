@@ -92,30 +92,34 @@ window.addEventListener("load", () => {
 
     $('#buttonRedo').click(() => {
         console.log('#buttonRedo.click()')
-        if (spotify.stateNavigator.currentStateIdx < spotify.stateNavigator.states.length - 1) {
+        if (spotify.library.stateNavigator.currentStateIdx < spotify.library.stateNavigator.states.length - 1) {
             console.log('#buttonRedo.click()');
-            let state = spotify.stateNavigator.redo();
+            let state = spotify.library.stateNavigator.redo();
+            // this needs to go through setItem and readFromLocalStorage to have the reviver called
             localStorage.setItem('genres', state.genres);
             localStorage.setItem('artists', state.artists);
-            spotify.readFromLocalStorage();
-            spotify.populateViewLibrary(false);
+            //spotify.readFromLocalStorage();
+            spotify.library.readFromLocalStorage(false);
+            //spotify.populateViewLibrary();
         }
     });
 
     $('#buttonUndo').click(() => {
         console.log('#buttonUndo.click()')
-        if (spotify.stateNavigator.currentStateIdx > 0) {
-            console.log('#buttonUndo.click() in if currentStateIdx=' + spotify.stateNavigator.currentStateIdx);
-            let state = spotify.stateNavigator.undo();
+        if (spotify.library.stateNavigator.currentStateIdx > 0) {
+            console.log('#buttonUndo.click() in if currentStateIdx=' + spotify.library.stateNavigator.currentStateIdx);
+            let state = spotify.library.stateNavigator.undo();
+            // this needs to go through setItem and readFromLocalStorage to have the reviver called
             localStorage.setItem('genres', state.genres);
             localStorage.setItem('artists', state.artists);
-            spotify.readFromLocalStorage();
-            spotify.populateViewLibrary(false);
+            //spotify.readFromLocalStorage();
+            spotify.library.readFromLocalStorage(false);
+            //spotify.populateViewLibrary();
         }
     });
 
     $('#buttonSaveData').click(function () {
-        let data = "data:text/json;charset=utf-8," + encodeURIComponent('{"genres": ' + spotify.stateNavigator.getCurrentState().genres + ', "artists":' + spotify.stateNavigator.getCurrentState().artists + '}');
+        let data = "data:text/json;charset=utf-8," + encodeURIComponent('{"genres": ' + spotify.library.stateNavigator.getCurrentState().genres + ', "artists":' + spotify.library.stateNavigator.getCurrentState().artists + '}');
         let aSaveData = document.getElementById('aSaveData');
         aSaveData.href = data;
         aSaveData.download = 'librify.json';
@@ -131,14 +135,15 @@ window.addEventListener("load", () => {
             fr.onload = function receivedText() {
                 let data = JSON.parse(fr.result);
                 if (data.artists !== null) {
-                    spotify.artists = JSON.parse(JSON.stringify(data.artists), Utils.reviverArtists);
-                    spotify.storeArtists();
+                    spotify.library.artists = JSON.parse(JSON.stringify(data.artists), Utils.reviverArtists);
+                    //spotify.storeArtists();
                 }
                 if (data.genres !== null) {
-                    spotify.genres = JSON.parse(JSON.stringify(data.genres), spotify.reviverGenres);
-                    spotify.storeGenres();
+                    spotify.library.genres = JSON.parse(JSON.stringify(data.genres), spotify.library.reviverGenres);
+                    //spotify.storeGenres();
                 }
-                spotify.populateViewLibrary();
+                spotify.library.saveToLocalStorage();
+                //spotify.populateViewLibrary();
             };
             fr.readAsText(file);
         }
@@ -154,12 +159,13 @@ window.addEventListener("load", () => {
         let inputGenreName = $('input#addGenre');
         let genreName = inputGenreName.val();
         console.log(genreName);
-        if (genreName.length > 0 && spotify.genres.find(element => element.name === genreName) === undefined) {
+        if (genreName.length > 0 && spotify.library.genres.find(element => element.name === genreName) === undefined) {
             console.log('a');
             let genre = new Genre(genreName);
-            spotify.genres.push(genre);
-            spotify.storeGenres();
-            spotify.populateViewLibrary();
+            spotify.library.genres.push(genre);
+            spotify.library.saveToLocalStorage();
+            //spotify.storeGenres();
+            //spotify.populateViewLibrary();
             inputGenreName.val('');
         } else {
             console.log('genre already existing or name is empty. not adding.')
