@@ -1,12 +1,14 @@
 const clientId = 'f77bc91de5834f398680d65c02bdfe94';
-const redirectUri = 'https://librify.coderbutze.de';
-//const redirectUri = 'http://localhost:63342/SpotifyTree/index.html';
+//const redirectUri = 'https://librify.coderbutze.de';
+const redirectUri = 'http://localhost:63342/SpotifyTree/index.html';
 
 const URL_AUTH = 'https://accounts.spotify.com/api/token';
 
 class Spotify {
 
+
 	stateNavigator;
+	library;
 	artists;
 	options;
 	genres;
@@ -19,6 +21,12 @@ class Spotify {
 		this.options = new Options();
 		this.stateNavigator = new StateNavigator();
 		this.accessToken = null;
+		this.library = new Library();
+		this.library.addUpdateListener(this.reduceGenresManually);
+		this.library.addUpdateListener(this.populateViewLibrary);
+
+		this.genres = this.library.genres;
+		this.artists = this.library.artists;
 		this.readFromLocalStorage();
 		this.arrayDevices = [];
 	}
@@ -62,7 +70,7 @@ class Spotify {
 		return value;
 	}).bind(this); // bind the context to the reviver so that this.artists can be accessed
 
-	sendRequest(url, type, data, fnSuccess, fnError, counter = 1) {
+	async sendRequest(url, type, data, fnSuccess, fnError, counter = 1) {
 		console.debug('sendRequest()');
 		if(url === undefined || url === null) console.error('parameter url undefined or null');
 		if(type === undefined || type === null) console.error('parameter type undefined or null');
@@ -82,8 +90,9 @@ class Spotify {
 				'Content-Type': 'application/x-www-form-urlencoded',
 				'Authorization': (this.accessToken !== null && url !== URL_AUTH) ? this.accessToken.type + '  ' + this.accessToken.token : ''
 			},
-			statusCode: { // todo: wenn das token refreshed wurde muss der letzte request erneut abgesetzt werden :o?
-				401: function() { // 401: Unauthorized - The request requires user authentication or, if the request included authorization credentials, authorization has been refused for those credentials.
+			statusCode: {
+				// 401: Unauthorized - The request requires user authentication or, if the request included authorization credentials, authorization has been refused for those credentials.
+				401: function() {
 					console.log('Got 401. Refreshing the token.');
 					let refreshToken = localStorage.getItem('refresh_token');
 					this.refreshAccessToken(refreshToken, () => {
@@ -94,6 +103,20 @@ class Spotify {
 							this.sendRequest(url, type, data, fnSuccess, fnError, ++counter);
 						}
 					});
+				},
+				// 429: Rate limit reached
+				429: async function(d) {
+					console.debug('rate limit reached');
+					console.debug('retry-after: ' + d.getResponseHeader('retry-after'));
+
+					let retryAfter = parseInt(d.getResponseHeader('retry-after'));
+					await new Promise(r => setTimeout(r, retryAfter * 1000));
+					// fire request again but maximum of 5 times
+					console.log('counter=' + counter);
+					if(counter < 5) {
+						console.log('retry number ' + counter);
+						this.sendRequest(url, type, data, fnSuccess, fnError, ++counter);
+					}
 				}
 			},
 			data: data,
@@ -111,7 +134,6 @@ class Spotify {
 	this function does not remove albums from the library that have been removed through spotify
 	*/
 	getSavedAlbums(offset = 0, limit = 50) {
-		if(localStorage.getItem('login') !== '1') return;
 		console.debug('getSavedAlbums(' + offset + ',' + limit + ')');
 
 		// if this.genres and this.artists are already defined, we make an update call on getGenres
@@ -129,6 +151,7 @@ class Spotify {
 		if(offset === 0) {
 			localStorage.removeItem('artists');
 			this.artists = [];
+			this.library.emptyArtists();
 		}
 
 		let url = 'https://api.spotify.com/v1/me/albums';
@@ -187,7 +210,6 @@ class Spotify {
 	}
 
 	getGenres(offset = 0, limit = 50, update = false) {
-		if(localStorage.getItem('login') !== '1') return;
 		console.debug('artists.length=' + this.artists.length);
 		console.debug('getGenres(' + offset + ',' + limit + ',' + update + ')');
 
@@ -457,71 +479,72 @@ class Spotify {
 
 	reduceGenresManually() {
 		console.log('reduceGenresManually()');
+		if($('#viewManageGenres').is(':visible')) {
+			let selectGenreMain = $('select#genreMain');
+			selectGenreMain.empty();
 
-		let selectGenreMain = $('select#genreMain');
-		selectGenreMain.empty();
+			let selectGenreSub = $('select#genresSub');
+			selectGenreSub.empty();
+			selectGenreSub.change(() => {
+				if($('select#genresSub').val().length > 0) {
+					$('button#buttonStoreGenresSub').attr('disabled', false);
+				} else {
+					$('button#buttonStoreGenresSub').attr('disabled', true);
+				}
+			});
+			this.populateSelectGenresSub();
 
-		let selectGenreSub = $('select#genresSub');
-		selectGenreSub.empty();
-		selectGenreSub.change(() => {
-			if($('select#genresSub').val().length > 0) {
-				$('button#buttonStoreGenresSub').attr('disabled', false);
-			} else {
+			this.genres.forEach(_genre => {
+				selectGenreMain.append($('<option />').val(_genre.id).text(_genre.name));
+			});
+
+			$('select#genreMain').change(this.populateSelectGenresSub.bind(this));
+
+			$('input#genresSubKeyword').on('input', this.populateSelectGenresSub.bind(this));
+
+			$('button#buttonStoreGenresSub').click(() => {
+				console.log('buttonStoreGenresSub click');
+
 				$('button#buttonStoreGenresSub').attr('disabled', true);
-			}
-		});
-		this.populateSelectGenresSub();
 
-		this.genres.forEach(_genre => {
-			selectGenreMain.append($('<option />').val(_genre.id).text(_genre.name));
-		});
+				let genreMain = this.genres.find(element => element.id === selectGenreMain.val());
+				//console.log(genreMain);
+				if(genreMain !== undefined) {
+					//console.log(selectGenreSub.children(':selected'));
+					// add all the artists of the found sub genres to the main genre
+					selectGenreSub.val().forEach(_idGenreSub => {
+						console.log(_idGenreSub);
+						let genreSubIdx = this.genres.findIndex(element => element.id === _idGenreSub);
+						//console.log(this.genres[genreSubIdx]);
+						if(genreSubIdx !== -1) {
+							this.genres[genreSubIdx].artists.forEach(_artist => {
+								genreMain.addArtist(_artist);
+							});
+							//genreMain.addSubGenre(this.genres[genreSubIdx]);
 
-		$('select#genreMain').change(this.populateSelectGenresSub.bind(this));
+							// remove sub genre from main array
+							this.genres.splice(genreSubIdx, 1);
+						}
+					});
 
-		$('input#genresSubKeyword').on('input', this.populateSelectGenresSub.bind(this));
+					$('input#genresSubKeyword').val('');
+					let selectGenreMain = $('select#genreMain');
+					selectGenreMain.empty();
+					this.genres.forEach(_genre => {
+						selectGenreMain.append($('<option />').val(_genre.id).text(_genre.name));
+					});
+					selectGenreMain.val(this.genres[0].id).trigger('change');
 
-		$('button#buttonStoreGenresSub').click(() => {
-			console.log('buttonStoreGenresSub click');
+					// sort artists
+					genreMain.artists.sort((a, b) => a.name.localeCompare(b.name));
 
-			$('button#buttonStoreGenresSub').attr('disabled', true);
-
-			let genreMain = this.genres.find(element => element.id === selectGenreMain.val());
-			//console.log(genreMain);
-			if(genreMain !== undefined) {
-				//console.log(selectGenreSub.children(':selected'));
-				// add all the artists of the found sub genres to the main genre
-				selectGenreSub.val().forEach(_idGenreSub => {
-					console.log(_idGenreSub);
-					let genreSubIdx = this.genres.findIndex(element => element.id === _idGenreSub);
-					//console.log(this.genres[genreSubIdx]);
-					if(genreSubIdx !== -1) {
-						this.genres[genreSubIdx].artists.forEach(_artist => {
-							genreMain.addArtist(_artist);
-						});
-						//genreMain.addSubGenre(this.genres[genreSubIdx]);
-
-						// remove sub genre from main array
-						this.genres.splice(genreSubIdx, 1);
-					}
-				});
-
-				$('input#genresSubKeyword').val('');
-				let selectGenreMain = $('select#genreMain');
-				selectGenreMain.empty();
-				this.genres.forEach(_genre => {
-					selectGenreMain.append($('<option />').val(_genre.id).text(_genre.name));
-				});
-				selectGenreMain.val(this.genres[0].id).trigger('change');
-
-				// sort artists
-				genreMain.artists.sort((a, b) => a.name.localeCompare(b.name));
-
-				// store new genres
-				this.storeGenres();
-				this.populateViewLibrary();
-			}
-		});
-
+					// store new genres
+					this.library.saveToLocalStorage();
+					this.storeGenres();
+					this.populateViewLibrary();
+				}
+			});
+		}
 	}
 
 	startPlayback(albumId) {
@@ -790,7 +813,7 @@ class Spotify {
 			});
 
 			spanGenreName.addEventListener('drop', (event) => {
-				console.log(this.stateNavigator);
+				console.debug(this.stateNavigator);
 				event.target.classList.remove('highlight');
 				//console.log(this.dragged);
 				let idGenreMain = event.target.id;
@@ -893,8 +916,8 @@ class Spotify {
 			});
 
 			this.populateSelectDevices(this.arrayDevices);
-			console.log('getDevices()');
-			console.log(data);
+			console.debug('getDevices()');
+			console.debug(data);
 
 			$('#buttonReloadDevices').attr('disabled', false);
 		};
@@ -907,7 +930,7 @@ class Spotify {
 	}
 
 	populateSelectDevices(arrayDevices) {
-		console.log(arrayDevices);
+		//console.log(arrayDevices);
 		const selectDevices = $('#selectDevices');
 		selectDevices.empty();
 		arrayDevices.forEach(device => {

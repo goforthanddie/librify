@@ -4,7 +4,6 @@ class Utils {
 		$('#login').hide();
 		$('#loggedin').show();
 
-		localStorage.setItem('login', '1');
 
 		spotify.accessToken = new AccessToken(access_token, 'Bearer');
 		spotify.getDevices();

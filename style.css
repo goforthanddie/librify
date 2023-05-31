@@ -41,3 +41,7 @@ button, option, select, input {
     content: '- ';
 }
 
+input::placeholder {
+    color: #444444;
+}
+

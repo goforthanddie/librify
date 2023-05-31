@@ -41,8 +41,9 @@ window.addEventListener("load", () => {
     });
 
     $('#buttonManageGenres').click(function () {
-        spotify.reduceGenresManually();
+        // toggle first, because reduceGenresManually only updates when it is visible
         $('#viewManageGenres').toggle();
+        spotify.reduceGenresManually();
     });
 
     let selectSortAlbums = $('#selectSortAlbums');
