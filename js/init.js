@@ -168,7 +168,8 @@ window.addEventListener("load", () => {
 
     $('#buttonRemoveEmptyGenres').click(function () {
         $(this).attr('disabled', true);
-       spotify.removeEmptyGenres();
+        spotify.library.removeEmptyGenres();
+        //spotify.removeEmptyGenres();
         $(this).attr('disabled', false);
     });
 });
