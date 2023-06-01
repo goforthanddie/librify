@@ -17,7 +17,7 @@ class StateNavigator {
 		}
 		//console.log(spotify.artists);
 		this.currentStateIdx = this.states.push({
-			artists: JSON.stringify(library.artists),
+			artists: JSON.stringify(library.artists, Utils.replacerArtists),
 			genres: JSON.stringify(library.genres, Utils.replacerGenres)
 		}) - 1;
 
