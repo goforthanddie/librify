@@ -1,6 +1,6 @@
 const clientId = 'f77bc91de5834f398680d65c02bdfe94';
-//const redirectUri = 'https://librify.coderbutze.de';
-const redirectUri = 'http://localhost:63342/SpotifyTree/index.html';
+const redirectUri = 'https://librify.coderbutze.de';
+//const redirectUri = 'http://localhost:63342/SpotifyTree/index.html';
 
 const URL_AUTH = 'https://accounts.spotify.com/api/token';
 
