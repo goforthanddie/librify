@@ -104,6 +104,10 @@ class Spotify {
 						}
 					});
 				},
+				403: function(d) {
+					console.log(d);
+					$('#viewStatus').html('403');
+				},
 				// 429: Rate limit reached
 				429: async function(d) {
 					console.debug('rate limit reached');
