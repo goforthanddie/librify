@@ -8,7 +8,7 @@ class Utils {
 		spotify.accessToken = new AccessToken(access_token, 'Bearer');
 		spotify.getDevices();
 
-		spotify.populateViewLibrary();
+		spotify.libraryRenderer.populateViewLibrary();
 		//spotify.getGenres(0, 50);
 		//spotify.getSavedAlbums(0, 50);
 

@@ -32,7 +32,13 @@ window.addEventListener("load", () => {
 
     $('#buttonReduceGenres').click(function () {
         $(this).attr('disabled', true);
-        spotify.reduceGenres();
+        let numReduced = spotify.library.reduceGenres();
+        if(numReduced === 0) {
+            spotify.statusManager.setStatusText('Genres could not be reduced further.');
+        } else {
+            spotify.statusManager.setStatusText('Reduced the number of genres by ' + numReduced + '.');
+        }
+
         $(this).attr('disabled', false);
     });
 
@@ -43,7 +49,6 @@ window.addEventListener("load", () => {
     $('#buttonManageGenres').click(function () {
         // toggle first, because reduceGenresManually only updates when it is visible
         $('#viewManageGenres').toggle();
-        spotify.reduceGenresManually();
     });
 
     // todo: make this a function in class Spotify
@@ -86,8 +91,6 @@ window.addEventListener("load", () => {
 
             // store new genres
             spotify.library.saveToLocalStorage();
-            //this.storeGenres();
-            //this.populateViewLibrary();
         }
     });
 
@@ -99,9 +102,8 @@ window.addEventListener("load", () => {
     $('#selectSortAlbums > option[value=' + spotify.options.sortAlbums + ']').attr('selected', 'selected');
 
     selectSortAlbums.change(function () {
-        console.log(spotify.options.sortAlbums);
         spotify.options.sortAlbums = selectSortAlbums.children(':selected').attr('value');
-        spotify.populateViewLibrary();
+        spotify.libraryRenderer.populateViewLibrary();
     });
 
     let selectView = $('#selectView');
@@ -112,9 +114,8 @@ window.addEventListener("load", () => {
     $('#selectView > option[value=' + spotify.options.view + ']').attr('selected', 'selected');
 
     selectView.change(function () {
-        console.log(spotify.options.view);
         spotify.options.view = selectView.children(':selected').attr('value');
-        spotify.populateViewLibrary();
+        spotify.libraryRenderer.populateViewLibrary();
     });
 
     $('#selectDevices').change(function () {
@@ -136,30 +137,26 @@ window.addEventListener("load", () => {
     });
 
     $('#buttonRedo').click(() => {
-        console.log('#buttonRedo.click()')
+        //console.log('#buttonRedo.click()')
         if (spotify.library.stateNavigator.currentStateIdx < spotify.library.stateNavigator.states.length - 1) {
-            console.log('#buttonRedo.click()');
+            //console.log('#buttonRedo.click()');
             let state = spotify.library.stateNavigator.redo();
             // this needs to go through setItem and readFromLocalStorage to have the reviver called
             localStorage.setItem('genres', state.genres);
             localStorage.setItem('artists', state.artists);
-            //spotify.readFromLocalStorage();
             spotify.library.readFromLocalStorage(false);
-            //spotify.populateViewLibrary();
         }
     });
 
     $('#buttonUndo').click(() => {
-        console.log('#buttonUndo.click()')
+        //console.log('#buttonUndo.click()')
         if (spotify.library.stateNavigator.currentStateIdx > 0) {
-            console.log('#buttonUndo.click() in if currentStateIdx=' + spotify.library.stateNavigator.currentStateIdx);
+            //console.log('#buttonUndo.click() in if currentStateIdx=' + spotify.library.stateNavigator.currentStateIdx);
             let state = spotify.library.stateNavigator.undo();
             // this needs to go through setItem and readFromLocalStorage to have the reviver called
             localStorage.setItem('genres', state.genres);
             localStorage.setItem('artists', state.artists);
-            //spotify.readFromLocalStorage();
             spotify.library.readFromLocalStorage(false);
-            //spotify.populateViewLibrary();
         }
     });
 
@@ -181,14 +178,11 @@ window.addEventListener("load", () => {
                 let data = JSON.parse(fr.result);
                 if (data.artists !== null) {
                     spotify.library.artists = JSON.parse(JSON.stringify(data.artists), Utils.reviverArtists);
-                    //spotify.storeArtists();
                 }
                 if (data.genres !== null) {
                     spotify.library.genres = JSON.parse(JSON.stringify(data.genres), spotify.library.reviverGenres);
-                    //spotify.storeGenres();
                 }
                 spotify.library.saveToLocalStorage();
-                //spotify.populateViewLibrary();
             };
             fr.readAsText(file);
         }
@@ -197,10 +191,11 @@ window.addEventListener("load", () => {
 
     $('#buttonClusterGenres').click(function() {
         $('#fieldsetClusterGenres').toggle();
+        spotify.libraryRenderer.populateClusterGenres();
     });
 
     $('input#searchKeyword').on('input', function () {
-        spotify.filterViewLibrary();
+        spotify.libraryRenderer.filterViewLibrary();
     });
 
     $('#buttonAddGenre').click(function () {
@@ -213,8 +208,6 @@ window.addEventListener("load", () => {
             let genre = new Genre(genreName);
             spotify.library.genres.push(genre);
             spotify.library.saveToLocalStorage();
-            //spotify.storeGenres();
-            //spotify.populateViewLibrary();
             inputGenreName.val('');
         } else {
             console.log('genre already existing or name is empty. not adding.')

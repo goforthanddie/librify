@@ -99,5 +99,143 @@ class Library {
 		return value;
 	}).bind(this); // bind the context to the reviver so that this.artists can be accessed
 
+	reduceGenres() {
+		// this function reduces the amount of genres by going through each artist's spotify genres and keeping only the genre with the most occurrences within the library
+		let reducedGenres = [];
+		this.artists.forEach(_artist => {
+			//console.log('_artist=' + _artist.name);
+			//console.log(_artist);
+			let maxArtistsGenre = 0;
+			let maxArtistsGenreIdx;
 
+			_artist.getGenres(this.genres);
+
+			// _artist.genres should be empty after a first reduceGenres() call -> _artist.getGenres reads the genres from library.genres so it is not empty.
+			//_artist.genres.forEach(_genre => {
+			// we only need to do this if the artist has more than one genre
+			if(_artist.genres.length > 1) {
+				_artist.genres.forEach(_genre => {
+					console.debug('_genre=' + _genre);
+					// find genre with most entries
+					let genreIdx = this.genres.findIndex(element => element.name === _genre);
+					//console.log('genreIdx='+genreIdx);
+					if(genreIdx !== -1) {
+						//console.log('maxArtistsGenre=' + maxArtistsGenre);
+						console.debug('this.genres[genreIdx].artists.length=' + this.genres[genreIdx].artists.length);
+						let numArtists = this.genres[genreIdx].artists.length;
+						if(numArtists > maxArtistsGenre) {
+							maxArtistsGenre = numArtists;
+							maxArtistsGenreIdx = genreIdx;
+						} else {
+							console.debug('else');
+						}
+						//console.log('maxArtistsGenre='+maxArtistsGenre);
+					} else {
+						console.debug(_genre.name + ' not found in this.genres :O');
+					}
+				});
+				// if an artist has no associated genres maxArtistsGenreIdx === undefined
+				if(maxArtistsGenreIdx !== undefined) {
+					console.debug(maxArtistsGenreIdx);
+					console.debug('_genre mit meisten artists:' + this.genres[maxArtistsGenreIdx].name);
+
+					// remove artist from genres with less artists than the main genre
+					_artist.genres.forEach(_genre => {
+						let genreIdx = this.genres.findIndex(element => element.name === _genre);
+						if(genreIdx !== -1 && genreIdx !== maxArtistsGenreIdx) {
+							this.genres[genreIdx].artists = this.genres[genreIdx].artists.filter(function(__artist) {
+								//console.log('__artist.id=' + __artist.id + '!=' + '_artist.id=' + _artist.id);
+								return (__artist.id !== _artist.id)
+							});
+						}
+					});
+
+					// remove genres from artist to save memory
+					_artist.genres = [];
+
+					// test if genre is not already in the new array
+					if(reducedGenres.findIndex(element => element.id === this.genres[maxArtistsGenreIdx].id) === -1) {
+						console.debug('pushing ' + this.genres[maxArtistsGenreIdx].name)
+						console.debug(this.genres[maxArtistsGenreIdx]);
+						reducedGenres.push(this.genres[maxArtistsGenreIdx]);
+					}
+				} else {
+					console.log(_artist);
+				}
+			}
+		});
+		console.debug(reducedGenres);
+
+		// in case the function is called a second time reducedGenres will be empty and thus clean the db
+		let oldLength = this.genres.length;
+		let numReduced = 0;
+		if(reducedGenres.length > 0) {
+			this.genres = reducedGenres;
+			this.saveToLocalStorage();
+			numReduced = oldLength - reducedGenres.length;
+		} else {
+			console.log('reduceGenres() has delivered no change.');
+		}
+
+		return numReduced;
+	}
+
+	reduceGenresFurther() {
+		console.debug('reduceGenresFurther()');
+		let foundMainGenres = [];
+		let foundSubGenres = [];
+		console.log(this.genres);
+		// identify sub genres, i.e., genres where the name of another genre is part of the name
+		this.genres.forEach(_genre => {
+			let subGenres = this.genres.filter(element => element.name.includes(_genre.name) && element.id !== _genre.id);
+			// test for length > 1 because it will always find itself
+			if(subGenres.length > 0) {
+				subGenres.forEach(_subgenre => {
+					console.log('subgenre ' + _subgenre.name);
+					// add all the artists of the found sub genres to the main genre
+					_subgenre.artists.forEach(_artist => {
+						_genre.addArtist(_artist);
+					});
+
+					//_genre.addSubGenre(_subgenre);
+					// test if the sub genre is already in the foundSubGenres array, if not, add it
+					if(foundSubGenres.findIndex(element => element.id === _subgenre.id) === -1) {
+						foundSubGenres.push(_subgenre);
+					}
+				});
+			}
+		});
+		// identify main genres, i.e., genres that are not sub genres
+		this.genres.forEach(_genre => {
+			if(foundSubGenres.findIndex(element => element.id === _genre.id) === -1) {
+				// test if the main genre is already in the foundMainGenres array, if not, add it
+				if(foundMainGenres.findIndex(element => element.id === _genre.id) === -1) {
+					foundMainGenres.push(_genre);
+				}
+			}
+		});
+		console.log(foundMainGenres);
+		console.log(foundSubGenres);
+		foundMainGenres.forEach(_genre => {
+			_genre.artists.sort((a, b) => a.name.localeCompare(b.name));
+		});
+		this.genres = foundMainGenres;
+
+		// test if we still got all the artists
+		/*
+		let compArtists = [];
+		this.genres.forEach(_genre => {
+			_genre.artists.forEach(_artist => {
+				if(compArtists.findIndex(element => element.id === _artist.id) === -1) {
+					compArtists.push(_artist)
+				}
+			})
+		});
+		console.log('compArtists.length=' + compArtists.length);*/
+		//console.log(compArtists.sort((a, b) => a.name.localeCompare(b.name)));
+		/*
+				this.storeGenres();
+				this.populateViewLibrary();*/
+		this.saveToLocalStorage();
+	}
 }
