@@ -1,6 +1,6 @@
 const clientId = 'f77bc91de5834f398680d65c02bdfe94';
-//const redirectUri = 'https://librify.coderbutze.de';
-const redirectUri = 'http://localhost:63342/SpotifyTree/index.html';
+const redirectUri = 'https://librify.coderbutze.de';
+//const redirectUri = 'http://localhost:63342/SpotifyTree/index.html';
 
 const URL_AUTH = 'https://accounts.spotify.com/api/token';
 
@@ -83,7 +83,7 @@ class Spotify {
 		}
 
 		let statusCodeFun = function(d) {
-			$('#viewStatus').html(d.responseText);
+			$('#viewStatus').hide().html(d.responseText).fadeIn(1500);
 		};
 
 		$.ajax({
@@ -110,8 +110,9 @@ class Spotify {
 						}
 					});
 				},
-				// 	Forbidden - The server understood the request, but is refusing to fulfill it.
+				// Forbidden - The server understood the request, but is refusing to fulfill it.
 				403: statusCodeFun,
+				// Not Found - The requested resource could not be found. This error can be due to a temporary or permanent condition.
 				404: statusCodeFun,
 				// 429: Rate limit reached
 				429: async function(d) {
@@ -126,7 +127,13 @@ class Spotify {
 						console.log('retry number ' + counter);
 						this.sendRequest(url, type, data, fnSuccess, fnError, ++counter);
 					}
-				}
+				},
+				// Internal Server Error. You should never receive this error because our clever coders catch them all ... but if you are unlucky enough to get one, please report it to us through a comment at the bottom of this page.
+				500: statusCodeFun,
+				//	Bad Gateway - The server was acting as a gateway or proxy and received an invalid response from the upstream server.
+				502: statusCodeFun,
+				//Service Unavailable - The server is currently unable to handle the request due to a temporary condition which will be alleviated after some delay. You can choose to resend the request again.
+				503: statusCodeFun
 			},
 			data: data,
 			success: function(_data) {
@@ -469,9 +476,9 @@ class Spotify {
 		});
 		console.log('compArtists.length=' + compArtists.length);*/
 		//console.log(compArtists.sort((a, b) => a.name.localeCompare(b.name)));
-/*
-		this.storeGenres();
-		this.populateViewLibrary();*/
+		/*
+				this.storeGenres();
+				this.populateViewLibrary();*/
 		this.library.saveToLocalStorage();
 	}
 
