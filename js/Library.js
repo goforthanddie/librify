@@ -26,7 +26,6 @@ class Library {
 		let artists = localStorage.getItem('artists');
 		if(artists != null) {
 			this.artists = JSON.parse(artists, Utils.reviverArtists);
-			console.log('retrieved ' + this.artists.length + ' artists');
 		} else {
 			this.artists = [];
 		}

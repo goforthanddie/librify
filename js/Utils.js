@@ -8,7 +8,6 @@ class Utils {
 		spotify.accessToken = new AccessToken(access_token, 'Bearer');
 		spotify.getDevices();
 
-		console.log('populating library view from stored artists');
 		spotify.populateViewLibrary();
 		//spotify.getGenres(0, 50);
 		//spotify.getSavedAlbums(0, 50);
