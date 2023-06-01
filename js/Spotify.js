@@ -25,6 +25,7 @@ class Spotify {
 
 		this.library.addUpdateListener(this.libraryRenderer.populateClusterGenres.bind(this.libraryRenderer));
 		this.library.addUpdateListener(this.libraryRenderer.populateViewLibrary.bind(this.libraryRenderer));
+
 		this.arrayDevices = [];
 	}
 

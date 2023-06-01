@@ -220,7 +220,7 @@ class LibraryRenderer {
 					$('button#buttonStoreGenresSub').attr('disabled', true);
 				}
 			});
-			this.populateSelectGenresSub();
+
 
 			this.library.genres.forEach(_genre => {
 				selectGenreMain.append($('<option />').val(_genre.id).text(_genre.name));
@@ -229,6 +229,8 @@ class LibraryRenderer {
 			$('select#genreMain').change(this.populateSelectGenresSub.bind(this));
 
 			$('input#genresSubKeyword').on('input', this.populateSelectGenresSub.bind(this));
+
+			this.populateSelectGenresSub();
 		}
 	}
 
