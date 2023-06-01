@@ -82,6 +82,10 @@ class Spotify {
 			};
 		}
 
+		let statusCodeFun = function(d) {
+			$('#viewStatus').html(d.responseText);
+		};
+
 		$.ajax({
 			url: url,
 			type: type,
@@ -91,6 +95,8 @@ class Spotify {
 				'Authorization': (this.accessToken !== null && url !== URL_AUTH) ? this.accessToken.type + '  ' + this.accessToken.token : ''
 			},
 			statusCode: {
+				// Bad Request - The request could not be understood by the server due to malformed syntax. The message body will contain more information; see Response Schema.
+				400: statusCodeFun,
 				// 401: Unauthorized - The request requires user authentication or, if the request included authorization credentials, authorization has been refused for those credentials.
 				401: function() {
 					console.log('Got 401. Refreshing the token.');
@@ -104,10 +110,9 @@ class Spotify {
 						}
 					});
 				},
-				403: function(d) {
-					console.log(d);
-					$('#viewStatus').html('403');
-				},
+				// 	Forbidden - The server understood the request, but is refusing to fulfill it.
+				403: statusCodeFun,
+				404: statusCodeFun,
 				// 429: Rate limit reached
 				429: async function(d) {
 					console.debug('rate limit reached');
