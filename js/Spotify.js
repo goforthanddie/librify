@@ -157,7 +157,7 @@ class Spotify {
 			});
 
 			console.log(Math.min(offset + limit, data.total) + '/' + data.total + ' albums.');
-			this.statusManager.updateStatusText('Loaded albums ' + Math.min(offset + limit, data.total) + '/' + data.total);
+			this.statusManager.updateStatusText('Loaded ' + Math.min(offset + limit, data.total) + '/' + data.total + ' albums.');
 
 			// test if there are more albums
 			if(data.next != null) {
@@ -279,7 +279,7 @@ class Spotify {
 				}
 			});
 			console.log(Math.min(offset + limit, this.library.artists.length) + '/' + this.library.artists.length + ' artists.');
-			this.statusManager.updateStatusText('Loaded genres for artists ' + Math.min(offset + limit, this.library.artists.length) + '/' + this.library.artists.length);
+			this.statusManager.updateStatusText('Loaded genres for ' + Math.min(offset + limit, this.library.artists.length) + '/' + this.library.artists.length + ' artists.');
 
 			// test if there are more genres
 			if(offset + limit < this.library.artists.length) {
