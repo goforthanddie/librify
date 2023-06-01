@@ -46,6 +46,51 @@ window.addEventListener("load", () => {
         spotify.reduceGenresManually();
     });
 
+    // todo: make this a function in class Spotify
+    $('button#buttonStoreGenresSub').click(() => {
+        console.log('buttonStoreGenresSub click');
+
+        $('button#buttonStoreGenresSub').attr('disabled', true);
+        let selectGenreMain = $('select#genreMain');
+        let genreMain = spotify.library.genres.find(element => element.id === selectGenreMain.val());
+        //console.log(genreMain);
+        if(genreMain !== undefined) {
+            //console.log(selectGenreSub.children(':selected'));
+            // add all the artists of the found sub genres to the main genre
+            let selectGenreSub = $('select#genresSub');
+            selectGenreSub.val().forEach(_idGenreSub => {
+                console.log(_idGenreSub);
+                let genreSubIdx = spotify.library.genres.findIndex(element => element.id === _idGenreSub);
+                //console.log(this.library.genres[genreSubIdx]);
+                if(genreSubIdx !== -1) {
+                    spotify.library.genres[genreSubIdx].artists.forEach(_artist => {
+                        genreMain.addArtist(_artist);
+                    });
+                    //genreMain.addSubGenre(this.library.genres[genreSubIdx]);
+
+                    // remove sub genre from main array
+                    spotify.library.genres.splice(genreSubIdx, 1);
+                }
+            });
+
+            $('input#genresSubKeyword').val('');
+            //let selectGenreMain = $('select#genreMain');
+            selectGenreMain.empty();
+            spotify.library.genres.forEach(_genre => {
+                selectGenreMain.append($('<option />').val(_genre.id).text(_genre.name));
+            });
+            selectGenreMain.val(spotify.library.genres[0].id).trigger('change');
+
+            // sort artists
+            genreMain.artists.sort((a, b) => a.name.localeCompare(b.name));
+
+            // store new genres
+            spotify.library.saveToLocalStorage();
+            //this.storeGenres();
+            //this.populateViewLibrary();
+        }
+    });
+
     let selectSortAlbums = $('#selectSortAlbums');
     selectSortAlbums.append($('<option />').val(SORT_BY_NAME).text(SORT_BY_NAME));
     selectSortAlbums.append($('<option />').val(SORT_BY_YEAR).text(SORT_BY_YEAR));

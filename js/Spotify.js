@@ -471,7 +471,9 @@ class Spotify {
 		let selectGenreMain = $('select#genreMain');
 		let selectGenresSub = $('select#genresSub');
 		let inputGenresSubKeyword = $('input#genresSubKeyword');
-		selectGenresSub.attr('size', Math.ceil(this.library.genres.length / 10));
+
+		let size = (this.library.genres.length <= 100) ? 10 : Math.ceil(this.library.genres.length / 10);
+		selectGenresSub.attr('size', size);
 		selectGenresSub.empty();
 		let selectedGenreMainValue = selectGenreMain.children(':selected').attr('value');
 		this.library.genres.forEach(_genre => {
@@ -506,49 +508,6 @@ class Spotify {
 			$('select#genreMain').change(this.populateSelectGenresSub.bind(this));
 
 			$('input#genresSubKeyword').on('input', this.populateSelectGenresSub.bind(this));
-
-			$('button#buttonStoreGenresSub').click(() => {
-				console.log('buttonStoreGenresSub click');
-
-				$('button#buttonStoreGenresSub').attr('disabled', true);
-
-				let genreMain = this.library.genres.find(element => element.id === selectGenreMain.val());
-				//console.log(genreMain);
-				if(genreMain !== undefined) {
-					//console.log(selectGenreSub.children(':selected'));
-					// add all the artists of the found sub genres to the main genre
-					selectGenreSub.val().forEach(_idGenreSub => {
-						console.log(_idGenreSub);
-						let genreSubIdx = this.library.genres.findIndex(element => element.id === _idGenreSub);
-						//console.log(this.library.genres[genreSubIdx]);
-						if(genreSubIdx !== -1) {
-							this.library.genres[genreSubIdx].artists.forEach(_artist => {
-								genreMain.addArtist(_artist);
-							});
-							//genreMain.addSubGenre(this.library.genres[genreSubIdx]);
-
-							// remove sub genre from main array
-							this.library.genres.splice(genreSubIdx, 1);
-						}
-					});
-
-					$('input#genresSubKeyword').val('');
-					let selectGenreMain = $('select#genreMain');
-					selectGenreMain.empty();
-					this.library.genres.forEach(_genre => {
-						selectGenreMain.append($('<option />').val(_genre.id).text(_genre.name));
-					});
-					selectGenreMain.val(this.library.genres[0].id).trigger('change');
-
-					// sort artists
-					genreMain.artists.sort((a, b) => a.name.localeCompare(b.name));
-
-					// store new genres
-					this.library.saveToLocalStorage();
-					//this.storeGenres();
-					//this.populateViewLibrary();
-				}
-			});
 		}
 	}
 
