@@ -45,8 +45,8 @@
     <button id="buttonLogout" style="float: right;">Logout</button>
 
 
-    <div id="viewStats"></div>
-    <div id="viewStatus"></div>
+    <div id="viewStats">.</div>
+    <div id="viewStatus">.</div>
     <br />
     <div id="viewSelectDevices"><span id="viewSelectDevicesWithoutButton" style="display: none;"><label for="selectDevices">Play on:</label> <select id="selectDevices"></select></span> <button id="buttonReloadDevices">Reload devices</button></div><br />
 
@@ -56,18 +56,24 @@
     <br /><br />
 
     <div id="viewManageGenres" style="display: none; float: right;">
-        <br />
-        <button id="buttonReduceGenres">Reduce genres</button>
-        <button id="buttonRemoveEmptyGenres">Remove empty genres</button>
-        <input id="addGenre" /><button id="buttonAddGenre">Add genre</button>
-        <br /><br />
-        <label for="genreMain">Select main genre</label><br /><select id="genreMain"></select>
-        <br /><br />
-        <input id="genresSubKeyword" placeholder="keyword" />
-        <br />
-        <label for="genresSub">Select sub genres</label><br /><select multiple id="genresSub"></select>
-        <br />
-        <button id="buttonStoreGenresSub" disabled>Store</button>
+        <fieldset>
+            <legend>Manage genres</legend>
+            <button id="buttonReduceGenres" title="Artists might have multiple associated genres. This function associates each artist with it's strongest genre in your library and keeps only these genres. ">Reduce genres</button>
+            <button id="buttonClusterGenres">Cluster genres</button>
+            <button id="buttonRemoveEmptyGenres">Remove empty genres</button><br />
+            <input id="addGenre" placeholder="genre name" /><button id="buttonAddGenre">Add genre</button>
+            <fieldset id="fieldsetClusterGenres" style="display: none;">
+                <legend>Cluster genres</legend>
+                <label for="genreMain">Main genre</label><br /><select id="genreMain"></select>
+                <br /><br />
+                <input id="genresSubKeyword" placeholder="keyword" />
+                <br />
+                <label for="genresSub">Sub genres</label><br /><select multiple id="genresSub"></select>
+                <br /><br />
+                <button id="buttonStoreGenresSub" disabled>Cluster main and sub genres</button>
+            </fieldset>
+
+        </fieldset>
         <br /><br />
     </div>
     <input id="searchKeyword" placeholder="keyword" />

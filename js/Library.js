@@ -72,8 +72,11 @@ class Library {
 	}
 
 	removeEmptyGenres() {
+		let oldLength = this.genres.length;
 		this.genres = this.genres.filter(_genre => _genre.artists.length > 0);
 		this.saveToLocalStorage();
+
+		return oldLength - this.genres.length;
 	}
 
 	// custom reviver to parse the stringified genres back into objects

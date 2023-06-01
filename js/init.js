@@ -195,6 +195,10 @@ window.addEventListener("load", () => {
         input.click();
     });
 
+    $('#buttonClusterGenres').click(function() {
+        $('#fieldsetClusterGenres').toggle();
+    });
+
     $('input#searchKeyword').on('input', function () {
         spotify.filterViewLibrary();
     });
@@ -219,8 +223,8 @@ window.addEventListener("load", () => {
 
     $('#buttonRemoveEmptyGenres').click(function () {
         $(this).attr('disabled', true);
-        spotify.library.removeEmptyGenres();
-        //spotify.removeEmptyGenres();
+        let numRemovedGenres = spotify.library.removeEmptyGenres();
+        spotify.statusManager.setStatusText('Removed ' + numRemovedGenres + ' empty genres.');
         $(this).attr('disabled', false);
     });
 });

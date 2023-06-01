@@ -157,7 +157,7 @@ class Spotify {
 			});
 
 			console.log(Math.min(offset + limit, data.total) + '/' + data.total + ' albums.');
-			this.statusManager.updateStatusText('Loaded ' + Math.min(offset + limit, data.total) + '/' + data.total + ' albums.');
+			this.statusManager.setStatusText('Loaded ' + Math.min(offset + limit, data.total) + '/' + data.total + ' albums.');
 
 			// test if there are more albums
 			if(data.next != null) {
@@ -279,7 +279,7 @@ class Spotify {
 				}
 			});
 			console.log(Math.min(offset + limit, this.library.artists.length) + '/' + this.library.artists.length + ' artists.');
-			this.statusManager.updateStatusText('Loaded genres for ' + Math.min(offset + limit, this.library.artists.length) + '/' + this.library.artists.length + ' artists.');
+			this.statusManager.setStatusText('Loaded genres for ' + Math.min(offset + limit, this.library.artists.length) + '/' + this.library.artists.length + ' artists.');
 
 			// test if there are more genres
 			if(offset + limit < this.library.artists.length) {
@@ -302,62 +302,65 @@ class Spotify {
 		// this function reduces the amount of genres by going through each artist's spotify genres and keeping only the genre with the most occurrences within the library
 		let reducedGenres = [];
 		this.library.artists.forEach(_artist => {
-			console.log('_artist=' + _artist.name);
+			//console.log('_artist=' + _artist.name);
 			//console.log(_artist);
 			let maxArtistsGenre = 0;
 			let maxArtistsGenreIdx;
 
 			_artist.getGenres(this.library.genres);
 
-			// _artist.genres should be empty after a first reduceGenres() call
+			// _artist.genres should be empty after a first reduceGenres() call -> _artist.getGenres reads the genres from library.genres so it is not empty.
 			//_artist.genres.forEach(_genre => {
-			_artist.genres.forEach(_genre => {
-				console.debug('_genre=' + _genre);
-				// find genre with most entries
-				let genreIdx = this.library.genres.findIndex(element => element.name === _genre);
-				//console.log('genreIdx='+genreIdx);
-				if(genreIdx !== -1) {
-					console.log('maxArtistsGenre=' + maxArtistsGenre);
-					console.debug('this.library.genres[genreIdx].artists.length=' + this.library.genres[genreIdx].artists.length);
-					let numArtists = this.library.genres[genreIdx].artists.length;
-					if(numArtists > maxArtistsGenre) {
-						maxArtistsGenre = numArtists;
-						maxArtistsGenreIdx = genreIdx;
-					} else {
-						console.debug('else');
-					}
-					//console.log('maxArtistsGenre='+maxArtistsGenre);
-				} else {
-					console.debug(_genre.name + ' not found in this.library.genres :O');
-				}
-			});
-			// if an artist has no associated genres maxArtistsGenreIdx === undefined
-			if(maxArtistsGenreIdx !== undefined) {
-				console.debug(maxArtistsGenreIdx);
-				console.debug('_genre mit meisten artists:' + this.library.genres[maxArtistsGenreIdx].name);
-
-				// remove artist from genres with less artists than the main genre
+			// we only need to do this if the artist has more than one genre
+			if(_artist.genres.length > 1) {
 				_artist.genres.forEach(_genre => {
+					console.debug('_genre=' + _genre);
+					// find genre with most entries
 					let genreIdx = this.library.genres.findIndex(element => element.name === _genre);
-					if(genreIdx !== -1 && genreIdx !== maxArtistsGenreIdx) {
-						this.library.genres[genreIdx].artists = this.library.genres[genreIdx].artists.filter(function(__artist) {
-							//console.log('__artist.id=' + __artist.id + '!=' + '_artist.id=' + _artist.id);
-							return (__artist.id !== _artist.id)
-						});
+					//console.log('genreIdx='+genreIdx);
+					if(genreIdx !== -1) {
+						console.log('maxArtistsGenre=' + maxArtistsGenre);
+						console.debug('this.library.genres[genreIdx].artists.length=' + this.library.genres[genreIdx].artists.length);
+						let numArtists = this.library.genres[genreIdx].artists.length;
+						if(numArtists > maxArtistsGenre) {
+							maxArtistsGenre = numArtists;
+							maxArtistsGenreIdx = genreIdx;
+						} else {
+							console.debug('else');
+						}
+						//console.log('maxArtistsGenre='+maxArtistsGenre);
+					} else {
+						console.debug(_genre.name + ' not found in this.library.genres :O');
 					}
 				});
+				// if an artist has no associated genres maxArtistsGenreIdx === undefined
+				if(maxArtistsGenreIdx !== undefined) {
+					console.debug(maxArtistsGenreIdx);
+					console.debug('_genre mit meisten artists:' + this.library.genres[maxArtistsGenreIdx].name);
 
-				// remove genres from artist to save memory
-				_artist.genres = [];
+					// remove artist from genres with less artists than the main genre
+					_artist.genres.forEach(_genre => {
+						let genreIdx = this.library.genres.findIndex(element => element.name === _genre);
+						if(genreIdx !== -1 && genreIdx !== maxArtistsGenreIdx) {
+							this.library.genres[genreIdx].artists = this.library.genres[genreIdx].artists.filter(function(__artist) {
+								//console.log('__artist.id=' + __artist.id + '!=' + '_artist.id=' + _artist.id);
+								return (__artist.id !== _artist.id)
+							});
+						}
+					});
 
-				// test if genre is not already in the new array
-				if(reducedGenres.findIndex(element => element.id === this.library.genres[maxArtistsGenreIdx].id) === -1) {
-					console.debug('pushing ' + this.library.genres[maxArtistsGenreIdx].name)
-					console.debug(this.library.genres[maxArtistsGenreIdx]);
-					reducedGenres.push(this.library.genres[maxArtistsGenreIdx]);
+					// remove genres from artist to save memory
+					_artist.genres = [];
+
+					// test if genre is not already in the new array
+					if(reducedGenres.findIndex(element => element.id === this.library.genres[maxArtistsGenreIdx].id) === -1) {
+						console.debug('pushing ' + this.library.genres[maxArtistsGenreIdx].name)
+						console.debug(this.library.genres[maxArtistsGenreIdx]);
+						reducedGenres.push(this.library.genres[maxArtistsGenreIdx]);
+					}
+				} else {
+					console.log(_artist);
 				}
-			} else {
-				console.log(_artist);
 			}
 		});
 		console.debug(reducedGenres);
@@ -365,12 +368,9 @@ class Spotify {
 		// in case the function is called a second time reducedGenres will be empty and thus clean the db
 		if(reducedGenres.length > 0) {
 			this.library.genres = reducedGenres;
-			/*
-			this.storeGenres();
-			this.storeArtists();
-			this.populateViewLibrary();*/
 			this.library.saveToLocalStorage();
 		} else {
+			this.statusManager.setStatusText('Genres could not be reduced further.');
 			console.log('reduceGenres() has delivered no change.');
 		}
 	}
