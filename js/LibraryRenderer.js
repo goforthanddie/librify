@@ -128,7 +128,8 @@ class LibraryRenderer {
 						// sort artists
 						genreMain.artists.sort((a, b) => a.name.localeCompare(b.name));
 
-						console.log('sub genre ' + idGenreSub + ' has been dragged to ' + idGenreMain + '.');
+						console.debug('sub genre ' + idGenreSub + ' has been dragged to ' + idGenreMain + '.');
+						this.spotify.statusManager.setStatusText('Moved artists from "' + genreSub.name + '" to "' + genreMain.name + '".');
 					}
 				} else if(this.dragged instanceof Array) {
 					if(genreMain !== undefined) {
@@ -149,7 +150,7 @@ class LibraryRenderer {
 							console.log('single artist ' + artist.name + ' has been dragged to ' + idGenreMain + '.');
 						}
 						// todo: codeschnipsel kommt häufiger vor
-						// sort artists
+						// sort artists in genres
 						genreMain.artists.sort((a, b) => a.name.localeCompare(b.name));
 					}
 				}
