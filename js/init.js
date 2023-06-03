@@ -138,7 +138,7 @@ window.addEventListener("load", () => {
 					console.debug('data.artists === null');
 				}
 				if(data.genres !== null) {
-					spotify.library.genres = JSON.parse(JSON.stringify(data.genres), Utils.reviverGenres.bind(spotify.library.stateNavigator));
+					spotify.library.genres = JSON.parse(JSON.stringify(data.genres), Utils.reviverGenres.bind(spotify.library));
 				} else {
 					console.debug('data.genres === null');
 				}

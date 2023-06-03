@@ -77,7 +77,7 @@ class Utils {
 		let artist;
 		if(typeof value === 'object' && value !== null) {
 			if(value.dataType === Artist.name) {
-				artist = this.library.artists.find(element => element.id === value.id);
+				artist = this.artists.find(element => element.id === value.id);
 				return artist;
 			} else if(value.dataType === Genre.name) {
 				let genre = new Genre(value.name);

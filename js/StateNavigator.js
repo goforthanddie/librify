@@ -30,7 +30,7 @@ class StateNavigator {
 			} else {
 				return {
 					artists: JSON.parse(this.states[this.currentStateIdx].artists, Utils.reviverArtists),
-					genres: JSON.parse(this.states[this.currentStateIdx].genres, Utils.reviverGenres.bind(this))
+					genres: JSON.parse(this.states[this.currentStateIdx].genres, Utils.reviverGenres.bind(this.library))
 				};
 			}
 		}
@@ -79,7 +79,7 @@ class StateNavigator {
 		let genres = localStorage.getItem('genres');
 		if(genres != null) {
 			console.debug('pre()');
-			this.library.genres = JSON.parse(genres, Utils.reviverGenres.bind(this));
+			this.library.genres = JSON.parse(genres, Utils.reviverGenres.bind(this.library));
 		} else {
 			// add the default genre so all artists without a genre other than the default genre will end up in this genre
 			this.library.genres = [GENRE_DEFAULT]; // das hier beim einlesen machen!
