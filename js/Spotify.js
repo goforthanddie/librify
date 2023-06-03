@@ -13,8 +13,6 @@ class Spotify {
 	arrayDevices;
 	statusManager;
 
-	dragged;
-
 	constructor() {
 		this.statusManager = new StatusManager($('#viewStatus'));
 		this.options = new Options();
@@ -124,8 +122,6 @@ class Spotify {
 
 		// empty array on first call, also on update
 		if(offset === 0) {
-			localStorage.removeItem('artists');
-			this.library.artists = [];
 			this.library.emptyArtists();
 		}
 
@@ -169,7 +165,7 @@ class Spotify {
 				// its okay if the num of albums differs from data.total because if an album is linked with two artists, the album is added twice
 				console.log('got: ' + this.library.artists.length + ' artists, ' + this.library.artists.reduce((numAlbums, _artist) => numAlbums + _artist.albums.length, 0) + ' albums');
 				console.debug(this.library.artists);
-				this.library.saveToLocalStorage();
+				this.library.notifyUpdateListeners();
 				this.getGenres(0, 50, update);
 			}
 		};
@@ -288,25 +284,12 @@ class Spotify {
 				this.getGenres(offset + limit, limit, update);
 			} else { // no more genres
 				console.log('got: ' + this.library.genres.length + ' genres');
-				this.library.saveToLocalStorage();
+				this.library.notifyUpdateListeners();
 				$('#buttonUpdateLibrary').attr('disabled', false);
 			}
 
 		}
 		this.sendRequest(url, type, data, fnSuccess, null);
-	}
-
-	startPlayback(albumId) {
-		let url = 'https://api.spotify.com/v1/me/player/play?device_id=' + this.options.selectedDevice;
-		let type = 'PUT';
-		let data = JSON.stringify({
-			'context_uri': 'spotify:album:' + albumId,
-			'position_ms': 0,
-		});
-		let fnSuccess = function() {
-			console.log('startPlayback successful');
-		};
-		this.sendRequest(url, type, data, fnSuccess);
 	}
 
 	getDevices() {
@@ -329,6 +312,19 @@ class Spotify {
 		};
 
 		this.sendRequest(url, type, {}, fnSuccess, fnError);
+	}
+
+	startPlayback(albumId) {
+		let url = 'https://api.spotify.com/v1/me/player/play?device_id=' + this.options.selectedDevice;
+		let type = 'PUT';
+		let data = JSON.stringify({
+			'context_uri': 'spotify:album:' + albumId,
+			'position_ms': 0,
+		});
+		let fnSuccess = function() {
+			console.log('startPlayback successful');
+		};
+		this.sendRequest(url, type, data, fnSuccess);
 	}
 
 	static generateRandomString(length) {

@@ -7,97 +7,38 @@ class Library {
 
 	constructor() {
 		this.updateListeners = [];
-		this.stateNavigator = new StateNavigator();
-		this.readFromLocalStorage();
+
+		this.stateNavigator = new StateNavigator(this);
+		this.addUpdateListener(this.stateNavigator.saveToLocalStorage.bind(this.stateNavigator));
 	}
 
 	addUpdateListener(listener) {
 		this.updateListeners.push(listener);
 	}
 
-	notifyUpdateListeners() {
+	// if the call is from redo() or undo() we do not want to call saveCurrentState(), got no better idea than that right now.
+	// todo: improve D:
+	notifyUpdateListeners(saveCurrentState = true) {
 		console.debug('notifyUpdateListeners()');
 		for(let i = 0, I = this.updateListeners.length; i < I; i++) {
-			this.updateListeners[i]();
+			this.updateListeners[i].call(null, saveCurrentState);
 		}
-	}
-
-	readFromLocalStorage(saveCurrentState = true) {
-		let artists = localStorage.getItem('artists');
-		if(artists != null) {
-			this.artists = JSON.parse(artists, Utils.reviverArtists);
-		} else {
-			this.artists = [];
-		}
-
-		// must parse artists before genres. artists in genres are only identified by an id and retrieved during the revive process.
-		let genres = localStorage.getItem('genres');
-		if(genres != null) {
-			this.genres = JSON.parse(genres, this.reviverGenres);
-		} else {
-			// add the default genre so all artists without a genre other than the default genre will end up in this genre
-			this.genres = [GENRE_DEFAULT]; // das hier beim einlesen machen!
-		}
-
-		if(saveCurrentState) {
-			this.stateNavigator.saveCurrentState(this);
-		}
-
-		this.notifyUpdateListeners();
-	}
-
-	saveToLocalStorage(saveCurrentState = true) {
-		// sort genres alphabetically
-		this.genres.sort((a, b) => a.name.localeCompare(b.name));
-
-		localStorage.removeItem('genres');
-		localStorage.setItem('genres', JSON.stringify(this.genres, Utils.replacerGenres));
-
-		// sort artists alphabetically
-		this.artists.sort((a, b) => a.name.localeCompare(b.name));
-
-		localStorage.removeItem('artists');
-		localStorage.setItem('artists', JSON.stringify(this.artists, Utils.replacerArtists));
-
-		if(saveCurrentState) {
-			this.stateNavigator.saveCurrentState(this);
-		}
-
-		this.notifyUpdateListeners();
 	}
 
 	emptyArtists() {
 		localStorage.removeItem('artists');
 		this.artists = [];
+		this.notifyUpdateListeners();
 	}
 
 	removeEmptyGenres() {
 		let oldLength = this.genres.length;
 		this.genres = this.genres.filter(_genre => _genre.artists.length > 0);
-		this.saveToLocalStorage();
+		//this.stateNavigator.saveToLocalStorage();
+		this.notifyUpdateListeners();
 
 		return oldLength - this.genres.length;
 	}
-
-	// custom reviver to parse the stringified genres back into objects
-	reviverGenres = (function(key, value) {
-		//console.log(this);
-		let artist;
-		if(typeof value === 'object' && value !== null) {
-			if(value.dataType === Artist.name) {
-				artist = this.artists.find(element => element.id === value.id);
-				return artist;
-			} else if(value.dataType === Genre.name) {
-				let genre = new Genre(value.name);
-				value.artists.forEach(_artist => {
-					artist = JSON.parse(JSON.stringify(_artist), Utils.reviverArtists);
-					genre.addArtist(artist);
-				});
-				return genre;
-			}
-		}
-		return value;
-	}).bind(this); // bind the context to the reviver so that this.artists can be accessed
 
 	reduceGenres() {
 		// this function reduces the amount of genres by going through each artist's spotify genres and keeping only the genre with the most occurrences within the library
@@ -171,7 +112,8 @@ class Library {
 		let numReduced = 0;
 		if(reducedGenres.length > 0) {
 			this.genres = reducedGenres;
-			this.saveToLocalStorage();
+			this.notifyUpdateListeners();
+			//this.saveToLocalStorage();
 			numReduced = oldLength - reducedGenres.length;
 		} else {
 			console.log('reduceGenres() has delivered no change.');
@@ -236,7 +178,8 @@ class Library {
 		/*
 				this.storeGenres();
 				this.populateViewLibrary();*/
-		this.saveToLocalStorage();
+		//this.saveToLocalStorage();
+		this.notifyUpdateListeners();
 	}
 	
 	clusterGenres() {
@@ -269,8 +212,7 @@ class Library {
 			// sort artists in genres
 			genreMain.artists.sort((a, b) => a.name.localeCompare(b.name));
 
-			// store new genres
-			this.saveToLocalStorage();
+			this.notifyUpdateListeners();
 		}
 		return oldLength - this.genres.length;
 	}
@@ -279,7 +221,8 @@ class Library {
 		if(genreName.length > 0 && this.genres.find(element => element.name === genreName) === undefined) {
 			let genre = new Genre(genreName);
 			this.genres.push(genre);
-			this.saveToLocalStorage();
+			this.notifyUpdateListeners();
+			//this.stateNavigator.saveToLocalStorage();
 			return true
 		} else {
 			return false;

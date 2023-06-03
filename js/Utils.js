@@ -69,6 +69,27 @@ class Utils {
 		}
 		return value;
 	}
+
+	// custom reviver to parse the stringified genres back into objects
+	// need to bind a library context to this function
+	static reviverGenres(key, value) {
+		//console.debug('Utils.reviverGenres()');
+		let artist;
+		if(typeof value === 'object' && value !== null) {
+			if(value.dataType === Artist.name) {
+				artist = this.library.artists.find(element => element.id === value.id);
+				return artist;
+			} else if(value.dataType === Genre.name) {
+				let genre = new Genre(value.name);
+				value.artists.forEach(_artist => {
+					artist = JSON.parse(JSON.stringify(_artist), Utils.reviverArtists);
+					genre.addArtist(artist);
+				});
+				return genre;
+			}
+		}
+		return value;
+	};
 }
 
 // case insensitive filter

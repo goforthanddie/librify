@@ -9,7 +9,6 @@ window.addEventListener("load", () => {
 
 	const urlParams = new URLSearchParams(window.location.search);
 	let code = urlParams.get('code');
-
 	let access_token = localStorage.getItem('access_token');
 
 	// test if there is a code, meaning we got redirected from spotify auth page and no access_token
@@ -17,7 +16,6 @@ window.addEventListener("load", () => {
 		spotify.getAccessToken(code);
 	} else if(access_token != null) {
 		console.log('access_token != null');
-		// Todo: test if access_token is still valid?
 		Utils.login(spotify, access_token);
 	}
 
@@ -50,7 +48,6 @@ window.addEventListener("load", () => {
 		$('#viewManageGenres').toggle();
 	});
 
-	// todo: make this a function in class Spotify
 	$('button#buttonStoreGenresSub').click(() => {
 		$('button#buttonStoreGenresSub').attr('disabled', true);
 		let numReduced = spotify.library.clusterGenres();
@@ -104,27 +101,30 @@ window.addEventListener("load", () => {
 	});
 
 	$('#buttonRedo').click(() => {
-		let state = spotify.library.stateNavigator.redo();
-		// this needs to go through setItem and readFromLocalStorage to have the reviver called
-		spotify.library.readFromLocalStorage(false);
+		$(this).attr('disabled', true);
+		spotify.library.stateNavigator.redo();
+		$(this).attr('disabled', false);
 	});
 
 	$('#buttonUndo').click(() => {
+		$(this).attr('disabled', true);
 		//console.log('#buttonUndo.click() in if currentStateIdx=' + spotify.library.stateNavigator.currentStateIdx);
-		let state = spotify.library.stateNavigator.undo();
-		// this needs to go through setItem and readFromLocalStorage to have the reviver called
-		spotify.library.readFromLocalStorage(false);
+		spotify.library.stateNavigator.undo();
+		$(this).attr('disabled', false);
 	});
 
 	$('#buttonSaveData').click(function() {
+		$(this).attr('disabled', true);
 		let data = "data:text/json;charset=utf-8," + encodeURIComponent('{"genres": ' + spotify.library.stateNavigator.getCurrentState().genres + ', "artists":' + spotify.library.stateNavigator.getCurrentState().artists + '}');
 		let aSaveData = document.getElementById('aSaveData');
 		aSaveData.href = data;
 		aSaveData.download = 'librify.json';
 		aSaveData.click();
+		$(this).attr('disabled', false);
 	});
 
 	$('#buttonLoadData').click(function() {
+		$(this).attr('disabled', true);
 		let input = document.createElement('input');
 		input.type = 'file';
 		input.onchange = () => {
@@ -134,13 +134,18 @@ window.addEventListener("load", () => {
 				let data = JSON.parse(fr.result);
 				if(data.artists !== null) {
 					spotify.library.artists = JSON.parse(JSON.stringify(data.artists), Utils.reviverArtists);
+				} else {
+					console.debug('data.artists === null');
 				}
 				if(data.genres !== null) {
-					spotify.library.genres = JSON.parse(JSON.stringify(data.genres), spotify.library.reviverGenres);
+					spotify.library.genres = JSON.parse(JSON.stringify(data.genres), Utils.reviverGenres.bind(spotify.library.stateNavigator));
+				} else {
+					console.debug('data.genres === null');
 				}
-				spotify.library.saveToLocalStorage();
+				spotify.library.notifyUpdateListeners();
 			};
 			fr.readAsText(file);
+			$(this).attr('disabled', false);
 		}
 		input.click();
 	});

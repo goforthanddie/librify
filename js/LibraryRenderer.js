@@ -3,9 +3,10 @@ class LibraryRenderer {
 	spotify;
 	library;
 	options;
+	dragged;
 
 	constructor(spotify, library, options) {
-		if(library !== null) {
+		if(spotify !== null) {
 			this.spotify = spotify;
 		} else {
 			console.debug('got no spotify object... using empty Spotify object.');
@@ -43,6 +44,10 @@ class LibraryRenderer {
 
 	populateViewLibraryFromArtists(artists) {
 		console.debug('populateViewLibraryFromArtists()');
+		if(artists === null) {
+			console.debug('artists === null')
+			return false;
+		}
 		const ulLibraryNew = this.generateUlFromArtists(artists);
 
 		// switch content of old ul to new ul because we need to keep the expanded items expanded
@@ -53,6 +58,11 @@ class LibraryRenderer {
 
 	populateViewLibraryFromGenres(genres) {
 		console.debug('populateViewLibraryFromGenres()');
+		if(genres === null) {
+			console.debug('genres === null')
+			return false;
+		}
+
 		const ulLibraryNew = document.createElement('ul');
 		ulLibraryNew.id = 'ulLibrary';
 
@@ -155,7 +165,7 @@ class LibraryRenderer {
 					}
 				}
 				// store
-				this.library.saveToLocalStorage();
+				this.library.notifyUpdateListeners();
 			});
 
 			// test if span already exists
@@ -262,7 +272,11 @@ class LibraryRenderer {
 	}
 
 	generateUlFromArtists(artists) {
-		//console.log('generateUlFromArtists()');
+		//console.debug('generateUlFromArtists()');
+		if(artists === null) {
+			console.debug('artists === null')
+			return false;
+		}
 		const ulLibraryNew = document.createElement('ul');
 		ulLibraryNew.id = 'ulLibrary';
 
@@ -319,6 +333,7 @@ class LibraryRenderer {
 			fragment.appendChild(liArtist);
 
 			// sort albums (Todo: different location?)
+
 			artist.albums.sort((a, b) => a.name.localeCompare(b.name));
 
 			if(this.options.sortAlbums === SORT_BY_YEAR) {
