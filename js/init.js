@@ -128,23 +128,7 @@ window.addEventListener("load", () => {
 		let input = document.createElement('input');
 		input.type = 'file';
 		input.onchange = () => {
-			let file = input.files[0];
-			let fr = new FileReader();
-			fr.onload = function receivedText() {
-				let data = JSON.parse(fr.result);
-				if(data.artists !== null) {
-					spotify.library.artists = JSON.parse(JSON.stringify(data.artists), Utils.reviverArtists);
-				} else {
-					console.debug('data.artists === null');
-				}
-				if(data.genres !== null) {
-					spotify.library.genres = JSON.parse(JSON.stringify(data.genres), Utils.reviverGenres.bind(spotify.library));
-				} else {
-					console.debug('data.genres === null');
-				}
-				spotify.library.notifyUpdateListeners();
-			};
-			fr.readAsText(file);
+			spotify.library.stateNavigator.loadFromFile(input.files[0]);
 			$(this).attr('disabled', false);
 		}
 		input.click();

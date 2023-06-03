@@ -66,6 +66,25 @@ class StateNavigator {
 		this.updateControlElements();
 	}
 
+	loadFromFile(file) {
+		let fr = new FileReader();
+		fr.onload = function receivedText() {
+			let data = JSON.parse(fr.result);
+			if(data.artists !== null) {
+				this.artists = JSON.parse(JSON.stringify(data.artists), Utils.reviverArtists);
+			} else {
+				console.debug('data.artists === null');
+			}
+			if(data.genres !== null) {
+				this.genres = JSON.parse(JSON.stringify(data.genres), Utils.reviverGenres.bind(this));
+			} else {
+				console.debug('data.genres === null');
+			}
+			this.notifyUpdateListeners();
+		}.bind(this.library);
+		fr.readAsText(file);
+	}
+
 	loadFromLocalStorage(saveCurrentState = true) {
 		console.debug('loadFromLocalStorage()');
 		let artists = localStorage.getItem('artists');
