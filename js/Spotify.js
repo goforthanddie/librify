@@ -397,9 +397,6 @@ class Spotify {
 			code_verifier: codeVerifier
 		};
 		let fnSuccess = function(data) {
-			console.log('data');
-			console.log(data);
-
 			localStorage.setItem('access_token', data.access_token);
 			localStorage.setItem('refresh_token', data.refresh_token);
 			Utils.login(this, data.access_token);
