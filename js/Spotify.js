@@ -1,6 +1,15 @@
 const clientId = 'f77bc91de5834f398680d65c02bdfe94';
-const redirectUri = 'https://librify.coderbutze.de';
-//const redirectUri = 'http://localhost:63342/SpotifyTree/index.html';
+
+if(window.location.hostname === 'localhost') {
+	const URI_REDIRECT = 'http://localhost:63342/SpotifyTree/index.html';
+} else if(window.location.hostname == 'librify.coderbutze.de') {
+	const URI_REDIRECT = 'https://librify.coderbutze.de';
+} else {
+	const URI_REDIRECT = '';
+	debug.log(window.location.hostname + ' is not a valid hostname.');
+}
+
+
 
 const URL_AUTH = 'https://accounts.spotify.com/api/token';
 
@@ -366,7 +375,7 @@ class Spotify {
 				response_type: 'code',
 				client_id: clientId,
 				scope: scope,
-				redirect_uri: redirectUri,
+				redirect_uri: URI_REDIRECT,
 				state: state,
 				code_challenge_method: 'S256',
 				code_challenge: codeChallenge
@@ -384,7 +393,7 @@ class Spotify {
 		let data = {
 			grant_type: 'authorization_code',
 			code: code,
-			redirect_uri: redirectUri,
+			redirect_uri: URI_REDIRECT,
 			client_id: clientId,
 			code_verifier: codeVerifier
 		};
