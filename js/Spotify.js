@@ -7,7 +7,7 @@ if(window.location.hostname === 'localhost') {
 	tmp_uri_redirect = 'https://librify.coderbutze.de';
 } else {
 	tmp_uri_redirect = '';
-	debug.log(window.location.hostname + ' is not a valid hostname.');
+	console.debug(window.location.hostname + ' is not a valid hostname.');
 }
 const URI_REDIRECT = tmp_uri_redirect;
 const URL_AUTH = 'https://accounts.spotify.com/api/token';
@@ -37,6 +37,7 @@ class Spotify {
 
 	async sendRequest(url, type, data, fnSuccess, fnError, counter = 1) {
 		console.debug('sendRequest()');
+		let gotFnError = false;
 		if(url === undefined || url === null) console.error('parameter url undefined or null');
 		if(type === undefined || type === null) console.error('parameter type undefined or null');
 		if(data === undefined || data === null) console.error('parameter data undefined or null');
@@ -45,10 +46,16 @@ class Spotify {
 			console.debug('parameter fnError undefined or null');
 			fnError = function() {
 			};
+		} else {
+			gotFnError = true;
 		}
 
 		let statusCodeFun = function(d) {
-			this.statusManager.setStatusText(d.responseText);
+			console.debug(d.responseText);
+			// fnError is supposed to handle error messages, if not here is a fallback
+			if(gotFnError === false) {
+				this.statusManager.setStatusText(d.responseJSON.error.status + ' ' + d.responseJSON.error.message);
+			}
 		};
 
 		$.ajax({
@@ -315,7 +322,8 @@ class Spotify {
 			$('#buttonReloadDevices').attr('disabled', false);
 		};
 
-		let fnError = function() {
+		let fnError = function(data) {
+			this.statusManager.setStatusText('Failed loading devices: ' + data.error.message);
 			$('#buttonReloadDevices').attr('disabled', false);
 		};
 
@@ -323,16 +331,26 @@ class Spotify {
 	}
 
 	startPlayback(albumId) {
-		let url = 'https://api.spotify.com/v1/me/player/play?device_id=' + this.options.selectedDevice;
-		let type = 'PUT';
-		let data = JSON.stringify({
-			'context_uri': 'spotify:album:' + albumId,
-			'position_ms': 0,
-		});
-		let fnSuccess = function() {
-			console.log('startPlayback successful');
-		};
-		this.sendRequest(url, type, data, fnSuccess);
+		if(this.options.selectedDevice !== undefined) {
+			let url = 'https://api.spotify.com/v1/me/player/play?device_id=' + this.options.selectedDevice;
+			let type = 'PUT';
+			let data = JSON.stringify({
+				'context_uri': 'spotify:album:' + albumId,
+				'position_ms': 0,
+			});
+			let fnSuccess = function() {
+				console.log('startPlayback() successful');
+			};
+			let fnError = function (data) {
+				//console.log(data.responseJSON.error.message);
+				//let response = JSON.parse(data);
+				this.statusManager.setStatusText('Failed to start playback: ' + data.responseJSON.error.message + '.');
+			};
+			this.sendRequest(url, type, data, fnSuccess, fnError);
+		} else {
+			this.statusManager.setStatusText('Found no active device. Activate a device, hit "Reload devices" and try again.');
+		}
+
 	}
 
 	static generateRandomString(length) {
