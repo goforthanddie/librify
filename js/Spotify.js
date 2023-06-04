@@ -1,16 +1,15 @@
-const clientId = 'f77bc91de5834f398680d65c02bdfe94';
+const CLIENT_ID = 'f77bc91de5834f398680d65c02bdfe94';
 
+let tmp_uri_redirect;
 if(window.location.hostname === 'localhost') {
-	const URI_REDIRECT = 'http://localhost:63342/SpotifyTree/index.html';
-} else if(window.location.hostname == 'librify.coderbutze.de') {
-	const URI_REDIRECT = 'https://librify.coderbutze.de';
+	tmp_uri_redirect = 'http://localhost:63342/SpotifyTree/index.html';
+} else if(window.location.hostname === 'librify.coderbutze.de') {
+	tmp_uri_redirect = 'https://librify.coderbutze.de';
 } else {
-	const URI_REDIRECT = '';
+	tmp_uri_redirect = '';
 	debug.log(window.location.hostname + ' is not a valid hostname.');
 }
-
-
-
+const URI_REDIRECT = tmp_uri_redirect;
 const URL_AUTH = 'https://accounts.spotify.com/api/token';
 
 class Spotify {
@@ -373,7 +372,7 @@ class Spotify {
 
 			let args = new URLSearchParams({
 				response_type: 'code',
-				client_id: clientId,
+				client_id: CLIENT_ID,
 				scope: scope,
 				redirect_uri: URI_REDIRECT,
 				state: state,
@@ -394,7 +393,7 @@ class Spotify {
 			grant_type: 'authorization_code',
 			code: code,
 			redirect_uri: URI_REDIRECT,
-			client_id: clientId,
+			client_id: CLIENT_ID,
 			code_verifier: codeVerifier
 		};
 		let fnSuccess = function(data) {
@@ -419,7 +418,7 @@ class Spotify {
 		let data = {
 			grant_type: 'refresh_token',
 			refresh_token: refreshToken,
-			client_id: clientId
+			client_id: CLIENT_ID
 		};
 		let fnSuccess = function(data) {
 			console.log('data');
