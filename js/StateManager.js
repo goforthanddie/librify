@@ -1,6 +1,6 @@
 const NUM_MAX_STATES = 10;
 
-class StateNavigator {
+class StateManager {
 
 	states;
 	currentStateIdx;

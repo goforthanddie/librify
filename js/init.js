@@ -102,20 +102,20 @@ window.addEventListener("load", () => {
 
 	$('#buttonRedo').click(() => {
 		$(this).attr('disabled', true);
-		spotify.library.stateNavigator.redo();
+		spotify.library.stateManager.redo();
 		$(this).attr('disabled', false);
 	});
 
 	$('#buttonUndo').click(() => {
 		$(this).attr('disabled', true);
-		//console.log('#buttonUndo.click() in if currentStateIdx=' + spotify.library.stateNavigator.currentStateIdx);
-		spotify.library.stateNavigator.undo();
+		//console.log('#buttonUndo.click() in if currentStateIdx=' + spotify.library.stateManager.currentStateIdx);
+		spotify.library.stateManager.undo();
 		$(this).attr('disabled', false);
 	});
 
 	$('#buttonSaveData').click(function() {
 		$(this).attr('disabled', true);
-		let data = "data:text/json;charset=utf-8," + encodeURIComponent('{"genres": ' + spotify.library.stateNavigator.getCurrentState().genres + ', "artists":' + spotify.library.stateNavigator.getCurrentState().artists + '}');
+		let data = "data:text/json;charset=utf-8," + encodeURIComponent('{"genres": ' + spotify.library.stateManager.getCurrentState().genres + ', "artists":' + spotify.library.stateManager.getCurrentState().artists + '}');
 		let aSaveData = document.getElementById('aSaveData');
 		aSaveData.href = data;
 		aSaveData.download = 'librify.json';
@@ -128,7 +128,7 @@ window.addEventListener("load", () => {
 		let input = document.createElement('input');
 		input.type = 'file';
 		input.onchange = () => {
-			spotify.library.stateNavigator.loadFromFile(input.files[0]);
+			spotify.library.stateManager.loadFromFile(input.files[0]);
 			$(this).attr('disabled', false);
 		}
 		input.click();

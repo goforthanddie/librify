@@ -3,13 +3,13 @@ class Library {
 	artists;
 	genres;
 	updateListeners;
-	stateNavigator;
+	stateManager;
 
 	constructor() {
 		this.updateListeners = [];
 
-		this.stateNavigator = new StateNavigator(this);
-		this.addUpdateListener(this.stateNavigator.saveToLocalStorage.bind(this.stateNavigator));
+		this.stateManager = new StateManager(this);
+		this.addUpdateListener(this.stateManager.saveToLocalStorage.bind(this.stateManager));
 	}
 
 	addUpdateListener(listener) {
@@ -34,7 +34,7 @@ class Library {
 	removeEmptyGenres() {
 		let oldLength = this.genres.length;
 		this.genres = this.genres.filter(_genre => _genre.artists.length > 0);
-		//this.stateNavigator.saveToLocalStorage();
+		//this.stateManager.saveToLocalStorage();
 		this.notifyUpdateListeners();
 
 		return oldLength - this.genres.length;
@@ -222,7 +222,7 @@ class Library {
 			let genre = new Genre(genreName);
 			this.genres.push(genre);
 			this.notifyUpdateListeners();
-			//this.stateNavigator.saveToLocalStorage();
+			//this.stateManager.saveToLocalStorage();
 			return true
 		} else {
 			return false;
