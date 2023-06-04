@@ -159,7 +159,7 @@ window.addEventListener("load", () => {
 	$('#buttonRemoveEmptyGenres').click(function() {
 		$(this).attr('disabled', true);
 		let numRemovedGenres = spotify.library.removeEmptyGenres();
-		spotify.statusManager.setStatusText('Removed ' + numRemovedGenres + ' empty genres.');
+		spotify.statusManager.setStatusText('Removed ' + numRemovedGenres + ' empty genre(s).');
 		$(this).attr('disabled', false);
 	});
 });

@@ -156,7 +156,7 @@ class LibraryRenderer {
 						let artist = this.library.artists.find(element => element.id === this.dragged[1]);
 						if(artist !== undefined) {
 							genreMain.addArtist(artist);
-
+							this.spotify.statusManager.setStatusText('Moved artist "' + artist.name + '" to genre "' + genreMain.name + '".');
 							console.log('single artist ' + artist.name + ' has been dragged to ' + idGenreMain + '.');
 						}
 						// todo: codeschnipsel kommt häufiger vor
