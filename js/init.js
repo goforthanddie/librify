@@ -100,6 +100,13 @@ window.addEventListener("load", () => {
 		Spotify.authorize();
 	});
 
+	$('#buttonImprint').click(function () {
+		$('#imprint').empty();
+		$('#imprint').append('<h1>Imprint</h1>');
+		$('#imprint').append('<p>asd</p>');
+		$('#imprint').toggle();
+	});
+
 	$('#buttonRedo').click(() => {
 		$(this).attr('disabled', true);
 		spotify.library.stateManager.redo();

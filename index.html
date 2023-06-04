@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>librify</title>
-    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="style.css"/>
     <script src="js/jquery-3.6.4.min.js"></script>
     <script src="js/Utils.js"></script>
     <script src="js/StateManager.js"></script>
@@ -23,7 +23,12 @@
 <body>
 <div id="login">
     <h1>Welcome to librify. A shelter for the audiophile at heart.</h1>
-    <p>Having always used a distinct structure for my music library, I slowly figured that the way Spotify is presenting music to me has changed my listening behaviour. It changed from a very self-determined genre- and album-centric way to catching myself listening to either radios based on a recently played song or the same albums that I have been playing for the last days over and over again. I was missing my tree-like structure badly and figured that what Spotify is offering just did not suit me. So I ended up developing this tool to help me keep better track of my library and being able to quickly and comprehensively browse through the library.</p>
+    <p>Having always used a distinct structure for my music library, I slowly figured that the way Spotify is presenting
+        music to me has changed my listening behaviour. It changed from a very self-determined genre- and album-centric
+        way to catching myself listening to either radios based on a recently played song or the same albums that I have
+        been playing for the last days over and over again. I was missing my tree-like structure badly and figured that
+        what Spotify is offering just did not suit me. So I ended up developing this tool to help me keep better track
+        of my library and being able to quickly and comprehensively browse through it.</p>
     <button id="buttonLogin">Log in with Spotify</button>
 </div>
 <div id="loggedin" style="display: none;">
@@ -48,40 +53,55 @@
 
     <div id="viewStats">.</div>
     <div id="viewStatus">.</div>
-    <br />
-    <div id="viewSelectDevices"><span id="viewSelectDevicesWithoutButton" style="display: none;"><label for="selectDevices">Play on:</label> <select id="selectDevices"></select></span> <button id="buttonReloadDevices">Reload devices</button></div><br />
+    <br/>
+    <div id="viewSelectDevices"><span id="viewSelectDevicesWithoutButton" style="display: none;"><label
+            for="selectDevices">Play on:</label> <select id="selectDevices"></select></span>
+        <button id="buttonReloadDevices">Reload devices</button>
+    </div>
+    <br/>
 
     <label for="selectView">View by:</label> <select id="selectView"></select>
-    <br />
+    <br/>
     <label for="selectSortAlbums">Sort albums by:</label> <select id="selectSortAlbums"></select>
-    <br /><br />
+    <br/><br/>
 
     <div id="viewManageGenres" style="display: none; float: right;">
         <fieldset>
             <legend>Manage genres</legend>
-            <button id="buttonReduceGenres" title="Artists might have multiple associated genres. This function associates each artist with it's strongest genre in your library and keeps only these genres. ">Reduce genres</button>
+            <button id="buttonReduceGenres"
+                    title="Artists might have multiple associated genres. This function associates each artist with it's strongest genre in your library and keeps only these genres. ">
+                Reduce genres
+            </button>
             <button id="buttonClusterGenres">Cluster genres</button>
-            <button id="buttonRemoveEmptyGenres">Remove empty genres</button><br />
-            <input id="addGenre" placeholder="genre name" /><button id="buttonAddGenre">Add genre</button>
+            <button id="buttonRemoveEmptyGenres">Remove empty genres</button>
+            <br/>
+            <input id="addGenre" placeholder="genre name"/>
+            <button id="buttonAddGenre">Add genre</button>
             <fieldset id="fieldsetClusterGenres" style="display: none;">
                 <legend>Cluster genres</legend>
-                <label for="genreMain">Main genre</label><br /><select id="genreMain"></select>
-                <br /><br />
-                <input id="genresSubKeyword" placeholder="keyword" />
-                <br />
-                <label for="genresSub">Sub genres</label><br /><select multiple id="genresSub"></select>
-                <br /><br />
-                <button id="buttonStoreGenresSub" disabled title="Move all artists from the selected sub genre(s) to the selected main genre.">Cluster main and sub genre(s)</button>
+                <label for="genreMain">Main genre</label><br/><select id="genreMain"></select>
+                <br/><br/>
+                <input id="genresSubKeyword" placeholder="keyword"/>
+                <br/>
+                <label for="genresSub">Sub genres</label><br/><select multiple id="genresSub"></select>
+                <br/><br/>
+                <button id="buttonStoreGenresSub" disabled
+                        title="Move all artists from the selected sub genre(s) to the selected main genre.">Cluster main
+                    and sub genre(s)
+                </button>
             </fieldset>
 
         </fieldset>
-        <br /><br />
+        <br/><br/>
     </div>
-    <input id="searchKeyword" placeholder="keyword" />
-    <br />
+    <input id="searchKeyword" placeholder="keyword"/>
+    <br/>
     <div id="divLibrary">
         <ul id="ulLibrary"></ul>
     </div>
 </div>
+<div id="imprint" style="display: none;">
+</div>
+<footer id="footer"><button id="buttonImprint">Imprint</button></footer>
 </body>
 </html>

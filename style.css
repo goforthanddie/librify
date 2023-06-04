@@ -13,11 +13,25 @@ ul {
     display: block;
 }
 
+html {
+    position: relative;
+    min-height: 100%;
+}
+
 /* Set font to monospace */
 body {
     font-family: monospace, monospace;
     color: gray;
     background-color: #121212;
+}
+
+footer {
+    text-align: center;
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    padding: 0 0;
 }
 
 button, option, select, input {
@@ -45,3 +59,10 @@ input::placeholder {
     color: #444444;
 }
 
+#imprint {
+    width: 100%;
+    text-align: center;
+    position: absolute;
+    left: 0;
+    bottom: 25px;
+}
