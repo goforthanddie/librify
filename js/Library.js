@@ -40,6 +40,63 @@ class Library {
 		return oldLength - this.genres.length;
 	}
 
+	moveArtistToGenre(newGenre, oldGenreId, artistId) {
+		let artist;
+		if(newGenre !== undefined) {
+			//console.log('moving to ' + genreMain.id);
+			// aus gedraggtem genre entfernen.
+			let oldGenreIdx = this.genres.findIndex(element => element.id === oldGenreId);
+			if(oldGenreIdx !== -1) {
+				let artistIdx = this.genres[oldGenreIdx].artists.findIndex(element => element.id === artistId);
+				if(artistIdx !== -1) {
+					// add artist to newGenre
+					artist = this.genres[oldGenreIdx].artists[artistIdx];
+					newGenre.addArtist(artist);
+					// remove artist from oldGenre
+					this.genres[oldGenreIdx].artists.splice(artistIdx, 1);
+				}
+			// if for some reason there is no match for the oldGenreId, we look for the artist in the this.artist array
+			} else {
+				artist = this.artists.find(element => element.id === artistId);
+				if(artist !== undefined) {
+					newGenre.addArtist(artist);
+				}
+			}
+
+			// todo: codeschnipsel kommt häufiger vor
+			// sort artists in genres
+			newGenre.artists.sort((a, b) => a.name.localeCompare(b.name));
+			this.notifyUpdateListeners();
+			return {status: true, artistName: artist.name};
+		}
+		return {status: false, artistName: null};
+	}
+
+	moveArtistsFromGenreToGenre(newGenre, oldGenreId) {
+		// need the genre index to remove the item from the this.genres array
+		let oldGenreIdx = this.genres.findIndex(element => element.id === oldGenreId);
+
+		//console.log(this.library.genres[oldGenreIdx]);
+		if(newGenre !== undefined && oldGenreIdx !== -1 && newGenre.id !== oldGenreId) {
+			let oldGenre = this.genres[oldGenreIdx];
+
+			// add artists from oldGenre to newGenre
+			oldGenre.artists.forEach(_artist => {
+				newGenre.addArtist(_artist);
+			});
+
+			// remove oldGenre from this.genres
+			this.genres.splice(oldGenreIdx, 1);
+
+			// todo: codeschnipsel kommt häufiger vor
+			// sort artists
+			newGenre.artists.sort((a, b) => a.name.localeCompare(b.name));
+			this.notifyUpdateListeners();
+			return {status: true, oldGenreName: oldGenre.name};
+		}
+		return {status: false, oldGenreName: null};
+	}
+
 	reduceGenres() {
 		// this function reduces the amount of genres by going through each artist's spotify genres and keeping only the genre with the most occurrences within the library
 		let reducedGenres = [];

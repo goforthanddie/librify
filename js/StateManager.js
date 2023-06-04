@@ -55,9 +55,17 @@ class StateManager {
 			genres: JSON.stringify(this.library.genres, Utils.replacerGenres)
 		};
 
+		// remove all states after the current state if we are not in the last state
+		// if we come from an undo() operation, we start a new branch of states after the current state
+		if(this.currentStateIdx < this.states.length - 1) {
+			console.debug('this.states.splice(' + this.currentStateIdx + ')');
+			this.states.splice(this.currentStateIdx + 1);
+		}
+
+
 		// if NUM_MAX_STATES is reached we have to remove the first element of the states array before pushing a new one
 		if(this.states.length >= NUM_MAX_STATES) {
-			//console.log('shifting one state')
+			console.debug('shifting one state')
 			this.states.shift();
 		}
 		//console.log(spotify.artists);
