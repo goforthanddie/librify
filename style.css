@@ -25,6 +25,12 @@ body {
     background-color: #121212;
 }
 
+a {
+    font-family: monospace, monospace;
+    color: gray;
+    text-decoration: none;
+}
+
 footer {
     text-align: center;
     position: absolute;

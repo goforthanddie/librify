@@ -323,7 +323,13 @@ class Spotify {
 		};
 
 		let fnError = function(data) {
-			this.statusManager.setStatusText('Failed loading devices: ' + data.error.message);
+			let errMessage;
+			if(data.responseJSON !== undefined) {
+				errMessage = data.responseJSON.error.message;
+			} else {
+				errMessage = data;
+			}
+			this.statusManager.setStatusText('Failed loading devices: ' + errMessage);
 			$('#buttonReloadDevices').attr('disabled', false);
 		};
 
@@ -427,7 +433,7 @@ class Spotify {
 	}
 
 	refreshAccessToken(refreshToken, fnSuccessB) {
-		console.log('refreshAccessToken()');
+		console.debug('refreshAccessToken()');
 		let url = URL_AUTH;
 		let type = 'POST';
 		let data = {
