@@ -1,6 +1,7 @@
 class Utils {
 
 	static login(spotify, access_token) {
+		console.debug('login()');
 		$('#login').hide();
 		$('#loggedin').show();
 
@@ -8,19 +9,19 @@ class Utils {
 		spotify.accessToken = new AccessToken(access_token, 'Bearer');
 
 		spotify.getDevices();
-		spotify.libraryRenderer.populateViewLibrary();
+
+		//spotify.library.notifyUpdateListeners();
+		//spotify.libraryRenderer.populateViewLibrary();
 
 		// remove parameters from url
 		window.history.replaceState(null, '', window.location.pathname);
-		console.log('login');
 	}
 
 	static logout() {
+		console.debug('logout()');
 		localStorage.clear();
 		$('#login').show();
 		$('#loggedin').hide();
-
-		console.log('logout')
 	}
 
 	static replacerGenres(key, value) {

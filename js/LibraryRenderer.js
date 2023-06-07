@@ -39,7 +39,6 @@ class LibraryRenderer {
 
 		this.filterViewLibrary();
 
-		//$('div#viewStats').text('Holding: ' + this.library.genres.length + ' Genres, ' + this.library.artists.length + ' Artists, ' + this.library.artists.reduce((numAlbums, _artist) => numAlbums + _artist.albums.length, 0) + ' Albums');
 		$('div#viewStats').text('Holding: ' + this.library.genres.length + ' Genres, ' + this.library.artists.length + ' Artists, ' + this.library.getNumAlbums() + ' Albums');
 	}
 
@@ -116,40 +115,11 @@ class LibraryRenderer {
 
 				// dragging a genre into a genre
 				if(typeof this.dragged === 'string') {
-					/*
-					// add all the artists of the found sub genres to the main genre
-					let idGenreSub = this.dragged;
-					//console.log('idGenreSub=' + idGenreSub);
-
-					// need the genre index to remove the item from the this.library.genres array
-					let genreSubIdx = this.library.genres.findIndex(element => element.id === idGenreSub);
-					let genreSub = this.library.genres[genreSubIdx];
-
-					//console.log(this.library.genres[genreSubIdx]);
-					if(newGenre !== undefined && genreSubIdx !== -1 && newGenre.id !== genreSub.id) {
-						genreSub.artists.forEach(_artist => {
-							newGenre.addArtist(_artist);
-						});
-
-						// add sub genre to main genre
-						//newGenre.addSubGenre(genreSub);
-
-						// remove sub genre from main array
-						this.library.genres.splice(genreSubIdx, 1);
-
-						// todo: codeschnipsel kommt häufiger vor
-						// sort artists
-						newGenre.artists.sort((a, b) => a.name.localeCompare(b.name));
-
-					}
-					 */
 					let res = this.library.moveArtistsFromGenreToGenre(newGenre, this.dragged);
 					if(res.status) {
 						console.debug('sub genre ' + res.oldGenreName + ' has been dragged to ' + newGenre.name + '.');
 						this.spotify.statusManager.setStatusText('Moved artists from "' + res.oldGenreName + '" to "' + newGenre.name + '".');
 					}
-
-
 				// dragging a single artist into a new genre
 				} else if(this.dragged instanceof Array) {
 					let res = this.library.moveArtistToGenre(newGenre, this.dragged[0], this.dragged[1]);
@@ -157,31 +127,7 @@ class LibraryRenderer {
 						this.spotify.statusManager.setStatusText('Moved artist "' + res.artistName + '" to genre "' + newGenre.name + '".');
 						console.log('single artist ' + res.artistName + ' has been dragged to ' + newGenre.name + '.');
 					}
-					/*
-					if(newGenre !== undefined) {
-						//console.log('moving to ' + newGenre.id);
-						// aus gedraggtem genre entfernen.
-						let oldGenreIdx = this.library.genres.findIndex(element => element.id === this.dragged[0]);
-						if(oldGenreIdx !== -1) {
-							let artistIdx = this.library.genres[oldGenreIdx].artists.findIndex(element => element.id === this.dragged[1]);
-							if(artistIdx !== -1) {
-								this.library.genres[oldGenreIdx].artists.splice(artistIdx, 1);
-							}
-						}
-
-						let artist = this.library.artists.find(element => element.id === this.dragged[1]);
-						if(artist !== undefined) {
-							newGenre.addArtist(artist);
-							this.spotify.statusManager.setStatusText('Moved artist "' + artist.name + '" to genre "' + newGenre.name + '".');
-							console.log('single artist ' + artist.name + ' has been dragged to ' + newGenreId + '.');
-						}
-						// todo: codeschnipsel kommt häufiger vor
-						// sort artists in genres
-						newGenre.artists.sort((a, b) => a.name.localeCompare(b.name));
-					}*/
 				}
-				// store
-				//this.library.notifyUpdateListeners();
 			});
 
 			// test if span already exists
@@ -358,7 +304,9 @@ class LibraryRenderer {
 
 			let fragmentAlbums = document.createDocumentFragment();
 			for(let j = 0, J = artist.albums.length; j < J; j++) {
+
 				let album = artist.albums[j];
+				//console.log('generating span for ' + album.name);
 				//artist.albums.forEach((album) => {
 				let liAlbum = document.createElement('li');
 				let spanAlbum = document.createElement('span');

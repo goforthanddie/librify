@@ -20,6 +20,7 @@ window.addEventListener("load", () => {
 
 	$('#buttonUpdateLibrary').click(function() {
 		$(this).attr('disabled', true);
+		//console.log(spotify.library.genres);
 		spotify.getSavedAlbums(0, 50);
 	});
 
@@ -62,6 +63,7 @@ window.addEventListener("load", () => {
 
 	selectSortAlbums.change(function() {
 		spotify.options.sortAlbums = selectSortAlbums.children(':selected').attr('value');
+		console.debug('inside selectSortAlbums');
 		spotify.library.notifyUpdateListeners();
 	});
 
@@ -74,6 +76,7 @@ window.addEventListener("load", () => {
 
 	selectView.change(function() {
 		spotify.options.view = selectView.children(':selected').attr('value');
+		console.debug('inside selectView');
 		spotify.library.notifyUpdateListeners();
 	});
 

@@ -17,8 +17,8 @@ class StateManager {
 		}
 
 		// if we initially load saved data we only want to call saveCurrentState() once, so we have to do it manually here
-		this.loadFromLocalStorage(false);
-		this.saveCurrentState();
+//		this.loadFromLocalStorage(false);
+//		this.saveCurrentState();
 	}
 
 	getCurrentState(serialized = true) {
@@ -39,7 +39,7 @@ class StateManager {
 	}
 
 	loadCurrentState() {
-		console.debug('currentStateIdx=' + this.currentStateIdx);
+		console.debug('loadCurrentState() ' + this.currentStateIdx);
 		let currentState = this.getCurrentState(false);
 		if(currentState !== undefined) {
 			this.library.genres = currentState.genres;
@@ -78,21 +78,22 @@ class StateManager {
 	}
 
 	loadFromFile(file) {
+		console.debug('loadFromFile()');
 		let fr = new FileReader();
 		fr.onload = function receivedText() {
 			let data = JSON.parse(fr.result);
-			if(data.artists !== null) {
+			if(data.artists !== null !== undefined) {
 				this.artists = JSON.parse(JSON.stringify(data.artists), Utils.reviverArtists);
 			} else {
 				console.debug('data.artists === null');
 			}
-			if(data.genres !== null) {
+			if(data.genres !== null !== undefined) {
 				this.genres = JSON.parse(JSON.stringify(data.genres), Utils.reviverGenres.bind(this));
 			} else {
 				console.debug('data.genres === null');
 			}
 
-			if(data.options !== null) {
+			if(data.options !== null && data.options !== undefined) {
 				this.options = JSON.parse(JSON.stringify(data.options), Utils.reviverOptions);
 			} else {
 				console.debug('data.options === null');
@@ -117,7 +118,8 @@ class StateManager {
 			this.library.genres = JSON.parse(genres, Utils.reviverGenres.bind(this.library));
 		} else {
 			// add the default genre so all artists without a genre other than the default genre will end up in this genre
-			this.library.genres = [GENRE_DEFAULT]; // das hier beim einlesen machen!
+			//this.library.genres = [GENRE_DEFAULT]; // das hier beim einlesen machen!
+			this.library.genres = []; // the default genre is added in getGenres()
 		}
 
 		let options = localStorage.getItem('options');
@@ -157,7 +159,10 @@ class StateManager {
 
 		if(saveCurrentState) {
 			this.saveCurrentState();
+			// need to call this.loadCurrentState() because artists are removed from the genres array during storage and might contain old data if we do not reread the data
+			this.loadCurrentState();
 		}
+
 	}
 
 	undo() {

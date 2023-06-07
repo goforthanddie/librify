@@ -18,12 +18,12 @@ class StatusManager {
 	}
 
 	animationStarted() {
-		console.debug('animationStarted()');
+		//console.debug('animationStarted()');
 		this.isAnimating = true;
 	}
 
 	animationStopped() {
-		console.debug('animationStopped()');
+		//console.debug('animationStopped()');
 		this.isAnimating = false;
 	}
 

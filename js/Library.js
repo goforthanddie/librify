@@ -29,17 +29,20 @@ class Library {
 	notifyUpdateListeners(saveCurrentState = true) {
 		console.debug('notifyUpdateListeners()');
 		for(let i = 0, I = this.updateListeners.length; i < I; i++) {
+			//console.debug(this.updateListeners[i]);
 			this.updateListeners[i].call(null, saveCurrentState);
 		}
 	}
 
 	emptyArtists() {
+		console.debug('emptyArtists()');
 		localStorage.removeItem('artists');
 		this.artists = [];
-		this.notifyUpdateListeners();
+		// this is only called during library updates, so we won't call this.notifyUpdateListeners(); if it would be called, the library empties and we do not have any information about expanded genres, artists and so on
 	}
 
 	removeEmptyGenres() {
+		console.debug('removeEmptyGenres()');
 		let oldLength = this.genres.length;
 		this.genres = this.genres.filter(_genre => _genre.artists.length > 0);
 		//this.stateManager.saveToLocalStorage();
@@ -49,6 +52,7 @@ class Library {
 	}
 
 	moveArtistToGenre(newGenre, oldGenreId, artistId) {
+		console.debug('moveArtistToGenre()');
 		let artist;
 		if(newGenre !== undefined) {
 			//console.log('moving to ' + genreMain.id);
@@ -81,6 +85,7 @@ class Library {
 	}
 
 	moveArtistsFromGenreToGenre(newGenre, oldGenreId) {
+		console.debug('moveArtistsFromGenreToGenre()');
 		// need the genre index to remove the item from the this.genres array
 		let oldGenreIdx = this.genres.findIndex(element => element.id === oldGenreId);
 
@@ -106,10 +111,11 @@ class Library {
 	}
 
 	reduceGenres() {
+		console.debug('reduceGenres()');
 		// this function reduces the amount of genres by going through each artist's spotify genres and keeping only the genre with the most occurrences within the library
 		let reducedGenres = [];
 		this.artists.forEach(_artist => {
-			//console.log('_artist=' + _artist.name);
+			console.debug('_artist=' + _artist.name);
 			//console.log(_artist);
 			let maxArtistsGenre = 0;
 			let maxArtistsGenreIdx;
@@ -119,7 +125,7 @@ class Library {
 			// _artist.genres should be empty after a first reduceGenres() call -> _artist.getGenres reads the genres from library.genres so it is not empty.
 			//_artist.genres.forEach(_genre => {
 			// we only need to do this if the artist has more than one genre
-			if(_artist.genres.length > 1) {
+			if(_artist.genres.length > 0) {
 				_artist.genres.forEach(_genre => {
 					console.debug('_genre=' + _genre);
 					// find genre with most entries
