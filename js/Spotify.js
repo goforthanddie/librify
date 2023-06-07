@@ -32,7 +32,6 @@ class Spotify {
 		this.library.addUpdateListener(this.libraryRenderer.populateViewLibrary.bind(this.libraryRenderer));
 
 		this.arrayDevices = [];
-		console.log(this.options);
 	}
 
 	async sendRequest(url, type, data, fnSuccess, fnError, counter = 1) {

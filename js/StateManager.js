@@ -128,7 +128,6 @@ class StateManager {
 			this.library.options.sortAlbums = tmpOptions.sortAlbums;
 
 		} else {
-			//this.library.options = new Options();
 			this.library.options.sortAlbums = SORT_BY_YEAR;
 			this.library.options.view = VIEW_GENRE;
 		}
