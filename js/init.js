@@ -14,6 +14,8 @@ window.addEventListener("load", () => {
 	} else if(access_token != null) {
 		console.log('access_token != null');
 		Utils.login(spotify, access_token);
+	} else {
+		console.log('something went seriously wrong :<');
 	}
 
 	$('#buttonUpdateLibrary').click(function() {
