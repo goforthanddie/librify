@@ -12,8 +12,8 @@ class Options {
 	selectedDevice;
 
 	constructor() {
-		this.sortAlbums = SORT_BY_YEAR;
-		this.view = VIEW_GENRE;
 	}
+
+
 
 }

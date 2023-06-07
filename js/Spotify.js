@@ -26,13 +26,13 @@ class Spotify {
 		this.options = new Options();
 		this.accessToken = null;
 
-		this.library = new Library();
+		this.library = new Library(this.options);
 		this.libraryRenderer = new LibraryRenderer(this, this.library, this.options);
-
 		this.library.addUpdateListener(this.libraryRenderer.populateClusterGenres.bind(this.libraryRenderer));
 		this.library.addUpdateListener(this.libraryRenderer.populateViewLibrary.bind(this.libraryRenderer));
 
 		this.arrayDevices = [];
+		console.log(this.options);
 	}
 
 	async sendRequest(url, type, data, fnSuccess, fnError, counter = 1) {

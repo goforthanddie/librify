@@ -30,7 +30,8 @@ class StateManager {
 			} else {
 				return {
 					artists: JSON.parse(this.states[this.currentStateIdx].artists, Utils.reviverArtists),
-					genres: JSON.parse(this.states[this.currentStateIdx].genres, Utils.reviverGenres.bind(this.library))
+					genres: JSON.parse(this.states[this.currentStateIdx].genres, Utils.reviverGenres.bind(this.library)),
+					options: JSON.parse(this.states[this.currentStateIdx].options, Utils.reviverOptions)
 				};
 			}
 		}
@@ -43,6 +44,7 @@ class StateManager {
 		if(currentState !== undefined) {
 			this.library.genres = currentState.genres;
 			this.library.artists = currentState.artists;
+			this.library.options = currentState.options;
 			this.library.notifyUpdateListeners(false);
 		}
 	}
@@ -52,7 +54,8 @@ class StateManager {
 
 		let currentState = {
 			artists: JSON.stringify(this.library.artists, Utils.replacerArtists),
-			genres: JSON.stringify(this.library.genres, Utils.replacerGenres)
+			genres: JSON.stringify(this.library.genres, Utils.replacerGenres),
+			options: JSON.stringify(this.library.options)
 		};
 
 		// remove all states after the current state if we are not in the last state
@@ -88,6 +91,12 @@ class StateManager {
 			} else {
 				console.debug('data.genres === null');
 			}
+
+			if(data.options !== null) {
+				this.options = JSON.parse(JSON.stringify(data.options), Utils.reviverOptions);
+			} else {
+				console.debug('data.options === null');
+			}
 			this.notifyUpdateListeners();
 		}.bind(this.library);
 		fr.readAsText(file);
@@ -105,11 +114,23 @@ class StateManager {
 		// must parse artists before genres. artists in genres are only identified by an id and retrieved during the revive process.
 		let genres = localStorage.getItem('genres');
 		if(genres != null) {
-			console.debug('pre()');
 			this.library.genres = JSON.parse(genres, Utils.reviverGenres.bind(this.library));
 		} else {
 			// add the default genre so all artists without a genre other than the default genre will end up in this genre
 			this.library.genres = [GENRE_DEFAULT]; // das hier beim einlesen machen!
+		}
+
+		let options = localStorage.getItem('options');
+		if(options != null) {
+			// do not directly set this.library.options = JSON.parse(options, Utils.reviverOptions); this generates a new object and then there are two differing Options objects in spotify and library
+			let tmpOptions = JSON.parse(options, Utils.reviverOptions);
+			this.library.options.view = tmpOptions.view;
+			this.library.options.sortAlbums = tmpOptions.sortAlbums;
+
+		} else {
+			//this.library.options = new Options();
+			this.library.options.sortAlbums = SORT_BY_YEAR;
+			this.library.options.view = VIEW_GENRE;
 		}
 
 		if(saveCurrentState) {
@@ -131,6 +152,10 @@ class StateManager {
 
 		localStorage.removeItem('artists');
 		localStorage.setItem('artists', JSON.stringify(this.library.artists, Utils.replacerArtists));
+
+		console.log(this.library.options);
+		localStorage.removeItem('options');
+		localStorage.setItem('options', JSON.stringify(this.library.options));
 
 		if(saveCurrentState) {
 			this.saveCurrentState();

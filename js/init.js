@@ -4,9 +4,6 @@ window.addEventListener("load", () => {
 	// debug reasons only:
 	window.sptf = spotify;
 
-	//$('#loggedin').hide();
-	//$('#selectDevices').hide();
-
 	const urlParams = new URLSearchParams(window.location.search);
 	let code = urlParams.get('code');
 	let access_token = localStorage.getItem('access_token');
@@ -67,7 +64,7 @@ window.addEventListener("load", () => {
 
 	selectSortAlbums.change(function() {
 		spotify.options.sortAlbums = selectSortAlbums.children(':selected').attr('value');
-		spotify.libraryRenderer.populateViewLibrary();
+		spotify.library.notifyUpdateListeners();
 	});
 
 	let selectView = $('#selectView');
@@ -79,7 +76,7 @@ window.addEventListener("load", () => {
 
 	selectView.change(function() {
 		spotify.options.view = selectView.children(':selected').attr('value');
-		spotify.libraryRenderer.populateViewLibrary();
+		spotify.library.notifyUpdateListeners();
 	});
 
 	$('#selectDevices').change(function() {

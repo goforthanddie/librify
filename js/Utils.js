@@ -6,15 +6,13 @@ class Utils {
 
 
 		spotify.accessToken = new AccessToken(access_token, 'Bearer');
-		spotify.getDevices();
 
+		spotify.getDevices();
 		spotify.libraryRenderer.populateViewLibrary();
-		//spotify.getGenres(0, 50);
-		//spotify.getSavedAlbums(0, 50);
 
 		// remove parameters from url
 		window.history.replaceState(null, '', window.location.pathname);
-		console.log('login ok');
+		console.log('login');
 	}
 
 	static logout() {
@@ -90,6 +88,19 @@ class Utils {
 		}
 		return value;
 	};
+
+	static reviverOptions(key, value) {
+		if(typeof value === 'object' && value !== null) {
+			if(value.dataType === Options.name) {
+				let options = new Options();
+				options.view = value.view;
+				options.sortAlbums = value.sortAlbums;
+				options.selectedDevice = value.selectedDevice;
+				return options;
+			}
+		}
+		return value;
+	}
 }
 
 // case insensitive filter

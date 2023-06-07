@@ -261,7 +261,7 @@ class LibraryRenderer {
 	}
 
 	populateSelectDevices(arrayDevices) {
-		//console.log(arrayDevices);
+		console.debug('populateSelectedDevices()');
 		const selectDevices = $('#selectDevices');
 		selectDevices.empty();
 		arrayDevices.forEach(device => {
