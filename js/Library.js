@@ -63,7 +63,7 @@ class Library {
 					// remove artist from oldGenre
 					this.genres[oldGenreIdx].artists.splice(artistIdx, 1);
 				}
-			// if for some reason there is no match for the oldGenreId, we look for the artist in the this.artist array
+				// if for some reason there is no match for the oldGenreId, we look for the artist in the this.artist array
 			} else {
 				artist = this.artists.find(element => element.id === artistId);
 				if(artist !== undefined) {
@@ -246,7 +246,7 @@ class Library {
 		//this.saveToLocalStorage();
 		this.notifyUpdateListeners();
 	}
-	
+
 	clusterGenres() {
 		console.debug('clusterGenres()');
 		let oldLength = this.genres.length;
@@ -292,5 +292,20 @@ class Library {
 		} else {
 			return false;
 		}
+	}
+
+	// getNumAlbums() returns the number of unique albums in the library
+	getNumAlbums() {
+		let albums = [];
+		for(let i = 0, I = this.artists.length; i < I; i++) {
+			let _albums = this.artists[i].albums;
+			for(let j = 0, J = _albums.length; j < J; j++) {
+				let album = _albums[j];
+				if(albums.find(element => element === album.id) === undefined) {
+					albums.push(album.id);
+				}
+			}
+		}
+		return albums.length;
 	}
 }

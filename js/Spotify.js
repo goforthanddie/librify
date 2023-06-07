@@ -130,7 +130,7 @@ class Spotify {
 
 		// only echo stats on first call
 		if(update && offset === 0) {
-			console.debug('getSavedAlbums() update call, previous num of artists=' + this.library.artists.length + ', previous num of albums=' + this.library.artists.reduce((numAlbums, _artist) => numAlbums + _artist.albums.length, 0))
+			console.debug('getSavedAlbums() update call, previous num of artists=' + this.library.artists.length + ', previous num of albums=' + this.library.getNumAlbums())
 			console.debug(this.library.artists);
 		}
 
@@ -177,7 +177,8 @@ class Spotify {
 				this.getSavedAlbums(offset + limit, limit, update);
 			} else { // no more albums
 				// its okay if the num of albums differs from data.total because if an album is linked with two artists, the album is added twice
-				console.log('got: ' + this.library.artists.length + ' artists, ' + this.library.artists.reduce((numAlbums, _artist) => numAlbums + _artist.albums.length, 0) + ' albums');
+				//console.log('got: ' + this.library.artists.length + ' artists, ' + this.library.artists.reduce((numAlbums, _artist) => numAlbums + _artist.albums.length, 0) + ' albums');
+				console.log('got: ' + this.library.artists.length + ' artists, ' + this.library.getNumAlbums() + ' albums');
 				console.debug(this.library.artists);
 				this.library.notifyUpdateListeners();
 				this.getGenres(0, 50, update);

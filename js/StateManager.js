@@ -152,7 +152,6 @@ class StateManager {
 		localStorage.removeItem('artists');
 		localStorage.setItem('artists', JSON.stringify(this.library.artists, Utils.replacerArtists));
 
-		console.log(this.library.options);
 		localStorage.removeItem('options');
 		localStorage.setItem('options', JSON.stringify(this.library.options));
 

@@ -36,10 +36,6 @@ window.addEventListener("load", () => {
 		$(this).attr('disabled', false);
 	});
 
-	$('#buttonReduceGenresFurther').click(function() {
-		spotify.reduceGenresFurther();
-	});
-
 	$('#buttonManageGenres').click(function() {
 		// toggle first, because reduceGenresManually only updates when it is visible
 		$('#viewManageGenres').toggle();
