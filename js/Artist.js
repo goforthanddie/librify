@@ -33,11 +33,17 @@ class Artist {
 
 	// usages could be slow, check alternatives if necessary
 	getGenres(genresArray) {
-		let genres = genresArray.filter(_genre => _genre.artists.find(_artist => _artist.id === this.id) !== undefined);
-		for(let i = 0, I = genres.length; i < I; i++) {
-			console.debug('adding ' + genres[i].name);
-			this.addGenre(genres[i].name);
+		if(genresArray !== null && genresArray !== undefined) {
+			let genres = genresArray.filter(_genre => _genre.artists.find(_artist => _artist.id === this.id) !== undefined);
+			for(let i = 0, I = genres.length; i < I; i++) {
+				//console.debug('adding ' + genres[i].name);
+				this.addGenre(genres[i].name);
+			}
+			return this.genres;
+		} else {
+			console.debug('getGenres() genresArray empty');
+			return false;
 		}
-		return this.genres;
+
 	}
 }

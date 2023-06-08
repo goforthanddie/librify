@@ -81,7 +81,9 @@ class Utils {
 			} else if(value.dataType === Genre.name) {
 				let genre = new Genre(value.name);
 				value.artists.forEach(_artist => {
-					artist = JSON.parse(JSON.stringify(_artist), Utils.reviverArtists);
+					// make sure we have the same object here
+					artist = this.artists.find(element => element.id === _artist.id);
+					//artist = JSON.parse(JSON.stringify(_artist), Utils.reviverArtists);
 					genre.addArtist(artist);
 				});
 				return genre;

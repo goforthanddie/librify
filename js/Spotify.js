@@ -138,7 +138,7 @@ class Spotify {
 			//console.debug(this.library.artists);
 		}
 
-		// empty array on first call, also on update
+		// empty array on first call, also on update in order to also remove 'unliked' albums
 		if(offset === 0) {
 			this.library.emptyArtists();
 		}
@@ -163,15 +163,16 @@ class Spotify {
 					// test if artist is already in list
 					let artistIdx = this.library.artists.findIndex(element => element.id === _artist.id);
 					if(artistIdx === -1) { // artist id not found, add new artist
+						//console.debug('artist not found ' + _artist.id);
 						let artist = new Artist(_artist.id, _artist.name);
 						//artist.genres = this.getGenres(_artist.id);
 						artist.addAlbum(album);
 						this.library.artists.push(artist);
 					} else { // artist id found, add album to existing artist
+						//console.debug('artist found ' + _artist.id);
 						//console.log(this.library.artists[idArtist]);
 						this.library.artists[artistIdx].addAlbum(album);
 					}
-					//console.debug(this.library);
 				});
 			});
 
@@ -186,7 +187,8 @@ class Spotify {
 				//console.log('got: ' + this.library.artists.length + ' artists, ' + this.library.artists.reduce((numAlbums, _artist) => numAlbums + _artist.albums.length, 0) + ' albums');
 				console.log('got: ' + this.library.artists.length + ' artists, ' + this.library.getNumAlbums() + ' albums');
 				//console.debug(this.library.artists);
-				console.debug('inside getSavedAlbums()');
+				//console.debug('inside getSavedAlbums()');
+				//console.debug(this.library);
 				this.library.notifyUpdateListeners();
 				this.getGenres(0, 50, update);
 			}
@@ -200,7 +202,7 @@ class Spotify {
 	}
 
 	getGenres(offset = 0, limit = 50, update = false) {
-		console.debug('artists.length=' + this.library.artists.length);
+		//console.debug('artists.length=' + this.library.artists.length);
 		console.debug('getGenres(' + offset + ',' + limit + ',' + update + ')');
 
 		if(offset === 0 && update) {
@@ -237,7 +239,10 @@ class Spotify {
 
 					// test if artist is already linked to a genre, if so, skip because it is not a new artist
 					//console.log(this.library.genres);
-					if(this.library.genres.find(_genre => _genre.artists.find(_artist => _artist.id === artist.id) !== undefined) === undefined) {
+					let genreIdx = this.library.genres.findIndex(_genre => _genre.artists.find(__artist => __artist.id === artist.id) !== undefined);
+					//if(this.library.genres.find(_genre => _genre.artists.find(_artist => _artist.id === artist.id) !== undefined) === undefined) {
+					// artist is not linked to a genre, i.e., it is a new artist
+					if(genreIdx === -1) {
 						console.debug('processing ' + artist.name + ' because it is not already linked to a genre.');
 						// only overwrite the genres attribute if there are existing genres or we overwrite the default genre 'None'
 						if(_artist.genres.length > 0) {
@@ -259,21 +264,25 @@ class Spotify {
 
 								// set artist.genres to the new genre
 								artist.genres = [genre.name];
-							} else { // we found at least one existing genre, now sort by number of artists
-								let sortedGenres = existingGenres.sort(function(a, b) {
-									if(a.artists.length > b.artists.length) {
-										return -1;
-									}
-									if(a.artists.length < b.artists.length) {
-										return 1;
-									}
-									return 0;
-								});
+							} else { // we found at least one existing genre
+								// if there is more than one genre, sort by number of artists
+								if(existingGenres.length > 1) {
+									existingGenres.sort(function(a, b) {
+										if(a.artists.length > b.artists.length) {
+											return -1;
+										}
+										if(a.artists.length < b.artists.length) {
+											return 1;
+										}
+										return 0;
+									});
+								}
+
 								// add to the genre with most artists
-								sortedGenres[0].addArtist(artist);
+								existingGenres[0].addArtist(artist);
 
 								// set artist.genres to the selected genre
-								artist.genres = [sortedGenres[0].name];
+								artist.genres = [existingGenres[0].name];
 							}
 
 						} else {
@@ -292,10 +301,14 @@ class Spotify {
 								}
 							});
 						}
-
+					// artist is linked to a genre, i.e., we already know this artist. we need to overwrite the artist object in the genres array because library.emptyArtists() has been called in getSavedAlbums()
 					} else {
-						console.debug('skipping ' + artist.name + ' because it is already linked to a genre.');
-						//console.debug(artist);
+						console.debug('Re-adding ' + artist.name + ' because it is already linked to a genre.');
+						let genre = this.library.genres[genreIdx];
+						let artistIdx = genre.artists.findIndex(__artist => __artist.id === artist.id);
+						if(artistIdx !== -1) {
+							genre.artists[artistIdx] = artist;
+						}
 					}
 				}
 			});

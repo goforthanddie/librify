@@ -176,7 +176,7 @@ class Library {
 				}
 			}
 		});
-		console.debug(reducedGenres);
+		//console.debug(reducedGenres);
 
 		// in case the function is called a second time reducedGenres will be empty and thus clean the db
 		let oldLength = this.genres.length;

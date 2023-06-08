@@ -15,10 +15,6 @@ class StateManager {
 			console.debug('got no library object... using empty Library object.');
 			this.library = new Library();
 		}
-
-		// if we initially load saved data we only want to call saveCurrentState() once, so we have to do it manually here
-//		this.loadFromLocalStorage(false);
-//		this.saveCurrentState();
 	}
 
 	getCurrentState(serialized = true) {
@@ -159,8 +155,6 @@ class StateManager {
 
 		if(saveCurrentState) {
 			this.saveCurrentState();
-			// need to call this.loadCurrentState() because artists are removed from the genres array during storage and might contain old data if we do not reread the data
-			this.loadCurrentState();
 		}
 
 	}
