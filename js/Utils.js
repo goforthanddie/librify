@@ -2,8 +2,8 @@ class Utils {
 
 	static login(spotify, access_token) {
 		console.debug('login()');
-		$('#login').hide();
-		$('#loggedin').show();
+		$('#preLogin').hide();
+		$('#postLogin').show();
 
 
 		spotify.accessToken = new AccessToken(access_token, 'Bearer');
@@ -20,8 +20,8 @@ class Utils {
 	static logout() {
 		console.debug('logout()');
 		localStorage.clear();
-		$('#login').show();
-		$('#loggedin').hide();
+		$('#preLogin').show();
+		$('#postLogin').hide();
 	}
 
 	static replacerGenres(key, value) {

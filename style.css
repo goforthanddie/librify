@@ -74,9 +74,13 @@ input::placeholder {
     bottom: 25px;
 }
 
-#login {
+#preLogin {
     max-width: 600px;
     text-align: justify;
+}
+
+#postLogin {
+    max-width: 1024px;
 }
 
 #viewManageGenres {
