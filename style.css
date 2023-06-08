@@ -28,7 +28,8 @@ body {
 a {
     font-family: monospace, monospace;
     color: gray;
-    text-decoration: none;
+
+    text-decoration: underline dotted;
 }
 
 footer {
@@ -71,4 +72,30 @@ input::placeholder {
     position: absolute;
     left: 0;
     bottom: 25px;
+}
+
+#login {
+    max-width: 600px;
+    text-align: justify;
+}
+
+#viewManageGenres {
+    display: none;
+    float: right;
+}
+
+#buttonLogin {
+    float: right;
+}
+
+#buttonLogout {
+    float: right;
+}
+
+#subtitle {
+    text-indent: 10%;
+}
+
+.hidden {
+    display: none;
 }
