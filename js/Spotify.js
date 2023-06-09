@@ -217,7 +217,7 @@ class Spotify {
 
 		let start = offset;
 		let end = Math.min(offset + limit, this.library.artists.length);
-		console.debug('start=' + start + ',end=' + end);
+		//console.debug('start=' + start + ',end=' + end);
 
 		// no artists in the library
 		if(end === 0) {
