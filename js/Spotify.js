@@ -204,7 +204,7 @@ class Spotify {
 	getGenres(offset = 0, limit = 50, update = false) {
 		//console.debug('artists.length=' + this.library.artists.length);
 		// if the artists array is empty, this will be set to zero and no call is executed
-		limit = Math.min(limit, this.atists.length);
+		limit = Math.min(limit, this.library.artists.length);
 		console.debug('getGenres(' + offset + ',' + limit + ',' + update + ')');
 
 		if(offset === 0 && update) {
