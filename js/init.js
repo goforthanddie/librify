@@ -24,10 +24,6 @@ window.addEventListener("load", () => {
 		spotify.getSavedAlbums(0, 50);
 	});
 
-	$('#buttonGetGenres').click(function() {
-		spotify.getGenres(0, 50);
-	});
-
 	$('#buttonReduceGenres').click(function() {
 		$(this).attr('disabled', true);
 		let numReduced = spotify.library.reduceGenres();
@@ -40,7 +36,6 @@ window.addEventListener("load", () => {
 	});
 
 	$('#buttonManageGenres').click(function() {
-		// toggle first, because reduceGenresManually only updates when it is visible
 		$('#viewManageGenres').toggle();
 	});
 
@@ -94,7 +89,6 @@ window.addEventListener("load", () => {
 	});
 
 	$('#buttonLogin').click(function() {
-		console.log('login-button:click()');
 		Spotify.authorize();
 	});
 
