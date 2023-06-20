@@ -21,6 +21,7 @@ html {
 /* Set font to monospace */
 body {
     margin: auto;
+    margin-bottom: 100px;
     width: 1024px;
     font-family: monospace, monospace;
     color: gray;
@@ -36,6 +37,7 @@ a {
 
 footer {
     text-align: center;
+    position: absolute;
     left: 0;
     bottom: 0;
     width: 100%;
