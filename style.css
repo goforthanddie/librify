@@ -91,7 +91,7 @@ input::placeholder {
 /* Extra small devices (phones, 600px and down) */
 @media only screen and (max-width: 600px) {
     button {
-        font-size: 80%;
+        font-size: 100%;
     }
     #viewManageGenres {
         display: none;
