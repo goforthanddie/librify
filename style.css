@@ -83,7 +83,7 @@ input::placeholder {
 }
 
 #postLogin {
-    /*max-width: 1024px;*/
+    max-width: 1024px;
 }
 
 #viewManageGenres {
