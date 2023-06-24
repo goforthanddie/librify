@@ -16,7 +16,7 @@ ul {
 html {
     position: relative;
     min-height: 100%;
-    margin: 0 2vw 1vh;
+    margin: 2vh 2vw;
 }
 
 /* Set font to monospace */
