@@ -296,6 +296,7 @@ class Spotify {
 
 								// add to the genre with most artists
 								existingGenres[0].addArtist(artist);
+								existingGenres[0].sortArtists();
 
 								// set artist.genres to the selected genre
 								artist.genres = [existingGenres[0].name];
