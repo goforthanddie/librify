@@ -79,7 +79,7 @@ input::placeholder {
 }
 
 #preLogin {
-    max-width: 600px;
+    max-width: 1024px;
     text-align: justify;
     overflow: hidden;
 }
