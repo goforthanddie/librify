@@ -96,7 +96,7 @@ input::placeholder {
 }
 
 #buttonLogout {
-    /*float: right;*/
+    float: right;
 }
 
 #subtitle {
