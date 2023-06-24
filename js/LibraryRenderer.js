@@ -69,7 +69,6 @@ class LibraryRenderer {
 		//console.log(genres);
 		for(let i = 0, I = genres.length; i < I; i++) {
 			let genre = genres[i];
-			//genres.forEach(genre => {
 			let ulArtists = this.generateUlFromArtists(genre.artists);
 			ulArtists.classList.add('nested');
 
@@ -245,7 +244,6 @@ class LibraryRenderer {
 		let fragment = document.createDocumentFragment();
 		for(let i = 0, I = artists.length; i < I; i++) {
 			let artist = artists[i];
-			//artists.forEach(artist => {
 
 			let ulAlbums = document.createElement('ul');
 			ulAlbums.id = 'ulLibrary';
@@ -261,13 +259,8 @@ class LibraryRenderer {
 			spanArtistName.draggable = true;
 
 			// test if span already exists
-			//let existingSpanArtistName = $('span#' + artist.id);
 			let existingSpanArtistName = document.getElementById(artist.id);
-			//console.log('testing ' + 'span#'+artist.id);
-			//console.log('existingSpanArtistName.length='+existingSpanArtistName.length);
-			//if(existingSpanArtistName.length > 0 && existingSpanArtistName.hasClass('collapsable')) {
 			if(existingSpanArtistName !== null && existingSpanArtistName.classList.contains('collapsable')) {
-				//console.log('existingSpanArtistName' + ' span#'+artist.id);
 				// restore expanded state
 				spanArtistName.classList.add('collapsable');
 				ulAlbums.classList.add('active');
@@ -290,42 +283,42 @@ class LibraryRenderer {
 				//console.log(this.dragged);
 			});
 
+			spanArtistName.addEventListener('touchstart', (event) => {
+				// traverse DOM tree back to the genre span and read the id
+				let genreId = event.target.parentNode.parentNode.parentNode.children[0].id;
+				this.dragged = [genreId, event.target.id];
+				//console.log(this.dragged);
+			});
+
 			liArtist.appendChild(spanArtistName);
 			//ulLibraryNew.appendChild(liArtist);
 			fragment.appendChild(liArtist);
 
-			// sort albums (Todo: different location?)
 
-			artist.albums.sort((a, b) => a.name.localeCompare(b.name));
-
+			// sort albums (Todo: different place?)
 			if(this.options.sortAlbums === SORT_BY_YEAR) {
 				artist.albums.sort((a, b) => new Date(a.releaseDate) < new Date(b.releaseDate) ? -1 : 1);
+			} else {
+				artist.albums.sort((a, b) => a.name.localeCompare(b.name));
 			}
 
 			let fragmentAlbums = document.createDocumentFragment();
 			for(let j = 0, J = artist.albums.length; j < J; j++) {
 
 				let album = artist.albums[j];
-				//console.log('generating span for ' + album.name);
-				//artist.albums.forEach((album) => {
 				let liAlbum = document.createElement('li');
 				let spanAlbum = document.createElement('span');
 				spanAlbum.classList.add('album');
-				//spanAlbum.textContent = new Date(album.releaseDate).getFullYear() + ' ' + album.name;
-				//spanAlbum.textContent = album.name;
 				spanAlbum.innerText = new Date(album.releaseDate).getFullYear() + ' ' + album.name;
-				//spanAlbum.innerText = album.name;
 				spanAlbum.addEventListener('click', () => {
 					this.spotify.startPlayback(album.id);
 				});
 				liAlbum.appendChild(spanAlbum);
 				fragmentAlbums.appendChild(liAlbum);
-				//});
 			}
 			ulAlbums.appendChild(fragmentAlbums);
 			liArtist.appendChild(ulAlbums);
 
-			//});
 		}
 		ulLibraryNew.appendChild(fragment);
 		return ulLibraryNew;
