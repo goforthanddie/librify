@@ -94,6 +94,7 @@ input::placeholder {
          font-size: 2vh;
      }
     button, option, select, input {
+        font-size: 2vh;
     }
     #viewManageGenres {
         display: none;
