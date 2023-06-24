@@ -41,6 +41,7 @@ window.addEventListener("load", () => {
 	});
 
 	$('button#buttonStoreGenresSub').click(() => {
+		spotify.statusManager.setStatusText('Reducing genres...');
 		$('button#buttonStoreGenresSub').attr('disabled', true);
 		let numReduced = spotify.library.clusterGenres();
 		if(numReduced === 0) {

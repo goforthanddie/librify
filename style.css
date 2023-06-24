@@ -87,10 +87,22 @@ input::placeholder {
     max-width: 1024px;
 }
 
-#viewManageGenres {
-    display: none;
-    float: right;
+/* Extra small devices (phones, 600px and down) */
+@media only screen and (max-width: 600px) {
+    #viewManageGenres {
+        display: none;
+    }
 }
+
+/* Small devices (portrait tablets and large phones, 600px and up) */
+@media only screen and (min-width: 600px) {
+    #viewManageGenres {
+        display: none;
+        float: right;
+    }
+}
+
+
 
 #buttonLogin {
     float: right;
