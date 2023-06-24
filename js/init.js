@@ -25,8 +25,8 @@ window.addEventListener("load", () => {
 	});
 
 	$('#buttonReduceGenres').click(function() {
-		$(this).attr('disabled', true);
 		spotify.statusManager.setStatusText('Reducing genres...');
+		$(this).attr('disabled', true);
 		let numReduced = spotify.library.reduceGenres();
 		if(numReduced === 0) {
 			spotify.statusManager.setStatusText('Genres could not be reduced further.');
