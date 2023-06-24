@@ -26,7 +26,7 @@ class Spotify {
 		this.options = new Options();
 		this.accessToken = null;
 
-		this.library = new Library(this.options);
+		this.library = new Library(this.options, this.statusManager);
 		this.libraryRenderer = new LibraryRenderer(this, this.library, this.options);
 		this.library.addUpdateListener(this.libraryRenderer.populateClusterGenres.bind(this.libraryRenderer));
 		this.library.addUpdateListener(this.libraryRenderer.populateViewLibrary.bind(this.libraryRenderer));
