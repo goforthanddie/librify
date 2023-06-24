@@ -22,7 +22,6 @@ html {
 body {
     margin: auto;
     margin-bottom: 100px;
-    max-width: 1024px;
     font-family: monospace, monospace;
     color: gray;
     background-color: #121212;
@@ -83,7 +82,6 @@ input::placeholder {
 }
 
 #postLogin {
-    max-width: 1024px;
 }
 
 #viewManageGenres {
