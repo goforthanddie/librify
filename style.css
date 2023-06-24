@@ -125,3 +125,7 @@ input::placeholder {
 .hidden {
     display: none;
 }
+
+#viewUndoRedo {
+    display: inline-block;
+}
