@@ -24,6 +24,7 @@ body {
     margin: auto;
     margin-bottom: 100px;
     max-width: 1024px;
+    min-width: 300px;
     font-family: monospace, monospace;
     color: gray;
     background-color: #121212;
@@ -90,9 +91,6 @@ input::placeholder {
 
 /* Extra small devices (phones, 600px and down) */
 @media only screen and (max-width: 600px) {
-    body {
-        min-width: 500px;
-    }
     button, option, select, input {
         font-size: 85%;
     }
