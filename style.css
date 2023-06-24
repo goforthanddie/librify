@@ -3,6 +3,11 @@ ul {
     list-style-type: none;
 }
 
+li {
+    display: inline-block;
+    margin: 1px;
+}
+
 /* Hide the nested list */
 .nested {
     display: none;
@@ -21,7 +26,7 @@ html {
 
 /* Set font to monospace */
 body {
-    margin: auto auto 100px;
+    margin: auto auto 150px;
     max-width: 1024px;
     font-family: monospace, monospace;
     color: gray;
@@ -91,7 +96,6 @@ input::placeholder {
 /* Extra small devices (phones, 600px and down) */
 @media only screen and (max-width: 600px) {
      body {
-         margin-bottom: 150px;
          font-size: 2vh;
      }
     button, option, select, input {
