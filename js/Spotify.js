@@ -205,8 +205,17 @@ class Spotify {
 		//console.debug('artists.length=' + this.library.artists.length);
 		console.debug('getGenres(' + offset + ',' + limit + ',' + update + ')');
 
-		if(offset === 0 && update) {
+		if(offset === 0 && update === true) {
 			console.debug('getGenres() update call, previous num of genres=' + this.library.genres.length);
+			// test if all artists in this.library.genres are still existing in this.library.artists (if all albums are unliked the artist still remains in the genres array until a reload)
+			for(let i = 0, I = this.library.genres.length; i < I; i++) {
+				for(let j = 0, J = this.library.genres[i].artists.length; j < J; j++) {
+					let artistIdx = this.library.artists.findIndex(_artist => _artist.id === this.library.genres[i].artists[j]);
+					if(artistIdx === -1) { // no match in this.library.artists => remove from array
+						this.library.genres[i].artists.splice(j, 1);
+					}
+				}
+			}
 		}
 
 		// empty array on first call, only if this is not an update
@@ -307,7 +316,7 @@ class Spotify {
 								}
 							});
 						}
-					// artist is linked to a genre, i.e., we already know this artist. we need to overwrite the artist object in the genres array because library.emptyArtists() has been called in getSavedAlbums()
+						// artist is linked to a genre, i.e., we already know this artist. we need to overwrite the artist object in the genres array because library.emptyArtists() has been called in getSavedAlbums()
 					} else {
 						console.debug('Re-adding ' + artist.name + ' because it is already linked to a genre.');
 						let genre = this.library.genres[genreIdx];
@@ -375,7 +384,7 @@ class Spotify {
 			let fnSuccess = function() {
 				console.log('startPlayback() successful');
 			};
-			let fnError = function (data) {
+			let fnError = function(data) {
 				//console.log(data.responseJSON.error.message);
 				//let response = JSON.parse(data);
 				this.statusManager.setStatusText('Failed to start playback: ' + data.responseJSON.error.message + '.');
