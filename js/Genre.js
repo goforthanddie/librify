@@ -23,6 +23,10 @@ class Genre {
 		}
 	}
 
+	sortArtists() {
+		this.artists.sort((a, b) => a.name.localeCompare(b.name));
+	}
+
 	/*addSubGenre(subGenre) {
 		// add only if artist id ist not yet existing
 		if(this.subGenres.find(element => element.id === subGenre.id) === undefined) {

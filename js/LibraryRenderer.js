@@ -294,13 +294,13 @@ class LibraryRenderer {
 			//ulLibraryNew.appendChild(liArtist);
 			fragment.appendChild(liArtist);
 
-			artist.albums.sort((a, b) => a.name.localeCompare(b.name));
+
 
 			// sort albums (Todo: different place?)
 			if(this.options.sortAlbums === SORT_BY_YEAR) {
 				artist.albums.sort((a, b) => new Date(a.releaseDate) < new Date(b.releaseDate) ? -1 : 1);
 			} else {
-
+				artist.albums.sort((a, b) => a.name.localeCompare(b.name));
 			}
 
 			let fragmentAlbums = document.createDocumentFragment();
