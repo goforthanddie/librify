@@ -26,17 +26,14 @@ window.addEventListener("load", () => {
 
 	$('#buttonReduceGenres').click(function() {
 		spotify.statusManager.setStatusText('Reducing genres...');
-		setTimeout(function(){
-			$(this).attr('disabled', true);
-			let numReduced = spotify.library.reduceGenres();
-			if(numReduced === 0) {
-				spotify.statusManager.setStatusText('Genres could not be reduced further.');
-			} else {
-				spotify.statusManager.setStatusText('Reduced the number of genres by ' + numReduced + '.');
-			}
-			$(this).attr('disabled', false);
-		}, 0);
-
+		$(this).attr('disabled', true);
+		let numReduced = spotify.library.reduceGenres();
+		if(numReduced === 0) {
+			spotify.statusManager.setStatusText('Genres could not be reduced further.');
+		} else {
+			spotify.statusManager.setStatusText('Reduced the number of genres by ' + numReduced + '.');
+		}
+		$(this).attr('disabled', false);
 	});
 
 	$('#buttonManageGenres').click(function() {
