@@ -210,7 +210,7 @@ class Spotify {
 			// test if all artists in this.library.genres are still existing in this.library.artists (if all albums are unliked the artist still remains in the genres array until a reload)
 			for(let i = 0, I = this.library.genres.length; i < I; i++) {
 				for(let j = 0, J = this.library.genres[i].artists.length; j < J; j++) {
-					let artistIdx = this.library.artists.findIndex(_artist => _artist.id === this.library.genres[i].artists[j]);
+					let artistIdx = this.library.artists.findIndex(_artist => _artist.id === this.library.genres[i].artists[j].id);
 					if(artistIdx === -1) { // no match in this.library.artists => remove from array
 						this.library.genres[i].artists.splice(j, 1);
 					}
