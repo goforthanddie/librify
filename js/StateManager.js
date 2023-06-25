@@ -142,7 +142,7 @@ class StateManager {
 		this.library.genres.sort((a, b) => a.name.localeCompare(b.name));
 
 		// sort artists in genres alphabetically
-		this.library.genres.forEach(_genre => _genre.artists.sort((a, b) => a.name.localeCompare(b.name)));
+		this.library.genres.forEach(_genre => _genre.sortArtists());
 
 		localStorage.removeItem('genres');
 		localStorage.setItem('genres', JSON.stringify(this.library.genres, Utils.replacerGenres));
