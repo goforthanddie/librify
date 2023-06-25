@@ -32,9 +32,9 @@ class LibraryRenderer {
 		console.debug('populateViewLibrary()');
 
 		if(this.options.view === VIEW_ARTIST && this.library.artists != null) {
-			this.populateViewLibraryFromArtists(this.library.artists);
+			this.populateViewLibraryByArtists(this.library.artists);
 		} else if(this.options.view === VIEW_GENRE && this.library.genres != null) {
-			this.populateViewLibraryFromGenres(this.library.genres);
+			this.populateViewLibraryByGenres(this.library.genres);
 		}
 
 		this.filterViewLibrary();
@@ -42,8 +42,8 @@ class LibraryRenderer {
 		$('div#viewStats').text('Holding: ' + this.library.genres.length + ' Genres, ' + this.library.artists.length + ' Artists, ' + this.library.getNumAlbums() + ' Albums');
 	}
 
-	populateViewLibraryFromArtists(artists) {
-		console.debug('populateViewLibraryFromArtists()');
+	populateViewLibraryByArtists(artists) {
+		console.debug('populateViewLibraryByArtists()');
 		if(artists === null) {
 			console.debug('artists === null')
 			return false;
@@ -56,8 +56,8 @@ class LibraryRenderer {
 		divLibrary.append(ulLibraryNew);
 	}
 
-	populateViewLibraryFromGenres(genres) {
-		console.debug('populateViewLibraryFromGenres()');
+	populateViewLibraryByGenres(genres) {
+		console.debug('populateViewLibraryByGenres()');
 		if(genres === null) {
 			console.debug('genres === null')
 			return false;
