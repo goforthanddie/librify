@@ -224,7 +224,7 @@ class Library {
 		console.log(foundMainGenres);
 		console.log(foundSubGenres);
 		foundMainGenres.forEach(_genre => {
-			_genre.artists.sort((a, b) => a.name.localeCompare(b.name));
+			_genre.sortArtists();
 		});
 		this.genres = foundMainGenres;
 
@@ -255,7 +255,7 @@ class Library {
 		//console.log(genreMain);
 		if(genreMain !== undefined) {
 			//console.log(selectGenreSub.children(':selected'));
-			// add all the artists of the found sub genres to the main genre
+			// add all the artists of the found subgenres to the main genre
 			let selectGenreSub = $('select#genresSub');
 			selectGenreSub.val().forEach(_idGenreSub => {
 				//console.log(_idGenreSub);
@@ -267,15 +267,12 @@ class Library {
 					});
 					//genreMain.addSubGenre(this.library.genres[genreSubIdx]);
 
-					// remove sub genre from main array
+					// remove subgenre from main array
 					this.genres.splice(genreSubIdx, 1);
 				}
 			});
 
 			$('input#genresSubKeyword').val('');
-
-			// sort artists in genres
-			genreMain.artists.sort((a, b) => a.name.localeCompare(b.name));
 
 			this.notifyUpdateListeners();
 		}
@@ -287,7 +284,6 @@ class Library {
 			let genre = new Genre(genreName);
 			this.genres.push(genre);
 			this.notifyUpdateListeners();
-			//this.stateManager.saveToLocalStorage();
 			return true
 		} else {
 			return false;

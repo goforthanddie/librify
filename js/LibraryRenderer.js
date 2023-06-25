@@ -294,9 +294,7 @@ class LibraryRenderer {
 			//ulLibraryNew.appendChild(liArtist);
 			fragment.appendChild(liArtist);
 
-
-
-			// sort albums (Todo: different place?)
+			// sort albums for visualization
 			if(this.options.sortAlbums === SORT_BY_YEAR) {
 				artist.albums.sort((a, b) => new Date(a.releaseDate) < new Date(b.releaseDate) ? -1 : 1);
 			} else {

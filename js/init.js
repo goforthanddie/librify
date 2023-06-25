@@ -15,7 +15,7 @@ window.addEventListener("load", () => {
 		console.log('access_token != null');
 		Utils.login(spotify, access_token);
 	} else {
-		console.log('something went seriously wrong :<');
+		console.log('Showing pre-login page.');
 	}
 
 	$('#buttonUpdateLibrary').click(function() {
