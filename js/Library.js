@@ -75,9 +75,6 @@ class Library {
 				}
 			}
 
-			// todo: codeschnipsel kommt häufiger vor
-			// sort artists in genres
-			newGenre.artists.sort((a, b) => a.name.localeCompare(b.name));
 			this.notifyUpdateListeners();
 			return {status: true, artistName: artist.name};
 		}
