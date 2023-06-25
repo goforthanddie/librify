@@ -275,7 +275,7 @@ class Spotify {
 							if(existingGenres.length === 0) { // no existing genres, so just pick the first from spotify
 								let genre = new Genre(artist.genres[0]);
 								genre.addArtist(artist);
-								genre.sortArtists();
+								//genre.sortArtists();
 								this.library.genres.push(genre);
 
 								// set artist.genres to the new genre
@@ -296,7 +296,7 @@ class Spotify {
 
 								// add to the genre with most artists
 								existingGenres[0].addArtist(artist);
-								existingGenres[0].sortArtists();
+								//existingGenres[0].sortArtists();
 
 								// set artist.genres to the selected genre
 								artist.genres = [existingGenres[0].name];
