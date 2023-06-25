@@ -98,9 +98,6 @@ class Library {
 			// remove oldGenre from this.genres
 			this.genres.splice(oldGenreIdx, 1);
 
-			// todo: codeschnipsel kommt häufiger vor
-			// sort artists
-			newGenre.artists.sort((a, b) => a.name.localeCompare(b.name));
 			this.notifyUpdateListeners();
 			return {status: true, oldGenreName: oldGenre.name};
 		}
