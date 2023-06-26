@@ -45,7 +45,6 @@ class Library {
 		console.debug('removeEmptyGenres()');
 		let oldLength = this.genres.length;
 		this.genres = this.genres.filter(_genre => _genre.artists.length > 0);
-		//this.stateManager.saveToLocalStorage();
 		this.notifyUpdateListeners();
 
 		return oldLength - this.genres.length;
@@ -67,7 +66,7 @@ class Library {
 					// remove artist from oldGenre
 					this.genres[oldGenreIdx].artists.splice(artistIdx, 1);
 				}
-				// if for some reason there is no match for the oldGenreId, we look for the artist in the this.artist array
+			// if for some reason there is no match for the oldGenreId, we look for the artist in the this.artist array
 			} else {
 				artist = this.artists.find(element => element.id === artistId);
 				if(artist !== undefined) {

@@ -232,6 +232,150 @@ class LibraryRenderer {
 		}
 	}
 
+	populateSelectViewBy() {
+		let selectView = $('#selectView');
+		selectView.append($('<option />').val(VIEW_ARTIST).text(VIEW_ARTIST));
+		selectView.append($('<option />').val(VIEW_GENRE).text(VIEW_GENRE));
+
+		// preselect default option
+		$('#selectView > option[value=' + this.options.view + ']').attr('selected', 'selected');
+
+		selectView.change(() => {
+			this.options.view = selectView.children(':selected').attr('value');
+			this.library.notifyUpdateListeners();
+		});
+
+		$('#selectDevices').change(() => {
+			this.options.selectedDevice = $('#selectDevices').children(':selected').attr('id');
+		});
+	}
+
+	populateSelectSortAlbumsBy() {
+		let selectSortAlbums = $('#selectSortAlbums');
+		selectSortAlbums.append($('<option />').val(SORT_BY_NAME).text(SORT_BY_NAME));
+		selectSortAlbums.append($('<option />').val(SORT_BY_YEAR).text(SORT_BY_YEAR));
+
+		// preselect default option
+		$('#selectSortAlbums > option[value=' + this.options.sortAlbums + ']').attr('selected', 'selected');
+
+		selectSortAlbums.change(() => {
+			this.options.sortAlbums = selectSortAlbums.children(':selected').attr('value');
+			this.library.notifyUpdateListeners();
+		});
+	}
+
+	bindButtons() {
+		$('#buttonUpdateLibrary').click(() => {
+			$(this).attr('disabled', true);
+			this.spotify.getSavedAlbums(0, 50);
+		});
+
+		$('#buttonReduceGenres').click(() => {
+			this.spotify.statusManager.setStatusText('Reducing genres...');
+			$(this).attr('disabled', true);
+			let numReduced = this.library.reduceGenres();
+			if(numReduced === 0) {
+				this.spotify.statusManager.setStatusText('Genres could not be reduced further.');
+			} else {
+				this.spotify.statusManager.setStatusText('Reduced the number of genres by ' + numReduced + '.');
+			}
+			$(this).attr('disabled', false);
+		});
+
+		$('#buttonManageGenres').click(() => {
+			$('#viewManageGenres').toggle()
+		});
+
+		$('#buttonStoreGenresSub').click(() => {
+			this.spotify.statusManager.setStatusText('Reducing genres...');
+			$('#buttonStoreGenresSub').attr('disabled', true);
+			let numReduced = this.spotify.library.clusterGenres();
+			if(numReduced === 0) {
+				this.spotify.statusManager.setStatusText('Genres could not be reduced further.');
+			} else {
+				this.spotify.statusManager.setStatusText('Reduced the number of genres by ' + numReduced + '.');
+			}
+		});
+
+		$('#buttonReloadDevices').click(() => {
+			$(this).attr('disabled', true);
+			this.spotify.getDevices();
+		});
+
+		$('#buttonLogin').click(() => {
+			Spotify.authorize();
+		});
+
+		$('#buttonLogout').click(() => {
+			Utils.logout();
+		});
+
+		$('#buttonUndo').click(() => {
+			$(this).attr('disabled', true);
+			//console.log('#buttonUndo.click() in if currentStateIdx=' + spotify.library.stateManager.currentStateIdx);
+			this.spotify.library.stateManager.undo();
+			$(this).attr('disabled', false);
+		});
+
+		$('#buttonRedo').click(() => {
+			$(this).attr('disabled', true);
+			this.spotify.library.stateManager.redo();
+			$(this).attr('disabled', false);
+		});
+
+		$('#buttonSaveData').click(() => {
+			$(this).attr('disabled', true);
+			let data = "data:text/json;charset=utf-8," + encodeURIComponent('{"genres": ' + this.spotify.library.stateManager.getCurrentState().genres + ', "artists":' + this.spotify.library.stateManager.getCurrentState().artists + '}');
+			let aSaveData = document.getElementById('aSaveData');
+			aSaveData.href = data;
+			aSaveData.download = 'librify.json';
+			aSaveData.click();
+			$(this).attr('disabled', false);
+		});
+
+		$('#buttonLoadData').click(() => {
+			$(this).attr('disabled', true);
+			let input = document.createElement('input');
+			input.type = 'file';
+			input.onchange = () => {
+				this.spotify.library.stateManager.loadFromFile(input.files[0]);
+				$(this).attr('disabled', false);
+			}
+			input.click();
+		});
+
+		$('#buttonClusterGenres').click(() => {
+			$('#fieldsetClusterGenres').toggle();
+			this.spotify.libraryRenderer.populateClusterGenres();
+		});
+
+		$('#buttonAddGenre').click(() => {
+			$(this).attr('disabled', true);
+			let inputGenreName = $('input#addGenre');
+			let genreName = inputGenreName.val();
+			if(this.spotify.library.addGenreByName(genreName)) {
+				this.spotify.statusManager.setStatusText('Added new genre "' + genreName + '".');
+			} else {
+				this.spotify.statusManager.setStatusText('Did not add genre "' + genreName + '", possible duplicate.');
+			}
+			inputGenreName.val('');
+			$(this).attr('disabled', false);
+		});
+
+		$('#buttonRemoveEmptyGenres').click(() => {
+			$(this).attr('disabled', true);
+			let numRemovedGenres = this.spotify.library.removeEmptyGenres();
+			this.spotify.statusManager.setStatusText('Removed ' + numRemovedGenres + ' empty genre(s).');
+			$(this).attr('disabled', false);
+		});
+	}
+
+	bindSearch() {
+		$('input#searchKeyword').on('input', () => {
+			this.filterViewLibrary();
+		});
+	}
+
 	generateUlFromArtists(artists) {
 		//console.debug('generateUlFromArtists()');
 		if(artists === null) {
