@@ -15,27 +15,47 @@ const URL_AUTH = 'https://accounts.spotify.com/api/token';
 class Spotify {
 
 	library;
-	libraryRenderer;
 	options;
 	accessToken;
 	arrayDevices;
 	statusManager;
+	updateListeners;
 
-	constructor() {
-		this.statusManager = new StatusManager($('#viewStatus'));
-		this.options = new Options();
+	constructor(statusManager, options, library) {
+		this.updateListeners = [];
+
 		this.accessToken = null;
-
-		this.library = new Library(this.options, this.statusManager);
-		this.libraryRenderer = new LibraryRenderer(this, this.library, this.options);
-		this.library.addUpdateListener(this.libraryRenderer.populateClusterGenres.bind(this.libraryRenderer));
-		this.library.addUpdateListener(this.libraryRenderer.populateViewLibrary.bind(this.libraryRenderer));
-
-		// we need to call this when all the update listeners have been added, so it doesn't work calling it in the constructor of StateManager.js
-		this.library.stateManager.loadFromLocalStorage(false);
-		this.library.stateManager.saveCurrentState();
-
 		this.arrayDevices = [];
+
+		if(statusManager !== null && statusManager !== undefined) {
+			this.statusManager = statusManager;
+		} else {
+			console.debug('got no statusManager object.');
+		}
+
+		if(options !== null && options !== undefined) {
+			this.options = options;
+		} else {
+			console.debug('got no options object.');
+		}
+
+		if(library !== null && library !== undefined) {
+			this.library = library;
+		} else {
+			console.debug('got no library object.');
+		}
+	}
+
+	addUpdateListener(listener) {
+		this.updateListeners.push(listener);
+	}
+
+	notifyUpdateListeners() {
+		console.debug('notifyUpdateListeners()');
+		for(let i = 0, I = this.updateListeners.length; i < I; i++) {
+			//console.debug(this.updateListeners[i]);
+			this.updateListeners[i].call();
+		}
 	}
 
 	async sendRequest(url, type, data, fnSuccess, fnError, counter = 1) {
@@ -354,7 +374,7 @@ class Spotify {
 				this.arrayDevices.push(new Device(device.id, device.name, device.is_active));
 			});
 
-			this.libraryRenderer.populateSelectDevices(this.arrayDevices);
+			this.notifyUpdateListeners();
 			this.statusManager.setStatusText('Loaded ' + this.arrayDevices.length + ' device(s).');
 			$('#buttonReloadDevices').attr('disabled', false);
 		};

@@ -2,22 +2,10 @@ class Library {
 
 	artists;
 	genres;
-	options;
 	updateListeners;
-	stateManager;
 
-	constructor(options) {
+	constructor() {
 		this.updateListeners = [];
-
-		if(options !== null) {
-			this.options = options;
-		} else {
-			console.debug('got no options object... using empty Options object.');
-			this.options = new Options();
-		}
-
-		this.stateManager = new StateManager(this);
-		this.addUpdateListener(this.stateManager.saveToLocalStorage.bind(this.stateManager));
 	}
 
 	addUpdateListener(listener) {

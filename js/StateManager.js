@@ -5,15 +5,21 @@ class StateManager {
 	states;
 	currentStateIdx;
 	library;
+	options;
 
-	constructor(library) {
+	constructor(library, options) {
 		this.states = [];
 
-		if(library !== null) {
+		if(library !== null && library !== undefined) {
 			this.library = library;
 		} else {
-			console.debug('got no library object... using empty Library object.');
-			this.library = new Library();
+			console.debug('got no library object.');
+		}
+
+		if(options !== null && options !== undefined) {
+			this.options = options;
+		} else {
+			console.debug('got no options object.');
 		}
 	}
 
@@ -40,7 +46,7 @@ class StateManager {
 		if(currentState !== undefined) {
 			this.library.genres = currentState.genres;
 			this.library.artists = currentState.artists;
-			this.library.options = currentState.options;
+			this.options = currentState.options;
 			this.library.notifyUpdateListeners(false);
 		}
 	}
@@ -51,7 +57,7 @@ class StateManager {
 		let currentState = {
 			artists: JSON.stringify(this.library.artists, Utils.replacerArtists),
 			genres: JSON.stringify(this.library.genres, Utils.replacerGenres),
-			options: JSON.stringify(this.library.options)
+			options: JSON.stringify(this.options)
 		};
 
 		// remove all states after the current state if we are not in the last state
@@ -120,14 +126,13 @@ class StateManager {
 
 		let options = localStorage.getItem('options');
 		if(options != null) {
-			// do not directly set this.library.options = JSON.parse(options, Utils.reviverOptions); this generates a new object and then there are two differing Options objects in spotify and library
+			// do not directly set this.options = JSON.parse(options, Utils.reviverOptions); this generates a new object and then there are two differing Options objects in spotify and library
 			let tmpOptions = JSON.parse(options, Utils.reviverOptions);
-			this.library.options.view = tmpOptions.view;
-			this.library.options.sortAlbums = tmpOptions.sortAlbums;
-
+			this.options.view = tmpOptions.view;
+			this.options.sortAlbums = tmpOptions.sortAlbums;
 		} else {
-			this.library.options.sortAlbums = SORT_BY_YEAR;
-			this.library.options.view = VIEW_GENRE;
+			this.options.sortAlbums = SORT_BY_YEAR;
+			this.options.view = VIEW_GENRE;
 		}
 
 		if(saveCurrentState) {
@@ -154,7 +159,7 @@ class StateManager {
 		localStorage.setItem('artists', JSON.stringify(this.library.artists, Utils.replacerArtists));
 
 		localStorage.removeItem('options');
-		localStorage.setItem('options', JSON.stringify(this.library.options));
+		localStorage.setItem('options', JSON.stringify(this.options));
 
 		if(saveCurrentState) {
 			this.saveCurrentState();

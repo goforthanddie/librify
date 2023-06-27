@@ -3,28 +3,32 @@ class LibraryRenderer {
 	spotify;
 	library;
 	options;
+	stateManager;
 	dragged;
 
-	constructor(spotify, library, options) {
-		if(spotify !== null) {
+	constructor(spotify, library, options, stateManager) {
+		if(spotify !== null && spotify !== undefined) {
 			this.spotify = spotify;
 		} else {
-			console.debug('got no spotify object... using empty Spotify object.');
-			this.spotify = new Spotify();
+			console.debug('got no spotify object.');
 		}
 
-		if(library !== null) {
+		if(library !== null && library !== undefined) {
 			this.library = library;
 		} else {
-			console.debug('got no library object... using empty Library object.');
-			this.library = new Library();
+			console.debug('got no library object.');
 		}
 
-		if(options !== null) {
+		if(options !== null && options !== undefined) {
 			this.options = options;
 		} else {
-			console.debug('got no options object... using empty Options object.');
-			this.options = new Options();
+			console.debug('got no options object.');
+		}
+
+		if(stateManager !== null && stateManager !== undefined) {
+			this.stateManager = stateManager;
+		} else {
+			console.debug('got no stateManager object.');
 		}
 	}
 
@@ -206,8 +210,10 @@ class LibraryRenderer {
 		}
 	}
 
-	populateSelectDevices(arrayDevices) {
+
+	populateSelectDevices() {
 		console.debug('populateSelectedDevices()');
+		let arrayDevices = this.spotify.arrayDevices;
 		const selectDevices = $('#selectDevices');
 		selectDevices.empty();
 		arrayDevices.forEach(device => {
@@ -289,7 +295,7 @@ class LibraryRenderer {
 		$('#buttonStoreGenresSub').click(() => {
 			this.spotify.statusManager.setStatusText('Reducing genres...');
 			$('#buttonStoreGenresSub').attr('disabled', true);
-			let numReduced = this.spotify.library.clusterGenres();
+			let numReduced = this.library.clusterGenres();
 			if(numReduced === 0) {
 				this.spotify.statusManager.setStatusText('Genres could not be reduced further.');
 			} else {
@@ -313,19 +319,20 @@ class LibraryRenderer {
 		$('#buttonUndo').click(() => {
 			$(this).attr('disabled', true);
 			//console.log('#buttonUndo.click() in if currentStateIdx=' + spotify.library.stateManager.currentStateIdx);
-			this.spotify.library.stateManager.undo();
+			this.stateManager.undo();
 			$(this).attr('disabled', false);
 		});
 
 		$('#buttonRedo').click(() => {
 			$(this).attr('disabled', true);
-			this.spotify.library.stateManager.redo();
+			this.stateManager.redo();
 			$(this).attr('disabled', false);
 		});
 
 		$('#buttonSaveData').click(() => {
 			$(this).attr('disabled', true);
-			let data = "data:text/json;charset=utf-8," + encodeURIComponent('{"genres": ' + this.spotify.library.stateManager.getCurrentState().genres + ', "artists":' + this.spotify.library.stateManager.getCurrentState().artists + '}');
+			let currentState = this.stateManager.getCurrentState();
+			let data = "data:text/json;charset=utf-8," + encodeURIComponent('{"genres": ' + currentState.genres + ', "artists":' + currentState.artists + '}');
 			let aSaveData = document.getElementById('aSaveData');
 			aSaveData.href = data;
 			aSaveData.download = 'librify.json';
@@ -338,7 +345,7 @@ class LibraryRenderer {
 			let input = document.createElement('input');
 			input.type = 'file';
 			input.onchange = () => {
-				this.spotify.library.stateManager.loadFromFile(input.files[0]);
+				this.stateManager.loadFromFile(input.files[0]);
 				$(this).attr('disabled', false);
 			}
 			input.click();
@@ -346,14 +353,14 @@ class LibraryRenderer {
 
 		$('#buttonClusterGenres').click(() => {
 			$('#fieldsetClusterGenres').toggle();
-			this.spotify.libraryRenderer.populateClusterGenres();
+			this.populateClusterGenres();
 		});
 
 		$('#buttonAddGenre').click(() => {
 			$(this).attr('disabled', true);
 			let inputGenreName = $('input#addGenre');
 			let genreName = inputGenreName.val();
-			if(this.spotify.library.addGenreByName(genreName)) {
+			if(this.library.addGenreByName(genreName)) {
 				this.spotify.statusManager.setStatusText('Added new genre "' + genreName + '".');
 			} else {
 				this.spotify.statusManager.setStatusText('Did not add genre "' + genreName + '", possible duplicate.');
@@ -364,7 +371,7 @@ class LibraryRenderer {
 
 		$('#buttonRemoveEmptyGenres').click(() => {
 			$(this).attr('disabled', true);
-			let numRemovedGenres = this.spotify.library.removeEmptyGenres();
+			let numRemovedGenres = this.library.removeEmptyGenres();
 			this.spotify.statusManager.setStatusText('Removed ' + numRemovedGenres + ' empty genre(s).');
 			$(this).attr('disabled', false);
 		});
