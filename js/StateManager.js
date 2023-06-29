@@ -46,14 +46,14 @@ class StateManager {
 		if(currentState !== undefined) {
 			this.library.genres = currentState.genres;
 			this.library.artists = currentState.artists;
-			this.options = currentState.options;
+			this.options.view = currentState.options.view;
+			this.options.sortAlbums = currentState.options.sortAlbums;
 			this.library.notifyUpdateListeners(false);
 		}
 	}
 
 	saveCurrentState() {
 		console.debug('saveCurrentState()');
-
 		let currentState = {
 			artists: JSON.stringify(this.library.artists, Utils.replacerArtists),
 			genres: JSON.stringify(this.library.genres, Utils.replacerGenres),
@@ -75,7 +75,6 @@ class StateManager {
 		}
 		//console.log(spotify.artists);
 		this.currentStateIdx = this.states.push(currentState) - 1;
-
 		this.updateControlElements();
 	}
 
@@ -85,23 +84,26 @@ class StateManager {
 		fr.onload = function receivedText() {
 			let data = JSON.parse(fr.result);
 			if(data.artists !== null !== undefined) {
-				this.artists = JSON.parse(JSON.stringify(data.artists), Utils.reviverArtists);
+				this.library.artists = JSON.parse(JSON.stringify(data.artists), Utils.reviverArtists);
 			} else {
 				console.debug('data.artists === null');
 			}
 			if(data.genres !== null !== undefined) {
-				this.genres = JSON.parse(JSON.stringify(data.genres), Utils.reviverGenres.bind(this));
+				this.library.genres = JSON.parse(JSON.stringify(data.genres), Utils.reviverGenres.bind(this.library));
 			} else {
 				console.debug('data.genres === null');
 			}
 
 			if(data.options !== null && data.options !== undefined) {
-				this.options = JSON.parse(JSON.stringify(data.options), Utils.reviverOptions);
+				// do not directly set this.options = JSON.parse(options, Utils.reviverOptions); this generates a new object and then there are two differing Options objects in spotify and library
+				let tmpOptions = JSON.parse(JSON.stringify(data.options), Utils.reviverOptions);
+				this.options.view = tmpOptions.view;
+				this.options.sortAlbums = tmpOptions.sortAlbums;
 			} else {
 				console.debug('data.options === null');
 			}
-			this.notifyUpdateListeners();
-		}.bind(this.library);
+			this.library.notifyUpdateListeners();
+		}.bind(this);
 		fr.readAsText(file);
 	}
 
@@ -135,14 +137,11 @@ class StateManager {
 			this.options.view = VIEW_GENRE;
 		}
 
-		if(saveCurrentState) {
-			this.saveCurrentState();
-		}
-
 		this.library.notifyUpdateListeners(saveCurrentState);
 	}
 
 	saveToLocalStorage(saveCurrentState = true) {
+		console.debug('saveToLocalStorage()');
 		// sort genres alphabetically
 		this.library.genres.sort((a, b) => a.name.localeCompare(b.name));
 
@@ -164,7 +163,6 @@ class StateManager {
 		if(saveCurrentState) {
 			this.saveCurrentState();
 		}
-
 	}
 
 	undo() {
@@ -190,6 +188,7 @@ class StateManager {
 	}
 
 	updateControlElements() {
+		console.debug('updateControlElements()');
 		if(this.currentStateIdx >= 0 && this.currentStateIdx < this.states.length - 1) {
 			$('#buttonRedo').attr('disabled', false);
 		} else {

@@ -21,7 +21,7 @@ class Spotify {
 	statusManager;
 	updateListeners;
 
-	constructor(statusManager, options, library) {
+	constructor(library, options, statusManager) {
 		this.updateListeners = [];
 
 		this.accessToken = null;
@@ -203,7 +203,7 @@ class Spotify {
 			if(data.next != null) {
 				this.getSavedAlbums(offset + limit, limit, update);
 			} else { // no more albums
-				// its okay if the num of albums differs from data.total because if an album is linked with two artists, the album is added twice
+				// it's okay if the num of albums differs from data.total because if an album is linked with two artists, the album is added twice
 				//console.log('got: ' + this.library.artists.length + ' artists, ' + this.library.artists.reduce((numAlbums, _artist) => numAlbums + _artist.albums.length, 0) + ' albums');
 				console.log('got: ' + this.library.artists.length + ' artists, ' + this.library.getNumAlbums() + ' albums');
 				//console.debug(this.library.artists);
@@ -233,6 +233,8 @@ class Spotify {
 					let artistIdx = this.library.artists.findIndex(_artist => _artist.id === this.library.genres[i].artists[j].id);
 					if(artistIdx === -1) { // no match in this.library.artists => remove from array
 						this.library.genres[i].artists.splice(j, 1);
+						// update length of array
+						J = J-1;
 					}
 				}
 			}
@@ -480,9 +482,11 @@ class Spotify {
 		let fnSuccess = function(data) {
 			localStorage.setItem('access_token', data.access_token);
 			localStorage.setItem('refresh_token', data.refresh_token);
-			Utils.login(this, data.access_token);
+			// redirect to index
+			window.location = URI_REDIRECT;
 		};
 		let fnError = function(error) {
+			this.statusManager.setStatusText('Error: ' + error.responseJSON.error + ' ' + error.responseJSON.error_description);
 			console.error('Error:', error);
 			Utils.logout();
 		};
@@ -504,7 +508,9 @@ class Spotify {
 
 			localStorage.setItem('access_token', data.access_token);
 			localStorage.setItem('refresh_token', data.refresh_token);
-			Utils.login(this, data.access_token);
+
+			this.accessToken = new AccessToken(data.access_token, 'Bearer');
+			this.getDevices();
 
 			// re-execute request that triggered the refreshAccessToken call
 			if(fnSuccessB != null) {

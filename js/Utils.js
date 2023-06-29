@@ -1,17 +1,40 @@
 class Utils {
 
-	static login(spotify, access_token) {
+	static login(access_token) {
 		console.debug('login()');
 		$('#preLogin').hide();
 		$('#postLogin').show();
 
 
+		const options = new Options();
+		const library = new Library();
+		const statusManager = new StatusManager($('#viewStatus'));
+		const stateManager = new StateManager(library, options);
+		const spotify = new Spotify(library, options, statusManager);
+		const libraryRenderer = new LibraryRenderer(spotify, library, options, stateManager);
+
+		// debug reasons only:
+		window.sptf = spotify;
+		window.lRenderer = libraryRenderer;
+
+		library.addUpdateListener(stateManager.saveToLocalStorage.bind(stateManager));
+
+		library.addUpdateListener(libraryRenderer.populateSelectViewBy.bind(libraryRenderer));
+		library.addUpdateListener(libraryRenderer.populateSelectSortAlbumsBy.bind(libraryRenderer));
+
+		library.addUpdateListener(libraryRenderer.populateClusterGenres.bind(libraryRenderer));
+		library.addUpdateListener(libraryRenderer.populateViewLibrary.bind(libraryRenderer));
+
+		spotify.addUpdateListener(libraryRenderer.populateSelectDevices.bind(libraryRenderer));
+
+		// we need to call this when all the update listeners have been added
+		stateManager.loadFromLocalStorage(true);
+
+		libraryRenderer.bindButtons();
+		libraryRenderer.bindOthers();
+
 		spotify.accessToken = new AccessToken(access_token, 'Bearer');
-
 		spotify.getDevices();
-
-		//spotify.library.notifyUpdateListeners();
-		//spotify.libraryRenderer.populateViewLibrary();
 
 		// remove parameters from url
 		window.history.replaceState(null, '', window.location.pathname);
