@@ -503,8 +503,8 @@ class Spotify {
 			client_id: CLIENT_ID
 		};
 		let fnSuccess = function(data) {
-			console.log('data');
-			console.log(data);
+			//console.log('data');
+			//console.log(data);
 
 			localStorage.setItem('access_token', data.access_token);
 			localStorage.setItem('refresh_token', data.refresh_token);
