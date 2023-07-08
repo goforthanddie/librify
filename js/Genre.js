@@ -1,16 +1,15 @@
-class Genre {
+class Genre extends TreeNode {
 
 	dataType = Genre.name;
 
-	id;
-	name;
 	artists;
+
 	//subGenres;
 
 	constructor(name) {
 		// todo: generate unique id
-		this.id = name.replace(/\s/g,'').replace(/&/g, '').replace(/\'/g, '');
-		this.name = name;
+		let id = name.replace(/\s/g,'').replace(/&/g, '').replace(/\'/g, '');
+		super(id, name);
 		this.artists = [];
 		//this.subGenres = [];
 	}

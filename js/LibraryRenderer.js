@@ -35,10 +35,12 @@ class LibraryRenderer {
 	populateViewLibrary() {
 		console.debug('populateViewLibrary()');
 
-		if(this.options.view === VIEW_ARTIST && this.library.artists != null) {
+		if(this.options.view === VIEW_ARTIST && this.library.artists !== null) {
 			this.populateViewLibraryByArtists(this.library.artists);
-		} else if(this.options.view === VIEW_GENRE && this.library.genres != null) {
+		} else if(this.options.view === VIEW_GENRE && this.library.genres !== null) {
 			this.populateViewLibraryByGenres(this.library.genres);
+		} else if(this.options.view === VIEW_TREE && this.library.tree !== null) {
+			this.populateViewLibraryByTree(this.library.tree);
 		}
 
 		this.filterViewLibrary();
@@ -163,6 +165,69 @@ class LibraryRenderer {
 		divLibrary.append(ulLibraryNew);
 	}
 
+
+	populateViewLibraryByTree(tree) {
+		if(tree === null) {
+			console.debug('tree === null')
+			return false;
+		}
+		let treeNode = new TreeNode('root', 'root');
+		treeNode.children = this.library.genres;
+		treeNode.children[0].addChild(treeNode.children[1]);
+		treeNode.children[1].addChild(treeNode.children[2]);
+		console.log(treeNode);
+
+		const ulLibraryNew = this.generateUlFromTreeNodes(treeNode.children, 0);
+
+		// switch content of old ul to new ul because we need to keep the expanded items expanded
+		const divLibrary = $('#divLibrary');
+		divLibrary.empty();
+		divLibrary.append(ulLibraryNew);
+	}
+
+	generateUlFromTreeNodes(nodes, level = 0) {
+		const fragment = new DocumentFragment();
+		const ul = document.createElement('ul');
+
+		if(level > 0) {
+			ul.classList.add('nested');
+		}
+
+		// increment level only once per call
+		level = level + 1;
+
+
+		for(let i = 0, I = nodes.length; i < I; i++) {
+			const li = document.createElement('li');
+
+			const spanName = document.createElement('span');
+			spanName.textContent = nodes[i].name + ' (' + nodes[i].children.length + ')';
+			spanName.id = nodes[i].id;
+			spanName.classList.add('caret');
+			spanName.draggable = true;
+
+
+
+
+
+			li.append(spanName);
+
+			if(nodes[i].children.length > 0) {
+				const ulChildren = this.generateUlFromTreeNodes(nodes[i].children, level);
+				li.append(ulChildren);
+				spanName.classList.add('expandable');
+				spanName.addEventListener('click', () => {
+					ulChildren.classList.toggle('active');
+					spanName.classList.toggle('expandable');
+					spanName.classList.toggle('collapsable');
+				});
+			}
+			fragment.append(li);
+		}
+		ul.append(fragment);
+		return ul;
+	}
+
 	populateSelectGenresSub() {
 		console.debug('populateSelectGenresSub()')
 		let selectGenreMain = $('select#genreMain');
@@ -244,6 +309,7 @@ class LibraryRenderer {
 		selectView.empty();
 		selectView.append($('<option />').val(VIEW_ARTIST).text(VIEW_ARTIST));
 		selectView.append($('<option />').val(VIEW_GENRE).text(VIEW_GENRE));
+		selectView.append($('<option />').val(VIEW_TREE).text(VIEW_TREE));
 
 		$('#selectView > option[value=' + this.options.view + ']').attr('selected', 'selected');
 	}

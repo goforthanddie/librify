@@ -2,9 +2,13 @@ class Library {
 
 	artists;
 	genres;
+	tree;
 	updateListeners;
 
 	constructor() {
+		this.artists = [];
+		this.genres = [];
+		this.tree = [];
 		this.updateListeners = [];
 	}
 

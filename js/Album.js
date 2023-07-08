@@ -1,15 +1,12 @@
-class Album {
+class Album extends TreeNode {
 
     dataType = Album.name;
 
-    id;
-    name;
     releaseDate;
     releaseDatePrecision;
 
     constructor(id, name, releaseDate, releaseDatePrecision) {
-        this.id = id;
-        this.name = name;
+        super(id, name);
         this.releaseDate = releaseDate;
         this.releaseDatePrecision = releaseDatePrecision;
     }
