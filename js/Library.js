@@ -9,6 +9,7 @@ class Library {
 		this.artists = [];
 		this.genres = [];
 		this.tree = [];
+		this.treeFlat = [];
 		this.updateListeners = [];
 	}
 
@@ -294,5 +295,27 @@ class Library {
 			}
 		}
 		return albums.length;
+	}
+
+	getNumAlbumsNonUnique() {
+		let count = 0;
+		for(let i = 0, I = this.artists.length; i < I; i++) {
+			count = count + this.artists[i].albums.length;
+		}
+		return count;
+	}
+
+	getCount() {
+		let count = 0;
+		for(let i = 0, I = this.genres.length; i < I; i++) {
+			count++;
+			for(let j = 0, J = this.genres[i].artists.length; j < J; j++) {
+				count++;
+				for(let k = 0, K = this.genres[i].artists[j].albums.length; k < K; k++) {
+					count++;
+				}
+			}
+		}
+		return count;
 	}
 }

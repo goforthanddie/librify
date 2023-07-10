@@ -4,6 +4,7 @@ class LibraryRenderer {
 	library;
 	options;
 	stateManager;
+
 	dragged;
 
 	constructor(spotify, library, options, stateManager) {
@@ -40,6 +41,13 @@ class LibraryRenderer {
 		} else if(this.options.view === VIEW_GENRE && this.library.genres !== null) {
 			this.populateViewLibraryByGenres(this.library.genres);
 		} else if(this.options.view === VIEW_TREE && this.library.tree !== null) {
+			// todo: cleanup
+			let rootNode = new TreeNode('root', 'root');
+			rootNode.children = this.library.genres;
+			console.log(rootNode);
+			rootNode.toggleExpanded();
+			this.library.tree = rootNode;
+			this.library.treeFlat = TreeNode.getAllChildren(rootNode);
 			this.populateViewLibraryByTree(this.library.tree);
 		}
 
@@ -76,7 +84,7 @@ class LibraryRenderer {
 		for(let i = 0, I = genres.length; i < I; i++) {
 			let genre = genres[i];
 			let ulArtists = this.generateUlFromArtists(genre.artists);
-			ulArtists.classList.add('nested');
+			ulArtists.classList.add('inactive');
 
 			let liGenre = document.createElement('li');
 
@@ -104,7 +112,6 @@ class LibraryRenderer {
 						event.preventDefault();
 					}
 				}
-
 			});
 
 			spanGenreName.addEventListener('dragleave', (event) => {
@@ -166,18 +173,14 @@ class LibraryRenderer {
 	}
 
 
-	populateViewLibraryByTree(tree) {
-		if(tree === null) {
+	populateViewLibraryByTree(treeNode) {
+		console.debug('populateViewLibraryByTree()');
+		if(treeNode === null) {
 			console.debug('tree === null')
 			return false;
 		}
-		let treeNode = new TreeNode('root', 'root');
-		treeNode.children = this.library.genres;
-		treeNode.children[0].addChild(treeNode.children[1]);
-		treeNode.children[1].addChild(treeNode.children[2]);
-		console.log(treeNode);
 
-		const ulLibraryNew = this.generateUlFromTreeNodes(treeNode.children, 0);
+		const ulLibraryNew = this.generateUlFromTreeNodes(treeNode.children, true);
 
 		// switch content of old ul to new ul because we need to keep the expanded items expanded
 		const divLibrary = $('#divLibrary');
@@ -185,39 +188,111 @@ class LibraryRenderer {
 		divLibrary.append(ulLibraryNew);
 	}
 
-	generateUlFromTreeNodes(nodes, level = 0) {
+	makeDropTarget(element) {
+		// highlight the potential target
+		element.addEventListener('dragenter', (event) => {
+			event.target.classList.add('highlight');
+		});
+
+		element.addEventListener('dragleave', (event) => {
+			event.target.classList.remove('highlight');
+		});
+
+		element.addEventListener('dragover', (event) => {
+			// prevent default to allow drop
+			event.preventDefault();
+		});
+
+		element.addEventListener('drop', (event) => {
+			event.target.classList.remove('highlight');
+			console.log(this.dragged.id + ' has been dropped into ' + event.target.objRef.id);
+
+			// find parent node of dragged element
+			let parentNode = this.library.treeFlat .find(_node => _node.children.find(_child => _child.uniqueId === this.dragged.uniqueId) !== undefined);
+			console.log(parentNode);
+
+			// test if the target is dragged into its old parent node
+			if(parentNode.uniqueId !== event.target.objRef.uniqueId) {
+
+				// add dragged node as child to target node
+				event.target.objRef.addChild(this.dragged);
+
+				// remove dragged node from parent node
+				parentNode.removeChild(this.dragged);
+
+				this.library.notifyUpdateListeners();
+			}
+
+		});
+	}
+
+	makeDraggable(element) {
+		element.draggable = true;
+		element.addEventListener('dragstart', (event) => {
+			this.dragged = event.target.objRef;
+		});
+	}
+
+	generateUlFromTreeNodes(nodes, parentExpanded) {
 		const fragment = new DocumentFragment();
 		const ul = document.createElement('ul');
 
-		if(level > 0) {
-			ul.classList.add('nested');
+		if(parentExpanded) {
+			ul.classList.add('active');
+		} else {
+			ul.classList.add('inactive');
 		}
-
-		// increment level only once per call
-		level = level + 1;
-
 
 		for(let i = 0, I = nodes.length; i < I; i++) {
 			const li = document.createElement('li');
 
+			if(nodes[i].visible) {
+				li.classList.add('active');
+			} else {
+				li.classList.add('inactive');
+			}
+
 			const spanName = document.createElement('span');
-			spanName.textContent = nodes[i].name + ' (' + nodes[i].children.length + ')';
-			spanName.id = nodes[i].id;
-			spanName.classList.add('caret');
-			spanName.draggable = true;
-
-
-
-
-
+			//spanName.classList.add(level);
 			li.append(spanName);
 
+			spanName.id = nodes[i].id;
+			// add a reference to the object for drag&drop
+			spanName.objRef = nodes[i];
+			spanName.innerText = nodes[i].getInnerText();
+
+			this.makeDraggable(spanName);
+
+			switch(true) {
+				case nodes[i] instanceof Album:
+					spanName.classList.add('caret');
+					spanName.addEventListener('click', () => {
+						this.spotify.startPlayback(nodes[i].id);
+					});
+					break;
+				default:
+					if(nodes[i].expanded) {
+						spanName.classList.add('collapsable');
+					} else {
+						spanName.classList.add('expandable');
+					}
+					// sort albums for visualization
+					if(this.options.sortAlbums === SORT_BY_YEAR) {
+						nodes[i].children.sort((a, b) => new Date(a.releaseDate) < new Date(b.releaseDate) ? -1 : 1);
+					} else {
+						nodes[i].children.sort((a, b) => a.name.localeCompare(b.name));
+					}
+					this.makeDropTarget(spanName);
+			}
+
 			if(nodes[i].children.length > 0) {
-				const ulChildren = this.generateUlFromTreeNodes(nodes[i].children, level);
+				const ulChildren = this.generateUlFromTreeNodes(nodes[i].children, nodes[i].expanded);
 				li.append(ulChildren);
-				spanName.classList.add('expandable');
+				spanName.classList.add('caret');
 				spanName.addEventListener('click', () => {
+					spanName.objRef.toggleExpanded();
 					ulChildren.classList.toggle('active');
+					ulChildren.classList.toggle('inactive');
 					spanName.classList.toggle('expandable');
 					spanName.classList.toggle('collapsable');
 				});
@@ -225,7 +300,15 @@ class LibraryRenderer {
 			fragment.append(li);
 		}
 		ul.append(fragment);
+
 		return ul;
+	}
+
+	filterTree(keyword) {
+		this.library.treeFlat.map(_child => {
+			_child.setVisible(_child.name.toLowerCase().includes(keyword));
+		});
+		this.populateViewLibrary();
 	}
 
 	populateSelectGenresSub() {
@@ -459,6 +542,7 @@ class LibraryRenderer {
 	bindOthers() {
 		$('input#searchKeyword').on('input', () => {
 			this.filterViewLibrary();
+			this.filterTree($('input#searchKeyword').val());
 		});
 
 		$('#selectDevices').on('change', () => {
@@ -491,7 +575,7 @@ class LibraryRenderer {
 
 			let ulAlbums = document.createElement('ul');
 			ulAlbums.id = 'ulLibrary';
-			ulAlbums.classList.add('nested');
+			ulAlbums.classList.add('inactive');
 
 			let liArtist = document.createElement('li');
 			liArtist.classList.add('caret');
@@ -566,7 +650,7 @@ class LibraryRenderer {
 		// apply filter
 		let keyword = $('input#searchKeyword').val();
 
-		// select only the not nested lis
+		// select only the not inactive lis
 		//let lis = $('ul#ulLibrary > li:not(.caret)');
 		// select all lis which leads to filtering also artists
 		let lis = $('ul#ulLibrary > li');

@@ -76,11 +76,13 @@ class Utils {
 					let album = JSON.parse(JSON.stringify(_album), Utils.reviverArtists);
 					//let album = new Album(_album.id, _album.name); // you could probably re-stringify the object and parse separately to achieve invocation of the case === 'Album'
 					artist.addAlbum(album);
+					artist.addChild(album);
 				});
 				return artist;
 			} else if(value.dataType === Album.name) {
 				return new Album(value.id, value.name, value.releaseDate, value.releaseDatePrecision);
-			} else if(value.dataType === Genre.name) {
+			} else if(value.dataType === Genre.name) { // todo: this might be not needed anymore
+				console.log('got genre');
 				let genre = new Genre(value.name);
 				value.artists.forEach(_artist => {
 					let artist = JSON.parse(JSON.stringify(_artist), Utils.reviverArtists);
@@ -108,6 +110,7 @@ class Utils {
 					artist = this.artists.find(element => element.id === _artist.id);
 					//artist = JSON.parse(JSON.stringify(_artist), Utils.reviverArtists);
 					genre.addArtist(artist);
+					genre.addChild(artist);
 				});
 				return genre;
 			}
@@ -134,3 +137,17 @@ jQuery.expr[':'].icontains = function(a, i, m) {
 	return jQuery(a).text().toUpperCase()
 		.indexOf(m[3].toUpperCase()) >= 0;
 };
+
+// generate unique ids for objects
+const uniqueId = (() => {
+	let currentId = 0;
+	const map = new WeakMap();
+
+	return (object) => {
+		if (!map.has(object)) {
+			map.set(object, ++currentId);
+		}
+
+		return map.get(object);
+	};
+})();

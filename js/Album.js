@@ -10,4 +10,8 @@ class Album extends TreeNode {
         this.releaseDate = releaseDate;
         this.releaseDatePrecision = releaseDatePrecision;
     }
+
+    getInnerText() {
+        return new Date(this.releaseDate).getFullYear() + ' ' + this.name;
+    }
 }

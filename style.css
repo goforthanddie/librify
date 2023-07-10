@@ -3,14 +3,26 @@ ul {
     list-style-type: none;
 }
 
-/* Hide the nested list */
-.nested {
+/* Hide the inactive list */
+.inactive {
     display: none;
 }
 
-/* Show the nested list when the user clicks on the caret/arrow (with JavaScript) */
+/* Show the inactive list when the user clicks on the caret/arrow (with JavaScript) */
 .active {
     display: block;
+}
+
+.caret {
+    cursor: pointer;
+}
+
+.expandable::before {
+    content: '+ ';
+}
+
+.collapsable::before {
+    content: '- ';
 }
 
 html {
@@ -50,20 +62,10 @@ button, option, select, input {
 
 }
 
-.caret {
-    cursor: pointer;
-}
+
 
 .highlight {
     font-weight: bold;
-}
-
-.expandable::before {
-    content: '+ ';
-}
-
-.collapsable::before {
-    content: '- ';
 }
 
 input::placeholder {
