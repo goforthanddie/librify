@@ -4,6 +4,7 @@ class LibraryRenderer {
 	library;
 	options;
 	stateManager;
+	searchTimeout;
 
 	dragged;
 
@@ -31,6 +32,8 @@ class LibraryRenderer {
 		} else {
 			console.debug('got no stateManager object.');
 		}
+
+		this.searchTimeout = 0;
 	}
 
 	populateViewLibrary() {
@@ -38,20 +41,25 @@ class LibraryRenderer {
 
 		if(this.options.view === VIEW_ARTIST && this.library.artists !== null) {
 			this.populateViewLibraryByArtists(this.library.artists);
+			this.filterViewLibrary();
 		} else if(this.options.view === VIEW_GENRE && this.library.genres !== null) {
 			this.populateViewLibraryByGenres(this.library.genres);
+			this.filterViewLibrary();
 		} else if(this.options.view === VIEW_TREE && this.library.tree !== null) {
 			// todo: cleanup
 			let rootNode = new TreeNode('root', 'root');
 			rootNode.children = this.library.genres;
-			console.log(rootNode);
 			rootNode.toggleExpanded();
 			this.library.tree = rootNode;
-			this.library.treeFlat = TreeNode.getAllChildren(rootNode);
+			if(this.library.treeFlat.length === 0) {
+				console.log(rootNode);
+
+				this.library.treeFlat = TreeNode.getAllChildren(rootNode);
+			}
 			this.populateViewLibraryByTree(this.library.tree);
 		}
 
-		this.filterViewLibrary();
+
 
 		$('div#viewStats').text('Holding: ' + this.library.genres.length + ' Genres, ' + this.library.artists.length + ' Artists, ' + this.library.getNumAlbums() + ' Albums');
 	}
@@ -208,11 +216,11 @@ class LibraryRenderer {
 			console.log(this.dragged.id + ' has been dropped into ' + event.target.objRef.id);
 
 			// find parent node of dragged element
-			let parentNode = this.library.treeFlat .find(_node => _node.children.find(_child => _child.uniqueId === this.dragged.uniqueId) !== undefined);
+			let parentNode = TreeNode.getParentNode(this.library.treeFlat, this.dragged);
 			console.log(parentNode);
 
 			// test if the target is dragged into its old parent node
-			if(parentNode.uniqueId !== event.target.objRef.uniqueId) {
+			if(parentNode !== undefined && parentNode.uniqueId !== event.target.objRef.uniqueId) {
 
 				// add dragged node as child to target node
 				event.target.objRef.addChild(this.dragged);
@@ -305,8 +313,27 @@ class LibraryRenderer {
 	}
 
 	filterTree(keyword) {
+		//console.log('filterTree('+keyword+')');
 		this.library.treeFlat.map(_child => {
-			_child.setVisible(_child.name.toLowerCase().includes(keyword));
+			_child.setVisible(false);
+		})
+		this.library.treeFlat.map(_child => {
+			let isMatch = _child.name.toLowerCase().includes(keyword);
+			if(isMatch) {
+				_child.setVisible(true);
+				//_child.setExpanded(true);
+				let parentNode = TreeNode.getParentNode(this.library.treeFlat, _child);
+				while(parentNode !== undefined) {
+					parentNode.setVisible(true);
+					//parentNode.setExpanded(true);
+					parentNode = TreeNode.getParentNode(this.library.treeFlat, parentNode);
+				}
+
+				_child.children.map(__child => {
+					__child.setVisible(true);
+				});
+			}
+
 		});
 		this.populateViewLibrary();
 	}
@@ -541,8 +568,12 @@ class LibraryRenderer {
 
 	bindOthers() {
 		$('input#searchKeyword').on('input', () => {
-			this.filterViewLibrary();
-			this.filterTree($('input#searchKeyword').val());
+			//console.log($('input#searchKeyword').val());
+			//this.filterViewLibrary();
+			clearTimeout(this.searchTimeout);
+			this.searchTimeout = setTimeout(function() {
+					this.filterTree($('input#searchKeyword').val());
+				}.bind(this), 250)
 		});
 
 		$('#selectDevices').on('change', () => {

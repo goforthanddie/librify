@@ -47,12 +47,20 @@ class TreeNode {
 		this.expanded = !this.expanded;
 	}
 
+	setExpanded(expanded) {
+		this.expanded = expanded;
+	}
+
 	static getAllChildren(treeNode) {
 		let children = [treeNode];
 		treeNode.children.map(_child => {
 			children.push(...TreeNode.getAllChildren(_child));
 		});
 		return children;
+	}
+
+	static getParentNode(nodes, child) {
+		return nodes.find(_node => _node.children.find(_child => _child.uniqueId === child.uniqueId) !== undefined);
 	}
 
 }
