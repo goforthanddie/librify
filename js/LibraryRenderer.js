@@ -59,8 +59,6 @@ class LibraryRenderer {
 			this.populateViewLibraryByTree(this.library.tree);
 		}
 
-
-
 		$('div#viewStats').text('Holding: ' + this.library.genres.length + ' Genres, ' + this.library.artists.length + ' Artists, ' + this.library.getNumAlbums() + ' Albums');
 	}
 
@@ -254,14 +252,16 @@ class LibraryRenderer {
 		for(let i = 0, I = nodes.length; i < I; i++) {
 			const li = document.createElement('li');
 
-			if(nodes[i].visible) {
-				li.classList.add('active');
-			} else {
-				li.classList.add('inactive');
-			}
-
 			const spanName = document.createElement('span');
 			//spanName.classList.add(level);
+
+
+			if(nodes[i].visible) {
+				spanName.classList.add('active');
+			} else {
+				spanName.classList.add('inactive');
+			}
+
 			li.append(spanName);
 
 			spanName.id = nodes[i].id;
@@ -299,6 +299,8 @@ class LibraryRenderer {
 				spanName.classList.add('caret');
 				spanName.addEventListener('click', () => {
 					spanName.objRef.toggleExpanded();
+					// todo: checkl
+					spanName.objRef.children.map(_child => _child.setVisible(true));
 					ulChildren.classList.toggle('active');
 					ulChildren.classList.toggle('inactive');
 					spanName.classList.toggle('expandable');
@@ -318,7 +320,7 @@ class LibraryRenderer {
 			_child.setVisible(false);
 		})
 		this.library.treeFlat.map(_child => {
-			let isMatch = _child.name.toLowerCase().includes(keyword);
+			let isMatch = _child.name.toLowerCase().includes(keyword.toLowerCase());
 			if(isMatch) {
 				_child.setVisible(true);
 				//_child.setExpanded(true);
