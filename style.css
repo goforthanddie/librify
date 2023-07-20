@@ -62,8 +62,6 @@ button, option, select, input {
 
 }
 
-
-
 .highlight {
     font-weight: bold;
 }
@@ -137,4 +135,18 @@ input::placeholder {
 
 #viewLoadSave {
     display: inline-block;
+}
+
+#contextmenu {
+    background: #121212;
+    max-width: 100px;
+    padding: 5px 10px;
+    border: 1px solid gray;
+    display: none;
+    position: absolute;
+}
+
+ul.contextmenu {
+    margin: 0;
+    padding: 0;
 }

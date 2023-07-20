@@ -7,6 +7,7 @@ class LibraryRenderer {
 	searchTimeout;
 
 	dragged;
+	rightClicked;
 
 	constructor(spotify, library, options, stateManager) {
 		if(spotify !== null && spotify !== undefined) {
@@ -304,6 +305,18 @@ class LibraryRenderer {
 					spanName.classList.toggle('expandable');
 					spanName.classList.toggle('collapsable');
 				});
+				spanName.addEventListener('contextmenu', (e) => {
+					e.preventDefault();
+					this.rightClicked = spanName.objRef;
+					let contextmenu = $('#contextmenu');
+					contextmenu.css({
+						display: 'block',//show the menu
+						top: e.pageY,//make the menu be where you click (y)
+						left: e.pageX//make the menu be where you click (x)
+					});
+
+
+				});
 			}
 			fragment.append(li);
 		}
@@ -328,12 +341,11 @@ class LibraryRenderer {
 					//parentNode.setExpanded(true);
 					parentNode = TreeNode.getParentNode(this.library.treeFlat, parentNode);
 				}
-
-				_child.children.map(__child => {
+				let children = TreeNode.getAllChildren(_child);
+				children.map(__child => {
 					__child.setVisible(true);
 				});
 			}
-
 		});
 		this.populateViewLibrary();
 	}
@@ -588,6 +600,10 @@ class LibraryRenderer {
 		$('#selectSortAlbums').on('change', () => {
 			this.options.sortAlbums = $('#selectSortAlbums').children(':selected').attr('value');
 			this.library.notifyUpdateListeners();
+		});
+
+		$('#cmAddGenre').on('click', () => {
+			console.log(this.rightClicked);
 		});
 	}
 

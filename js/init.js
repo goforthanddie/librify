@@ -1,4 +1,13 @@
 window.addEventListener("load", () => {
+	$(document).click(function() { //When you left-click
+		$('#contextmenu').css({ display: 'none' });//Hide the menu
+	});
+
+	document.addEventListener('contextmenu', () => {
+		let contextmenu = $('#contextmenu');
+		//contextmenu.css({ display: 'none' });//Hide the menu
+	});
+
 	const urlParams = new URLSearchParams(window.location.search);
 	let code = urlParams.get('code');
 	let access_token = localStorage.getItem('access_token');
@@ -19,4 +28,6 @@ window.addEventListener("load", () => {
 	$('#buttonLogin').click(() => {
 		Spotify.authorize();
 	});
+
+
 });
