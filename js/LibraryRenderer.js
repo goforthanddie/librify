@@ -300,8 +300,8 @@ class LibraryRenderer {
 				spanName.classList.add('caret');
 				spanName.addEventListener('click', () => {
 					spanName.objRef.toggleExpanded();
-					// todo: checkl
-					spanName.objRef.children.map(_child => _child.setVisible(true));
+					// todo: checkl, muss vllt auch getoggelt werden, damit tree struktur und visualisierung konsistent sind
+					//spanName.objRef.children.map(_child => _child.setVisible(true));
 					ulChildren.classList.toggle('active');
 					ulChildren.classList.toggle('inactive');
 					spanName.classList.toggle('expandable');
