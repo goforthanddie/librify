@@ -137,6 +137,13 @@ class StateManager {
 			this.options.view = VIEW_GENRE;
 		}
 
+		let treeFlat = localStorage.getItem('treeFlat');
+		if(treeFlat != null) {
+			//console.log(JSON.parse(treeFlat, Utils.reviverTreeFlat.bind(this.library)));
+		} else {
+			this.library.tree = null;
+		}
+
 		this.library.notifyUpdateListeners(saveCurrentState);
 	}
 
@@ -159,6 +166,9 @@ class StateManager {
 
 		localStorage.removeItem('options');
 		localStorage.setItem('options', JSON.stringify(this.options));
+
+		localStorage.removeItem('treeFlat');
+		localStorage.setItem('treeFlat', JSON.stringify(this.library.treeFlat, Utils.replacerTreeFlat));
 
 		if(saveCurrentState) {
 			this.saveCurrentState();

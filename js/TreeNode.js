@@ -52,11 +52,16 @@ class TreeNode {
 	}
 
 	static getAllChildren(treeNode) {
-		let children = [treeNode];
-		treeNode.children.map(_child => {
-			children.push(...TreeNode.getAllChildren(_child));
-		});
-		return children;
+		if(treeNode !== undefined && treeNode !== null) {
+			let children = [treeNode];
+			treeNode.children.map(_child => {
+				children.push(...TreeNode.getAllChildren(_child));
+			});
+			return children;
+		} else {
+			return [];
+		}
+
 	}
 
 	static getParentNode(nodes, child) {

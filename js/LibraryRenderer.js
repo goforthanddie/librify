@@ -50,7 +50,7 @@ class LibraryRenderer {
 		} else if(this.options.view === VIEW_TREE && this.library.tree !== null) {
 			// todo: cleanup
 			console.debug('intree');
-			if(this.library.tree === undefined) {
+			if(this.library.tree === undefined || this.library.tree === null) {
 				let rootNode = new TreeNode('root', 'root');
 				rootNode.children = this.library.genres;
 				rootNode.toggleExpanded();
@@ -472,12 +472,14 @@ class LibraryRenderer {
 				let inputGenreName = $('input#dialogAddGenre');
 				let genreName = inputGenreName.val();
 				if(this.rightClicked !== undefined && this.rightClicked !== null) {
+					// check if any child has the same name already
 					if(this.rightClicked.children.find(_child => _child.name === genreName) === undefined) {
 						let genre = new Genre(genreName.toLowerCase(), genreName);
+
 						this.rightClicked.addChild(genre);
+						this.library.addGenre(genre); // calls notifyUpdateListeners
 						this.spotify.statusManager.setStatusText('Added new genre "' + genreName + '".');
 
-						this.library.notifyUpdateListeners();
 					} else {
 						this.spotify.statusManager.setStatusText('Did not add genre "' + genreName + '", possible duplicate.');
 

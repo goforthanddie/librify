@@ -30,6 +30,7 @@ class Utils {
 		// we need to call this when all the update listeners have been added
 		stateManager.loadFromLocalStorage(true);
 
+
 		libraryRenderer.bindButtons();
 		libraryRenderer.bindContextmenu();
 		libraryRenderer.bindOthers();
@@ -48,6 +49,26 @@ class Utils {
 		$('#postLogin').hide();
 	}
 
+	static replacerTreeFlat(key, value) {
+		/*
+		if(value instanceof TreeNode) {
+			return {
+				dataType: value.dataType,
+				uniqueId: value.uniqueId,
+				children: value.children.map(_child => ({dataType: _child.dataType, uniqueId: _child.uniqueId}))
+			};
+		}*/
+		// replace children objects bei their dataType and uniqueId to save space
+		if(key === 'children') {
+			return value.map(_child => ({dataType: _child.dataType, uniqueId: _child.uniqueId}));
+		}
+		// remove artists and albums since they are stored in children, too
+		if(key === 'artists' || key === 'albums') {
+			return undefined;
+		}
+		return value;
+	}
+
 	static replacerGenres(key, value) {
 		// replace artist objects by artist id to save space
 		if(value instanceof Artist) {
@@ -62,6 +83,29 @@ class Utils {
 		if(key === 'genres') {
 			//console.log('genres');
 			return undefined;
+		}
+		return value;
+	}
+
+	// custom reviver to parse the stringified library flat tree back into a tree
+	static reviverTreeFlat(key, value) {
+		if(typeof value === 'object' && value !== null) {
+			if(value.dataType === TreeNode.name) { // assuming this is the root node, we iterate over all
+				let treeNode = new TreeNode(value.id, value.name);
+				value.children.forEach(_child => {
+					// re-stringify and parse to force invocation of === 'Album'
+					let childNode = JSON.parse(JSON.stringify(_child), Utils.reviverTreeFlat.bind(this));
+					//let album = new Album(_album.id, _album.name); // you could probably re-stringify the object and parse separately to achieve invocation of the case === 'Album'
+					treeNode.addChild(childNode);
+				});
+				return treeNode;
+			} else if(value.dataType === Genre.name) {
+				let genre = new Genre(value.name) // genereates a new uniqueId and we need to keep track of this :O
+				return genre;
+			} else if(value.dataType === Artist.name) {
+				let artist = this.artists.find(element => element.uniqueId === value.uniqueId);
+				return artist;
+			}
 		}
 		return value;
 	}
@@ -152,7 +196,9 @@ const uniqueId = (() => {
 	let currentId = 0;
 	const map = new WeakMap();
 
+
 	return (object) => {
+		console.log(map)
 		if (!map.has(object)) {
 			map.set(object, ++currentId);
 		}

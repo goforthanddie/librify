@@ -21,7 +21,8 @@ class Library {
 	notifyUpdateListeners(saveCurrentState = true) {
 		console.debug('notifyUpdateListeners()');
 		// todo: tree sollte eigentlich initialisiert werden dann ist der check vllt überflüssig
-		if(this.tree !== undefined) {
+		if(this.tree !== undefined && this.tree !== null) {
+			console.log(this.tree);
 			this.treeFlat = TreeNode.getAllChildren(this.tree);
 		}
 		for(let i = 0, I = this.updateListeners.length; i < I; i++) {
@@ -283,6 +284,12 @@ class Library {
 		} else {
 			return false;
 		}
+	}
+
+	addGenre(genre) {
+		this.genres.push(this.genres);
+		this.notifyUpdateListeners();
+		return true;
 	}
 
 	// getNumAlbums() returns the number of unique albums in the library
