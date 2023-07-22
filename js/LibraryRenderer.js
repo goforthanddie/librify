@@ -46,16 +46,19 @@ class LibraryRenderer {
 		} else if(this.options.view === VIEW_GENRE && this.library.genres !== null) {
 			this.populateViewLibraryByGenres(this.library.genres);
 			this.filterViewLibrary();
+			// todo: test for undefined
 		} else if(this.options.view === VIEW_TREE && this.library.tree !== null) {
 			// todo: cleanup
-			let rootNode = new TreeNode('root', 'root');
-			rootNode.children = this.library.genres;
-			rootNode.toggleExpanded();
-			this.library.tree = rootNode;
+			console.debug('intree');
+			if(this.library.tree === undefined) {
+				let rootNode = new TreeNode('root', 'root');
+				rootNode.children = this.library.genres;
+				rootNode.toggleExpanded();
+				this.library.tree = rootNode;
+			}
 			if(this.library.treeFlat.length === 0) {
-				console.log(rootNode);
-
-				this.library.treeFlat = TreeNode.getAllChildren(rootNode);
+				this.library.treeFlat = TreeNode.getAllChildren(this.library.tree);
+				//console.log(this.library.treeFlat);
 			}
 			this.populateViewLibraryByTree(this.library.tree);
 		}
@@ -187,7 +190,7 @@ class LibraryRenderer {
 			return false;
 		}
 
-		const ulLibraryNew = this.generateUlFromTreeNodes(treeNode.children, true);
+		const ulLibraryNew = this.generateUlFromTreeNodes([treeNode], true);
 
 		// switch content of old ul to new ul because we need to keep the expanded items expanded
 		const divLibrary = $('#divLibrary');
@@ -216,6 +219,7 @@ class LibraryRenderer {
 
 			// find parent node of dragged element
 			let parentNode = TreeNode.getParentNode(this.library.treeFlat, this.dragged);
+			console.log(this.dragged);
 			console.log(parentNode);
 
 			// test if the target is dragged into its old parent node
@@ -223,6 +227,9 @@ class LibraryRenderer {
 
 				// add dragged node as child to target node
 				event.target.objRef.addChild(this.dragged);
+
+				// sorting should be done in the generateUlFromxxx
+				//event.target.objRef.sortChildrenByName();
 
 				// remove dragged node from parent node
 				parentNode.removeChild(this.dragged);
@@ -256,11 +263,11 @@ class LibraryRenderer {
 			const spanName = document.createElement('span');
 			//spanName.classList.add(level);
 
-
+			// must be on the li or the display:block; causes the span and cursor to show over the whole width
 			if(nodes[i].visible) {
-				spanName.classList.add('active');
+				li.classList.add('active');
 			} else {
-				spanName.classList.add('inactive');
+				li.classList.add('inactive');
 			}
 
 			li.append(spanName);
@@ -271,7 +278,6 @@ class LibraryRenderer {
 			spanName.innerText = nodes[i].getInnerText();
 
 			this.makeDraggable(spanName);
-
 			switch(true) {
 				case nodes[i] instanceof Album:
 					spanName.classList.add('caret');
@@ -285,12 +291,14 @@ class LibraryRenderer {
 					} else {
 						spanName.classList.add('expandable');
 					}
-					// sort albums for visualization
+					// sort albums for visualization todo: vllt umbenennen in sortFolders oder so
+					nodes[i].sortChildren(this.options.sortAlbums);
+					/*
 					if(this.options.sortAlbums === SORT_BY_YEAR) {
-						nodes[i].children.sort((a, b) => new Date(a.releaseDate) < new Date(b.releaseDate) ? -1 : 1);
+						nodes[i].children.sort(Utils.sortByYear);
 					} else {
-						nodes[i].children.sort((a, b) => a.name.localeCompare(b.name));
-					}
+						nodes[i].children.sort(Utils.sortByName);
+					}*/
 					this.makeDropTarget(spanName);
 			}
 
@@ -300,8 +308,6 @@ class LibraryRenderer {
 				spanName.classList.add('caret');
 				spanName.addEventListener('click', () => {
 					spanName.objRef.toggleExpanded();
-					// todo: checkl, muss vllt auch getoggelt werden, damit tree struktur und visualisierung konsistent sind
-					//spanName.objRef.children.map(_child => _child.setVisible(true));
 					ulChildren.classList.toggle('active');
 					ulChildren.classList.toggle('inactive');
 					spanName.classList.toggle('expandable');
@@ -448,7 +454,40 @@ class LibraryRenderer {
 		$('#selectSortAlbums > option[value=' + this.options.sortAlbums + ']').attr('selected', 'selected');
 	}
 
+	bindContextmenu() {
+		{
+			let entry = $('#cmAddGenre');
+			entry.on('click', () => {
+				$('#contextmenu').hide();
+				document.getElementById('dialog').showModal();
+			});
+		}
+	}
+
 	bindButtons() {
+		{
+			let button = $('#buttonDialogAddGenre');
+			button.on('click', () => {
+				button.attr('disabled', true);
+				let inputGenreName = $('input#dialogAddGenre');
+				let genreName = inputGenreName.val();
+				if(this.rightClicked !== undefined && this.rightClicked !== null) {
+					if(this.rightClicked.children.find(_child => _child.name === genreName) === undefined) {
+						let genre = new Genre(genreName.toLowerCase(), genreName);
+						this.rightClicked.addChild(genre);
+						this.spotify.statusManager.setStatusText('Added new genre "' + genreName + '".');
+
+						this.library.notifyUpdateListeners();
+					} else {
+						this.spotify.statusManager.setStatusText('Did not add genre "' + genreName + '", possible duplicate.');
+
+					}
+				}
+				inputGenreName.val('');
+				button.attr('disabled', false);
+				document.getElementById('dialog').close();
+			});
+		}
 		{
 			let button = $('#buttonUpdateLibrary');
 			button.on('click', () => {
@@ -627,7 +666,7 @@ class LibraryRenderer {
 			ulAlbums.classList.add('inactive');
 
 			let liArtist = document.createElement('li');
-			liArtist.classList.add('caret');
+			//liArtist.classList.add('caret');
 
 			let spanArtistName = document.createElement('span');
 			spanArtistName.textContent = artist.name;

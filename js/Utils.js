@@ -31,6 +31,7 @@ class Utils {
 		stateManager.loadFromLocalStorage(true);
 
 		libraryRenderer.bindButtons();
+		libraryRenderer.bindContextmenu();
 		libraryRenderer.bindOthers();
 
 		spotify.accessToken = new AccessToken(access_token, 'Bearer');
@@ -129,6 +130,14 @@ class Utils {
 			}
 		}
 		return value;
+	}
+
+	static sortByName(a, b) {
+		return a.name.localeCompare(b.name);
+	}
+
+	static sortByYear(a, b) {
+		return new Date(a.releaseDate) < new Date(b.releaseDate) ? -1 : 1;
 	}
 }
 

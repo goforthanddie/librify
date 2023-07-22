@@ -8,7 +8,6 @@ class Library {
 	constructor() {
 		this.artists = [];
 		this.genres = [];
-		this.tree = [];
 		this.treeFlat = [];
 		this.updateListeners = [];
 	}
@@ -21,6 +20,10 @@ class Library {
 	// todo: improve D:
 	notifyUpdateListeners(saveCurrentState = true) {
 		console.debug('notifyUpdateListeners()');
+		// todo: tree sollte eigentlich initialisiert werden dann ist der check vllt überflüssig
+		if(this.tree !== undefined) {
+			this.treeFlat = TreeNode.getAllChildren(this.tree);
+		}
 		for(let i = 0, I = this.updateListeners.length; i < I; i++) {
 			//console.debug(this.updateListeners[i]);
 			this.updateListeners[i].call(null, saveCurrentState);

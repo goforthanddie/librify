@@ -3,6 +3,10 @@ ul {
     list-style-type: none;
 }
 
+li {
+    display: block;
+}
+
 /* Hide the inactive list */
 .inactive {
     display: none;
@@ -90,15 +94,18 @@ input::placeholder {
 
 /* Extra small devices (phones, 600px and down) */
 @media only screen and (max-width: 600px) {
-     body {
-         font-size: 2vh;
-     }
+    body {
+        font-size: 2vh;
+    }
+
     button, option, select, input {
         font-size: 2vh;
     }
+
     #viewManageGenres {
         display: none;
     }
+
     li {
         display: inline-block;
         margin: .5em;
@@ -149,4 +156,15 @@ input::placeholder {
 ul.contextmenu {
     margin: 0;
     padding: 0;
+}
+
+li.contextmenu:hover {
+    font-weight: bold;
+    cursor: pointer;
+}
+
+dialog {
+    border: 1px solid gray;
+    background: #121212 ;
+    color: gray;
 }

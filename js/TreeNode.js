@@ -63,4 +63,48 @@ class TreeNode {
 		return nodes.find(_node => _node.children.find(_child => _child.uniqueId === child.uniqueId) !== undefined);
 	}
 
+	sortChildrenByName() {
+		this.children.sort((a, b) => a.name.localeCompare(b.name));
+	}
+
+	sortChildren(sortAlbums) {
+		// folders / genres first, then artists, then albums, then others
+		let genres = [];
+		let artists = [];
+		let albums = [];
+		let others = [];
+		for (let i = 0, I = this.children.length; i < I; i++) {
+			let currentChild = this.children[i];
+			switch(true) {
+				case currentChild instanceof Genre:
+					genres.push(currentChild);
+					break;
+				case currentChild instanceof Artist:
+					artists.push(currentChild);
+					break;
+				case currentChild instanceof Album:
+					albums.push(currentChild);
+					break;
+				default:
+					others.push(currentChild);
+			}
+		}
+		genres.sort(Utils.sortByName);
+		artists.sort(Utils.sortByName);
+		others.sort(Utils.sortByName);
+		switch(sortAlbums) {
+			case SORT_BY_YEAR:
+				albums.sort(Utils.sortByYear);
+				break;
+			case SORT_BY_NAME:
+				albums.sort(Utils.sortByName);
+				break;
+			default:
+				albums.sort(Utils.sortByName);
+		}
+
+
+		this.children = [...genres, ...artists, ...albums, ...others];
+	}
 }
+
