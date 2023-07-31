@@ -4,8 +4,11 @@ class Library {
 	genres;
 	tree;
 	updateListeners;
+	oldNewUniqueId;
 
 	constructor() {
+		this.oldNewUniqueId = new Map();
+
 		this.artists = [];
 		this.genres = [];
 		this.treeFlat = [];
