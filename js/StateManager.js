@@ -139,9 +139,20 @@ class StateManager {
 
 		let treeFlat = localStorage.getItem('treeFlat');
 		if(treeFlat != null) {
-			//console.log(JSON.parse(treeFlat, Utils.reviverTreeFlat.bind(this.library)));
+			//console.log(treeFlat)
+			this.library.treeFlat = JSON.parse(treeFlat, Utils.reviverTreeFlat.bind(this.library));
+			//console.log(this.library.treeFlat);
+
+			for(let i = 0, I = this.library.treeFlat.length; i<I; i++) {
+				for(let j = 0, J = this.library.treeFlat[i].children.length; j<J; j++) {
+					this.library.treeFlat[i].children[j] = this.library.oldNewUniqueId.get(this.library.treeFlat[i].children[j]);
+				}
+			}
+			this.library.tree = this.library.treeFlat[0].toggleExpanded();
+			//console.log(this.library.tree);
 		} else {
 			this.library.tree = null;
+			this.library.treeFlat = [];
 		}
 
 		this.library.notifyUpdateListeners(saveCurrentState);
