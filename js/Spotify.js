@@ -413,7 +413,7 @@ class Spotify {
 			};
 			this.sendRequest(url, type, data, fnSuccess, fnError);
 		} else {
-			this.statusManager.setStatusText('Found no active device. Activate a device, hit "Reload devices" and try again.');
+			this.statusManager.setStatusText('Found no active device. Activate a device, hit "' + $('#buttonReloadDevices').text() + '" and try again.');
 		}
 
 	}
