@@ -51,6 +51,7 @@ class LibraryRenderer {
 			// todo: cleanup
 			console.debug('intree');
 			if(this.library.tree === undefined || this.library.tree === null) {
+				console.debug('creating rootNode in populateViewLibrary');
 				let rootNode = new TreeNode('root', 'root');
 				rootNode.children = this.library.genres;
 				rootNode.toggleExpanded();
@@ -404,7 +405,6 @@ class LibraryRenderer {
 			this.populateSelectGenresSub();
 		}
 	}
-
 
 	populateSelectDevices() {
 		console.debug('populateSelectedDevices()');
