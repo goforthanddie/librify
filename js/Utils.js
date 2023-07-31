@@ -58,9 +58,9 @@ class Utils {
 				children: value.children.map(_child => ({dataType: _child.dataType, uniqueId: _child.uniqueId}))
 			};
 		}*/
-		// replace children objects bei their dataType and uniqueId to save space
+		// replace children objects by their dataType and uniqueId to save space
 		if(key === 'children') {
-			return value.map(_child => ({dataType: _child.dataType, uniqueId: _child.uniqueId}));
+			return value.map(_child => ({uniqueId: _child.uniqueId}));
 		}
 		// remove artists and albums since they are stored in children, too
 		if(key === 'artists' || key === 'albums') {
@@ -88,23 +88,86 @@ class Utils {
 	}
 
 	// custom reviver to parse the stringified library flat tree back into a tree
-	static reviverTreeFlat(key, value) {
+	static reviverTreeFlatx(key, value) {
 		if(typeof value === 'object' && value !== null) {
+			//console.log(value);
 			if(value.dataType === TreeNode.name) { // assuming this is the root node, we iterate over all
-				let treeNode = new TreeNode(value.id, value.name);
+				let treeNode = new TreeNode(value.id, value.name);/*
 				value.children.forEach(_child => {
 					// re-stringify and parse to force invocation of === 'Album'
 					let childNode = JSON.parse(JSON.stringify(_child), Utils.reviverTreeFlat.bind(this));
 					//let album = new Album(_album.id, _album.name); // you could probably re-stringify the object and parse separately to achieve invocation of the case === 'Album'
 					treeNode.addChild(childNode);
-				});
+				});*/
 				return treeNode;
 			} else if(value.dataType === Genre.name) {
-				let genre = new Genre(value.name) // genereates a new uniqueId and we need to keep track of this :O
-				return genre;
+				//console.log(value);
+				// test if we got an object having only the unique id or also the name and so on
+				if(value.name !== undefined && value.name !== null) {
+					let genre = new Genre(value.name) // genereates a new uniqueId and we need to keep track of this :O
+					this.oldNewUniqueId.set(value.uniqueId, genre.uniqueId);
+					//console.log(this.oldNewUniqueId);
+					return genre;
+				}
+				return undefined;
 			} else if(value.dataType === Artist.name) {
-				let artist = this.artists.find(element => element.uniqueId === value.uniqueId);
-				return artist;
+				if(value.name !== undefined && value.name !== null) {
+					let artist = new Artist(value.name) // genereates a new uniqueId and we need to keep track of this :O
+					this.oldNewUniqueId.set(value.uniqueId, artist.uniqueId);
+					//console.log(this.oldNewUniqueId);
+					return artist;
+				}
+				return undefined;
+			}
+		}
+		return value;
+	}
+
+	static reviverTreeFlat(key, value) {
+		if(typeof value === 'object' && value !== null) {
+			//console.log(value);
+			switch(value.dataType) {
+				case TreeNode.name:
+					let treeNode = new TreeNode(value.id, value.name);
+					treeNode.children = JSON.parse(JSON.stringify(value.children), Utils.reviverUniqueIds);
+					this.oldNewUniqueId.set(value.uniqueId, treeNode);
+					return treeNode;
+					break;
+				case Genre.name:
+					if(value.name !== undefined && value.name !== null) {
+						let genre = new Genre(value.name);
+						genre.children = JSON.parse(JSON.stringify(value.children), Utils.reviverUniqueIds);
+						this.oldNewUniqueId.set(value.uniqueId, genre);
+						return genre;
+					}
+					return undefined;
+					break;
+				case Artist.name:
+					if(value.name !== undefined && value.name !== null) {
+						let artist = new Artist(value.id, value.name);
+						artist.children = JSON.parse(JSON.stringify(value.children), Utils.reviverUniqueIds);
+						this.oldNewUniqueId.set(value.uniqueId, artist);
+						return artist;
+					}
+					return undefined;
+					break;
+				case Album.name:
+					if(value.name !== undefined && value.name !== null) {
+						let album = new Album(value.id, value.name, value.releaseDate, value.releaseDatePrecision);
+						this.oldNewUniqueId.set(value.uniqueId, album);
+						return album;
+					}
+					return undefined;
+					break;
+			}
+		}
+		return value;
+	}
+
+	static reviverUniqueIds(key, value) {
+		if(typeof value === 'object' && value !== null) {
+			if(value.uniqueId !== undefined && value.uniqueId !== null) {
+				return value.uniqueId;
 			}
 		}
 		return value;
@@ -196,9 +259,7 @@ const uniqueId = (() => {
 	let currentId = 0;
 	const map = new WeakMap();
 
-
 	return (object) => {
-		console.log(map)
 		if (!map.has(object)) {
 			map.set(object, ++currentId);
 		}
@@ -206,3 +267,23 @@ const uniqueId = (() => {
 		return map.get(object);
 	};
 })();
+
+/*
+var testObj = {
+	param1: 'a',
+	param2: 'b'
+}
+
+function rev(key, value) {
+	console.log(key);
+	console.log(value);
+	console.log(typeof value)
+	return value;
+}
+
+strgfd = JSON.stringify(testObj);
+
+console.log(strgfd);
+
+console.log(JSON.parse(strgfd, rev))
+*/
