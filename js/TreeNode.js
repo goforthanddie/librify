@@ -45,6 +45,7 @@ class TreeNode {
 
 	toggleExpanded() {
 		this.expanded = !this.expanded;
+		return this;
 	}
 
 	setExpanded(expanded) {
