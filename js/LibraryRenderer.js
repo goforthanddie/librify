@@ -41,12 +41,32 @@ class LibraryRenderer {
 		console.debug('populateViewLibrary()');
 
 		if(this.options.view === VIEW_ARTIST && this.library.artists !== null) {
-			this.populateViewLibraryByArtists(this.library.artists);
-			this.filterViewLibrary();
+			//this.populateViewLibraryByArtists(this.library.artists);
+			//this.filterViewLibrary();
+
+			let rootNode = new TreeNode('root', 'root');
+			rootNode.children = this.library.artists;
+			rootNode.toggleExpanded();
+			this.library.tree = rootNode;
+			if(this.library.treeFlat.length === 0) {
+				this.library.treeFlat = TreeNode.getAllChildren(this.library.tree);
+				//console.log(this.library.treeFlat);
+			}
+			this.populateViewLibraryByTree(this.library.tree);
 		} else if(this.options.view === VIEW_GENRE && this.library.genres !== null) {
-			this.populateViewLibraryByGenres(this.library.genres);
-			this.filterViewLibrary();
+			//this.populateViewLibraryByGenres(this.library.genres);
+			//this.filterViewLibrary();
 			// todo: test for undefined
+
+			let rootNode = new TreeNode('root', 'root');
+			rootNode.children = this.library.genres;
+			rootNode.toggleExpanded();
+			this.library.tree = rootNode;
+			if(this.library.treeFlat.length === 0) {
+				this.library.treeFlat = TreeNode.getAllChildren(this.library.tree);
+				//console.log(this.library.treeFlat);
+			}
+			this.populateViewLibraryByTree(this.library.tree);
 		} else if(this.options.view === VIEW_TREE && this.library.tree !== null) {
 			// todo: cleanup
 			console.debug('intree');
@@ -456,10 +476,16 @@ class LibraryRenderer {
 
 	bindContextmenu() {
 		{
-			let entry = $('#cmAddGenre');
-			entry.on('click', () => {
+			let entryAddGenre = $('#cmAddGenre');
+			entryAddGenre.on('click', () => {
 				$('#contextmenu').hide();
-				document.getElementById('dialog').showModal();
+				document.getElementById('dialogAddGenre').showModal();
+			});
+
+			let entryAddFolder = $('#cmAddFolder');
+			entryAddFolder.on('click', () => {
+				$('#contextmenu').hide();
+				document.getElementById('dialogAddFolder').showModal();
 			});
 		}
 	}
@@ -469,13 +495,12 @@ class LibraryRenderer {
 			let button = $('#buttonDialogAddGenre');
 			button.on('click', () => {
 				button.attr('disabled', true);
-				let inputGenreName = $('input#dialogAddGenre');
+				let inputGenreName = $('#dialogInputAddGenre');
 				let genreName = inputGenreName.val();
 				if(this.rightClicked !== undefined && this.rightClicked !== null) {
 					// check if any child has the same name already
 					if(this.rightClicked.children.find(_child => _child.name === genreName) === undefined) {
 						let genre = new Genre(genreName.toLowerCase(), genreName);
-
 						this.rightClicked.addChild(genre);
 						this.library.addGenre(genre); // calls notifyUpdateListeners
 						this.spotify.statusManager.setStatusText('Added new genre "' + genreName + '".');
@@ -487,7 +512,31 @@ class LibraryRenderer {
 				}
 				inputGenreName.val('');
 				button.attr('disabled', false);
-				document.getElementById('dialog').close();
+				document.getElementById('dialogAddGenre').close();
+			});
+		}
+		{
+			let button = $('#buttonDialogAddFolder');
+			button.on('click', () => {
+				button.attr('disabled', true);
+				let inputFolderName = $('#dialogInputAddFolder');
+				let folderName = inputFolderName.val();
+				if(this.rightClicked !== undefined && this.rightClicked !== null) {
+					// check if any child has the same name already
+					if(this.rightClicked.children.find(_child => _child.name === folderName) === undefined) {
+						let folder = new Folder(folderName.toLowerCase(), folderName);
+						this.rightClicked.addChild(folder);
+						this.library.addFolder(folder); // calls notifyUpdateListeners
+						this.spotify.statusManager.setStatusText('Added new folder "' + folderName + '".');
+
+					} else {
+						this.spotify.statusManager.setStatusText('Did not add folder "' + folderName + '", possible duplicate.');
+
+					}
+				}
+				inputFolderName.val('');
+				button.attr('disabled', false);
+				document.getElementById('dialogAddFolder').close();
 			});
 		}
 		{

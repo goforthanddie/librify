@@ -198,7 +198,7 @@ const uniqueId = (() => {
 
 
 	return (object) => {
-		console.log(map)
+		//console.log(map)
 		if (!map.has(object)) {
 			map.set(object, ++currentId);
 		}

@@ -287,7 +287,13 @@ class Library {
 	}
 
 	addGenre(genre) {
-		this.genres.push(this.genres);
+		this.genres.push(genre);
+		this.notifyUpdateListeners();
+		return true;
+	}
+
+	addFolder(folder) {
+		this.treeFlat.push(folder);
 		this.notifyUpdateListeners();
 		return true;
 	}
