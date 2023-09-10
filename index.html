@@ -17,6 +17,7 @@
     <script src="js/Genre.js?v={HASH}"></script>
     <script src="js/Artist.js?v={HASH}"></script>
     <script src="js/Album.js?v={HASH}"></script>
+    <script src="js/Folder.js?v={HASH}"></script>
     <script src="js/Device.js?v={HASH}"></script>
     <script src="js/Spotify.js?v={HASH}"></script>
     <script src="js/init.js?v={HASH}"></script>
@@ -127,12 +128,18 @@
 <div id="contextmenu">
     <ul class="contextmenu">
         <li id="cmAddGenre" class="contextmenu">Add genre</li>
+        <li id="cmAddFolder" class="contextmenu">Add folder</li>
     </ul>
 </div>
 
-<dialog id="dialog">
-    <label for="dialogAddGenre">Add genre:</label> <input id="dialogAddGenre" placeholder="genre name"/>
+<dialog id="dialogAddGenre">
+    <label for="dialogAddGenre">Add genre:</label> <input id="dialogInputAddGenre" placeholder="genre name"/>
     <button id="buttonDialogAddGenre">Add genre</button>
+</dialog>
+
+<dialog id="dialogAddFolder">
+    <label for="dialogAddFolder">Add folder:</label> <input id="dialogInputAddFolder" placeholder="folder name"/>
+    <button id="buttonDialogAddFolder">Add folder</button>
 </dialog>
 </body>
 </html>
