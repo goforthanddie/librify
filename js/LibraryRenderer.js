@@ -47,9 +47,8 @@ class LibraryRenderer {
 			let rootNode = new TreeNode('root', 'root');
 			rootNode.children = this.library.treeFlat.filter((_node) => _node instanceof Artist);
 			rootNode.toggleExpanded();
-			// generate a local tree, we only store the custom tree in the library
-			let tree = rootNode;
-			this.populateViewLibraryByTree(tree);
+
+			this.populateViewLibraryByTree(rootNode);
 		} else if(this.options.view === VIEW_GENRE && this.library.genres !== null) {
 			//this.populateViewLibraryByGenres(this.library.genres);
 			//this.filterViewLibrary();
@@ -58,13 +57,10 @@ class LibraryRenderer {
 			let rootNode = new TreeNode('root', 'root');
 			rootNode.children = this.library.treeFlat.filter((_node) => _node instanceof Genre);
 			rootNode.toggleExpanded();
-			// generate a local tree, we only store the custom tree in the library
-			let tree = rootNode;
-			this.populateViewLibraryByTree(tree);
+
+			this.populateViewLibraryByTree(rootNode);
 		} else if(this.options.view === VIEW_TREE) {
 			// todo: cleanup
-			console.debug('intree');
-			console.log(this.library.tree);
 			if(this.library.treeFlat === undefined || this.library.tree === null) {
 				console.debug('creating rootNode in populateViewLibrary');
 				let rootNode = new TreeNode('root', 'root');
@@ -77,6 +73,70 @@ class LibraryRenderer {
 				//console.log(this.library.treeFlat);
 			}
 			this.populateViewLibraryByTree(this.library.tree);
+		} else if(this.options.view === VIEW_TROND) {
+			let rootNode = new TreeNode('root', 'root');
+			rootNode.toggleExpanded()
+
+			// collect all albums:
+			let albums = this.library.treeFlat.filter((_node) => _node instanceof Album);
+
+			// collect all years
+			let years = new Map();
+			for (let i = 0, I = albums.length; i < I; i++) {
+				let key = albums[i].getFullYear().toString();
+				if(years.get(key) !== undefined) {
+					years.set(key, [albums[i], ...years.get(key)]);
+				} else {
+					years.set(key, [albums[i]]);
+				}
+
+			}
+			//years = years.filter(Utils.onlyUnique);
+
+			years.forEach((_albums, _year) => {
+				let folder = new Folder(_year, _year);
+
+				_albums.forEach((_album) => {
+					// get parent artist
+					let parentArtistNode = TreeNode.getParentNode(this.library.treeFlat, _album);
+					let parentGenreNode = TreeNode.getParentNode(this.library.treeFlat, parentArtistNode);
+					//console.log(parentNode);
+					/*
+					console.log(parentNode instanceof Genre);
+					while(!(parentNode instanceof Genre)) {
+						parentNode = TreeNode.getParentNode(this.library.treeFlat, parentNode);
+					}*/
+
+
+					let genre = folder.children.find(_child => _child instanceof Genre && _child.id === parentGenreNode.id);
+					if (genre === undefined) {
+						genre = new Genre(parentGenreNode.name);
+						folder.addChild(genre);
+					} else {
+						folder.addChild(genre);
+					}
+
+					let artist = genre.children.find(_child => _child instanceof Artist && _child.id === parentArtistNode.id);
+					if(artist === undefined) {
+						artist = new Artist(parentArtistNode.id, parentArtistNode.name);
+						artist.addChild(_album);
+						genre.addChild(artist);
+					} else {
+						artist.addChild(_album);
+					}
+
+					folder.addChild(genre);
+
+				});
+
+				rootNode.addChild(folder);
+			});
+
+			rootNode.children.sort((a, b) => {
+				return b.name.localeCompare(a.name);
+			});
+			console.log(rootNode.children)
+			this.populateViewLibraryByTree(rootNode);
 		}
 
 		$('div#viewStats').text('Holding: ' + this.library.genres.length + ' Genres, ' + this.library.artists.length + ' Artists, ' + this.library.getNumAlbums() + ' Albums');
@@ -308,7 +368,7 @@ class LibraryRenderer {
 						spanName.classList.add('expandable');
 					}
 					// sort albums for visualization todo: vllt umbenennen in sortFolders oder so
-					nodes[i].sortChildren(this.options.sortAlbums);
+					nodes[i].sortChildren(this.options.sortAlbums, this.options.view);
 					/*
 					if(this.options.sortAlbums === SORT_BY_YEAR) {
 						nodes[i].children.sort(Utils.sortByYear);

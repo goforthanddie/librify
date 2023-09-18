@@ -271,8 +271,17 @@ class Utils {
 		return a.name.localeCompare(b.name);
 	}
 
+	static sortByNameDesc(a, b) {
+		return b.name.localeCompare(a.name);
+	}
+
 	static sortByYear(a, b) {
 		return new Date(a.releaseDate) < new Date(b.releaseDate) ? -1 : 1;
+	}
+
+	// filter for arrays to retrieve unique values only
+	static onlyUnique(value, index, array) {
+		return array.indexOf(value) === index;
 	}
 }
 
@@ -281,6 +290,8 @@ jQuery.expr[':'].icontains = function(a, i, m) {
 	return jQuery(a).text().toUpperCase()
 		.indexOf(m[3].toUpperCase()) >= 0;
 };
+
+
 
 // generate unique ids for objects
 const uniqueId = (() => {
