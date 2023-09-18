@@ -24,12 +24,6 @@ class Library {
 	// todo: improve D:
 	notifyUpdateListeners(saveCurrentState = true) {
 		console.debug('notifyUpdateListeners()');
-		// todo: tree sollte eigentlich initialisiert werden dann ist der check vllt überflüssig
-		if(this.tree !== undefined && this.tree !== null) {
-			console.log(this.tree);
-			console.log(this.treeFlat);
-			//this.treeFlat = TreeNode.getAllChildren(this.tree);
-		}
 		for(let i = 0, I = this.updateListeners.length; i < I; i++) {
 			//console.debug(this.updateListeners[i]);
 			this.updateListeners[i].call(null, saveCurrentState);
@@ -306,13 +300,21 @@ class Library {
 	// getNumAlbums() returns the number of unique albums in the library
 	getNumAlbums() {
 		let albums = [];
+		/*
 		for(let i = 0, I = this.artists.length; i < I; i++) {
-			let _albums = this.artists[i].albums;
+			let _albums = this.artists[i].children;
 			for(let j = 0, J = _albums.length; j < J; j++) {
 				let album = _albums[j];
 				if(albums.find(element => element === album.id) === undefined) {
 					albums.push(album.id);
 				}
+			}
+		}*/
+		let allAlbums = this.treeFlat.filter((_node) => _node instanceof Album);
+		for(let j = 0, J = allAlbums.length; j < J; j++) {
+			let album = allAlbums[j];
+			if(albums.find(element => element === album.id) === undefined) {
+				albums.push(album.id);
 			}
 		}
 		return albums.length;

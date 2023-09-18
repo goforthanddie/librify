@@ -101,12 +101,13 @@ class StateManager {
 			if(data.treeFlat !== null && data.treeFlat !== undefined) {
 				this.library.treeFlat = JSON.parse(JSON.stringify(data.treeFlat), Utils.reviverTreeFlat.bind(this.library));
 				// now replace the ids listed in each children property by the corresponding object
-				// passiert unten in loadFromLocalStorage
+
 				for(let i = 0, I = this.library.treeFlat.length; i<I; i++) {
 					for(let j = 0, J = this.library.treeFlat[i].children.length; j<J; j++) {
 						this.library.treeFlat[i].children[j] = this.library.oldNewUniqueId.get(this.library.treeFlat[i].children[j]);
 					}
 				}
+				// todo: irgendwie fest die rootnode identifizieren und ggf nur treeFlat in library speichern um verwirrung zu vermeiden
 				this.library.tree = this.library.treeFlat[0].toggleExpanded();
 			} else {
 				console.debug('data.treeFlat === null');
@@ -158,17 +159,12 @@ class StateManager {
 		if(treeFlat != null) {
 			//console.log(treeFlat)
 			this.library.treeFlat = JSON.parse(treeFlat, Utils.reviverTreeFlat.bind(this.library));
-			//console.log(this.library.treeFlat);
-
 			for(let i = 0, I = this.library.treeFlat.length; i<I; i++) {
 				for(let j = 0, J = this.library.treeFlat[i].children.length; j<J; j++) {
 					this.library.treeFlat[i].children[j] = this.library.oldNewUniqueId.get(this.library.treeFlat[i].children[j]);
 				}
 			}
 			this.library.tree = this.library.treeFlat[0].toggleExpanded();
-
-
-			//console.log(this.library.tree);
 		} else {
 			this.library.tree = null;
 			this.library.treeFlat = [];

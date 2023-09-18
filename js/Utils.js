@@ -61,6 +61,7 @@ class Utils {
 		// replace children objects by their dataType and uniqueId to save space
 		// todo: maybe dataType can be omitted
 		if(key === 'children') {
+			//console.log(value);
 			return value.map(_child => ({uniqueId: _child.uniqueId}));
 		}
 		// remove artists and albums since they are stored in children, too
@@ -146,6 +147,17 @@ class Utils {
 					treeNode.children = JSON.parse(JSON.stringify(value.children), Utils.reviverUniqueIds);
 					return treeNode;
 					break;
+				case Folder.name:
+					//console.log('got folder');
+					if(value.name !== undefined && value.name !== null) {
+						let folder = new Folder(value.id, value.name);
+						folder.children = JSON.parse(JSON.stringify(value.children), Utils.reviverUniqueIds);
+						this.oldNewUniqueId.set(value.uniqueId, folder);
+						//console.log(folder);
+						return folder;
+					}
+					return undefined;
+					break;
 				case Genre.name:
 					if(value.name !== undefined && value.name !== null) {
 						let genre = new Genre(value.name);
@@ -169,17 +181,6 @@ class Utils {
 						let album = new Album(value.id, value.name, value.releaseDate, value.releaseDatePrecision);
 						this.oldNewUniqueId.set(value.uniqueId, album);
 						return album;
-					}
-					return undefined;
-					break;
-				case Folder.name:
-					console.log('got folder');
-					if(value.name !== undefined && value.name !== null) {
-						let folder = new Folder(value.id, value.name);
-
-						this.oldNewUniqueId.set(value.uniqueId, folder);
-						console.log(folder);
-						return folder;
 					}
 					return undefined;
 					break;
