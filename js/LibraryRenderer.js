@@ -47,12 +47,10 @@ class LibraryRenderer {
 			let rootNode = new TreeNode('root', 'root');
 			rootNode.children = this.library.artists;
 			rootNode.toggleExpanded();
-			this.library.tree = rootNode;
-			if(this.library.treeFlat.length === 0) {
-				this.library.treeFlat = TreeNode.getAllChildren(this.library.tree);
-				//console.log(this.library.treeFlat);
-			}
-			this.populateViewLibraryByTree(this.library.tree);
+			// generate a local tree, we only store the custom tree in the library
+			let tree = rootNode;
+			let treeFlat = TreeNode.getAllChildren(tree);
+			this.populateViewLibraryByTree(tree);
 		} else if(this.options.view === VIEW_GENRE && this.library.genres !== null) {
 			//this.populateViewLibraryByGenres(this.library.genres);
 			//this.filterViewLibrary();
@@ -61,16 +59,15 @@ class LibraryRenderer {
 			let rootNode = new TreeNode('root', 'root');
 			rootNode.children = this.library.genres;
 			rootNode.toggleExpanded();
-			this.library.tree = rootNode;
-			if(this.library.treeFlat.length === 0) {
-				this.library.treeFlat = TreeNode.getAllChildren(this.library.tree);
-				//console.log(this.library.treeFlat);
-			}
-			this.populateViewLibraryByTree(this.library.tree);
-		} else if(this.options.view === VIEW_TREE && this.library.tree !== null) {
+			// generate a local tree, we only store the custom tree in the library
+			let tree = rootNode;
+			let treeFlat = TreeNode.getAllChildren(tree);
+			this.populateViewLibraryByTree(tree);
+		} else if(this.options.view === VIEW_TREE) {
 			// todo: cleanup
 			console.debug('intree');
-			if(this.library.tree === undefined || this.library.tree === null) {
+			console.log(this.library.tree);
+			if(this.library.treeFlat === undefined || this.library.tree === null) {
 				console.debug('creating rootNode in populateViewLibrary');
 				let rootNode = new TreeNode('root', 'root');
 				rootNode.children = this.library.genres;
@@ -613,8 +610,9 @@ class LibraryRenderer {
 			let button = $('#buttonSaveData');
 			button.on('click', () => {
 				button.attr('disabled', true);
-				let currentState = this.stateManager.getCurrentState();
-				let data = "data:text/json;charset=utf-8," + encodeURIComponent('{"genres": ' + currentState.genres + ', "artists":' + currentState.artists + ', "options": ' + currentState.options + '}');
+				let currentState = this.stateManager.getCurrentState(true);
+				let data = "data:text/json;charset=utf-8," + encodeURIComponent('{"genres": ' + currentState.genres + ', "artists":' + currentState.artists + ', "treeFlat":' + currentState.treeFlat + ', "options": ' + currentState.options + '}');
+				//let data = "data:text/json;charset=utf-8," + encodeURIComponent('{"treeFlat":' + currentState.treeFlat + ', "options": ' + currentState.options + '}');
 				let aSaveData = document.getElementById('aSaveData');
 				aSaveData.href = data;
 				aSaveData.download = 'librify.json';

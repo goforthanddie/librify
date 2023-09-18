@@ -27,7 +27,8 @@ class Library {
 		// todo: tree sollte eigentlich initialisiert werden dann ist der check vllt überflüssig
 		if(this.tree !== undefined && this.tree !== null) {
 			console.log(this.tree);
-			this.treeFlat = TreeNode.getAllChildren(this.tree);
+			console.log(this.treeFlat);
+			//this.treeFlat = TreeNode.getAllChildren(this.tree);
 		}
 		for(let i = 0, I = this.updateListeners.length; i < I; i++) {
 			//console.debug(this.updateListeners[i]);

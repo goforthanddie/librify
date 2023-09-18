@@ -59,8 +59,9 @@ class Utils {
 			};
 		}*/
 		// replace children objects by their dataType and uniqueId to save space
+		// todo: maybe dataType can be omitted
 		if(key === 'children') {
-			return value.map(_child => ({dataType: _child.dataType, uniqueId: _child.uniqueId}));
+			return value.map(_child => ({uniqueId: _child.uniqueId}));
 		}
 		// remove artists and albums since they are stored in children, too
 		if(key === 'artists' || key === 'albums') {
@@ -88,7 +89,7 @@ class Utils {
 	}
 
 	// custom reviver to parse the stringified library flat tree back into a tree
-	static reviverTreeFlat(key, value) {
+	static reviverTreeFlatx(key, value) {
 		if(typeof value === 'object' && value !== null) {
 			if(value.dataType === TreeNode.name) { // assuming this is the root node, we iterate over all
 				let treeNode = new TreeNode(value.id, value.name);
@@ -117,26 +118,39 @@ class Utils {
 					return artist;
 				}
 				return undefined;
+			} else if(value.dataType === Folder.name) {
+				console.log('got FOLDER');
+
+				if(value.name !== undefined && value.name !== null) {
+					let folder = new Folder(value.name) // genereates a new uniqueId and we need to keep track of this :O
+					this.oldNewUniqueId.set(value.uniqueId, folder.uniqueId);
+					//console.log(this.oldNewUniqueId);
+					console.log(folder);
+					return folder;
+				}
+				return undefined;
 			}
 		}
 		return value;
 	}
 
 	static reviverTreeFlat(key, value) {
+		//console.log(key);
+		//console.log(value);
 		if(typeof value === 'object' && value !== null) {
-			//console.log(value);
+
 			switch(value.dataType) {
 				case TreeNode.name:
 					let treeNode = new TreeNode(value.id, value.name);
-					treeNode.children = JSON.parse(JSON.stringify(value.children), Utils.reviverUniqueIds);
 					this.oldNewUniqueId.set(value.uniqueId, treeNode);
+					treeNode.children = JSON.parse(JSON.stringify(value.children), Utils.reviverUniqueIds);
 					return treeNode;
 					break;
 				case Genre.name:
 					if(value.name !== undefined && value.name !== null) {
 						let genre = new Genre(value.name);
-						genre.children = JSON.parse(JSON.stringify(value.children), Utils.reviverUniqueIds);
 						this.oldNewUniqueId.set(value.uniqueId, genre);
+						genre.children = JSON.parse(JSON.stringify(value.children), Utils.reviverUniqueIds);
 						return genre;
 					}
 					return undefined;
@@ -144,8 +158,8 @@ class Utils {
 				case Artist.name:
 					if(value.name !== undefined && value.name !== null) {
 						let artist = new Artist(value.id, value.name);
-						artist.children = JSON.parse(JSON.stringify(value.children), Utils.reviverUniqueIds);
 						this.oldNewUniqueId.set(value.uniqueId, artist);
+						artist.children = JSON.parse(JSON.stringify(value.children), Utils.reviverUniqueIds);
 						return artist;
 					}
 					return undefined;
@@ -158,6 +172,17 @@ class Utils {
 					}
 					return undefined;
 					break;
+				case Folder.name:
+					console.log('got folder');
+					if(value.name !== undefined && value.name !== null) {
+						let folder = new Folder(value.id, value.name);
+
+						this.oldNewUniqueId.set(value.uniqueId, folder);
+						console.log(folder);
+						return folder;
+					}
+					return undefined;
+					break;
 			}
 		}
 		return value;
@@ -166,6 +191,9 @@ class Utils {
 	static reviverUniqueIds(key, value) {
 		if(typeof value === 'object' && value !== null) {
 			if(value.uniqueId !== undefined && value.uniqueId !== null) {
+				//console.log(value.uniqueId);
+				//console.log(this.oldNewUniqueId.get(value.uniqueId));
+				//return this.oldNewUniqueId.get(value.uniqueId);
 				return value.uniqueId;
 			}
 		}
@@ -178,11 +206,11 @@ class Utils {
 			if(value.dataType === Artist.name) {
 				let artist = new Artist(value.id, value.name);
 				//artist.genres = value.genres;
-				value.albums.forEach(_album => {
+				value.children.forEach(_child => {
 					// re-stringify and parse to force invocation of === 'Album'
-					let album = JSON.parse(JSON.stringify(_album), Utils.reviverArtists);
+					let album = JSON.parse(JSON.stringify(_child), Utils.reviverArtists);
 					//let album = new Album(_album.id, _album.name); // you could probably re-stringify the object and parse separately to achieve invocation of the case === 'Album'
-					artist.addAlbum(album);
+					//artist.addAlbum(album);
 					artist.addChild(album);
 				});
 				return artist;

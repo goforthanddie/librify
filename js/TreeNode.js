@@ -55,6 +55,7 @@ class TreeNode {
 	static getAllChildren(treeNode) {
 		if(treeNode !== undefined && treeNode !== null) {
 			let children = [treeNode];
+			//console.log(treeNode);
 			treeNode.children.map(_child => {
 				children.push(...TreeNode.getAllChildren(_child));
 			});

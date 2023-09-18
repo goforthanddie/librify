@@ -33,6 +33,7 @@ class StateManager {
 				return {
 					artists: JSON.parse(this.states[this.currentStateIdx].artists, Utils.reviverArtists),
 					genres: JSON.parse(this.states[this.currentStateIdx].genres, Utils.reviverGenres.bind(this.library)),
+					treeFlat: JSON.parse(this.states[this.currentStateIdx].treeFlat, Utils.reviverTreeFlat.bind(this)),
 					options: JSON.parse(this.states[this.currentStateIdx].options, Utils.reviverOptions)
 				};
 			}
@@ -46,6 +47,8 @@ class StateManager {
 		if(currentState !== undefined) {
 			this.library.genres = currentState.genres;
 			this.library.artists = currentState.artists;
+			this.library.treeFlat = currentState.treeFlat;
+
 			this.options.view = currentState.options.view;
 			this.options.sortAlbums = currentState.options.sortAlbums;
 			this.library.notifyUpdateListeners(false);
@@ -57,6 +60,7 @@ class StateManager {
 		let currentState = {
 			artists: JSON.stringify(this.library.artists, Utils.replacerArtists),
 			genres: JSON.stringify(this.library.genres, Utils.replacerGenres),
+			treeFlat: JSON.stringify(this.library.treeFlat, Utils.replacerTreeFlat),
 			options: JSON.stringify(this.options)
 		};
 
@@ -83,17 +87,30 @@ class StateManager {
 		let fr = new FileReader();
 		fr.onload = function receivedText() {
 			let data = JSON.parse(fr.result);
-			if(data.artists !== null !== undefined) {
+			//console.log(data);
+			if(data.artists !== null && data.artists !== undefined) {
 				this.library.artists = JSON.parse(JSON.stringify(data.artists), Utils.reviverArtists);
 			} else {
 				console.debug('data.artists === null');
 			}
-			if(data.genres !== null !== undefined) {
+			if(data.genres !== null && data.genres !== undefined) {
 				this.library.genres = JSON.parse(JSON.stringify(data.genres), Utils.reviverGenres.bind(this.library));
 			} else {
 				console.debug('data.genres === null');
 			}
-
+			if(data.treeFlat !== null && data.treeFlat !== undefined) {
+				this.library.treeFlat = JSON.parse(JSON.stringify(data.treeFlat), Utils.reviverTreeFlat.bind(this.library));
+				// now replace the ids listed in each children property by the corresponding object
+				// passiert unten in loadFromLocalStorage
+				for(let i = 0, I = this.library.treeFlat.length; i<I; i++) {
+					for(let j = 0, J = this.library.treeFlat[i].children.length; j<J; j++) {
+						this.library.treeFlat[i].children[j] = this.library.oldNewUniqueId.get(this.library.treeFlat[i].children[j]);
+					}
+				}
+				this.library.tree = this.library.treeFlat[0].toggleExpanded();
+			} else {
+				console.debug('data.treeFlat === null');
+			}
 			if(data.options !== null && data.options !== undefined) {
 				// do not directly set this.options = JSON.parse(options, Utils.reviverOptions); this generates a new object and then there are two differing Options objects in spotify and library
 				let tmpOptions = JSON.parse(JSON.stringify(data.options), Utils.reviverOptions);
@@ -149,6 +166,8 @@ class StateManager {
 				}
 			}
 			this.library.tree = this.library.treeFlat[0].toggleExpanded();
+
+
 			//console.log(this.library.tree);
 		} else {
 			this.library.tree = null;
