@@ -321,13 +321,18 @@ class Library {
 	}
 
 	getNumAlbumsNonUnique() {
+		/*
 		let count = 0;
 		for(let i = 0, I = this.artists.length; i < I; i++) {
 			count = count + this.artists[i].albums.length;
 		}
 		return count;
+		 */
+		let allAlbums = this.treeFlat.filter((_node) => _node instanceof Album);
+		return allAlbums.length;
 	}
 
+	// todo: adapt for new tree technology
 	getCount() {
 		let count = 0;
 		for(let i = 0, I = this.genres.length; i < I; i++) {
