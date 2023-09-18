@@ -45,11 +45,10 @@ class LibraryRenderer {
 			//this.filterViewLibrary();
 
 			let rootNode = new TreeNode('root', 'root');
-			rootNode.children = this.library.artists;
+			rootNode.children = this.library.treeFlat.filter((_node) => _node instanceof Artist);
 			rootNode.toggleExpanded();
 			// generate a local tree, we only store the custom tree in the library
 			let tree = rootNode;
-			let treeFlat = TreeNode.getAllChildren(tree);
 			this.populateViewLibraryByTree(tree);
 		} else if(this.options.view === VIEW_GENRE && this.library.genres !== null) {
 			//this.populateViewLibraryByGenres(this.library.genres);
@@ -57,11 +56,10 @@ class LibraryRenderer {
 			// todo: test for undefined
 
 			let rootNode = new TreeNode('root', 'root');
-			rootNode.children = this.library.genres;
+			rootNode.children = this.library.treeFlat.filter((_node) => _node instanceof Genre);
 			rootNode.toggleExpanded();
 			// generate a local tree, we only store the custom tree in the library
 			let tree = rootNode;
-			let treeFlat = TreeNode.getAllChildren(tree);
 			this.populateViewLibraryByTree(tree);
 		} else if(this.options.view === VIEW_TREE) {
 			// todo: cleanup
@@ -454,9 +452,10 @@ class LibraryRenderer {
 		console.debug('populateSelectViewBy()');
 		let selectView = $('#selectView');
 		selectView.empty();
-		selectView.append($('<option />').val(VIEW_ARTIST).text(VIEW_ARTIST));
-		selectView.append($('<option />').val(VIEW_GENRE).text(VIEW_GENRE));
-		selectView.append($('<option />').val(VIEW_TREE).text(VIEW_TREE));
+
+		ARRAY_VIEWS.forEach((_view) => {
+			selectView.append($('<option />').val(_view).text(_view));
+		});
 
 		$('#selectView > option[value=' + this.options.view + ']').attr('selected', 'selected');
 	}
@@ -465,8 +464,10 @@ class LibraryRenderer {
 		console.debug('populateSelectSortAlbumsBy()');
 		let selectSortAlbums = $('#selectSortAlbums');
 		selectSortAlbums.empty();
-		selectSortAlbums.append($('<option />').val(SORT_BY_NAME).text(SORT_BY_NAME));
-		selectSortAlbums.append($('<option />').val(SORT_BY_YEAR).text(SORT_BY_YEAR));
+
+		ARRAY_SORTS.forEach((_sort) => {
+			selectSortAlbums.append($('<option />').val(_sort).text(_sort));
+		});
 
 		$('#selectSortAlbums > option[value=' + this.options.sortAlbums + ']').attr('selected', 'selected');
 	}
