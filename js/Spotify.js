@@ -142,7 +142,6 @@ class Spotify {
 
 	/*
 	getSavedAlbums() gets the user's stored albums from spotify and updates the this.library.artists array if necessary in a subsequent call
-	this function does not remove albums from the library that have been removed through spotify
 	*/
 	getSavedAlbums(offset = 0, limit = 50) {
 		console.debug('getSavedAlbums(' + offset + ',' + limit + ')');

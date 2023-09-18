@@ -3,6 +3,7 @@ class Library {
 	artists;
 	genres;
 	tree;
+	treeFlat;
 	updateListeners;
 	oldNewUniqueId;
 
