@@ -60,7 +60,7 @@ class Utils {
 		}*/
 		// replace children objects by their dataType and uniqueId to save space
 		if(key === 'children') {
-			return value.map(_child => ({uniqueId: _child.uniqueId}));
+			return value.map(_child => ({dataType: _child.dataType, uniqueId: _child.uniqueId}));
 		}
 		// remove artists and albums since they are stored in children, too
 		if(key === 'artists' || key === 'albums') {
@@ -88,17 +88,16 @@ class Utils {
 	}
 
 	// custom reviver to parse the stringified library flat tree back into a tree
-	static reviverTreeFlatx(key, value) {
+	static reviverTreeFlat(key, value) {
 		if(typeof value === 'object' && value !== null) {
-			//console.log(value);
 			if(value.dataType === TreeNode.name) { // assuming this is the root node, we iterate over all
-				let treeNode = new TreeNode(value.id, value.name);/*
+				let treeNode = new TreeNode(value.id, value.name);
 				value.children.forEach(_child => {
 					// re-stringify and parse to force invocation of === 'Album'
 					let childNode = JSON.parse(JSON.stringify(_child), Utils.reviverTreeFlat.bind(this));
 					//let album = new Album(_album.id, _album.name); // you could probably re-stringify the object and parse separately to achieve invocation of the case === 'Album'
 					treeNode.addChild(childNode);
-				});*/
+				});
 				return treeNode;
 			} else if(value.dataType === Genre.name) {
 				//console.log(value);
@@ -260,6 +259,7 @@ const uniqueId = (() => {
 	const map = new WeakMap();
 
 	return (object) => {
+		//console.log(map)
 		if (!map.has(object)) {
 			map.set(object, ++currentId);
 		}
