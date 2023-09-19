@@ -48,7 +48,7 @@ class LibraryRenderer {
 
             let rootNode = new TreeNode('root', 'root');
             rootNode.children = this.library.getArtists();
-            rootNode.toggleExpanded();
+            rootNode.setExpanded(true);
 
             this.populateViewLibraryByTree(rootNode);
         } else if (this.options.view === VIEW_GENRE) {
@@ -58,12 +58,12 @@ class LibraryRenderer {
 
             let rootNode = new TreeNode('root', 'root');
             rootNode.children = this.library.getGenres();
-            rootNode.toggleExpanded();
+            rootNode.setExpanded(true);
 
             this.populateViewLibraryByTree(rootNode);
         } else if (this.options.view === VIEW_TROND) {
             let rootNode = new TreeNode('root', 'root');
-            rootNode.toggleExpanded()
+            rootNode.setExpanded(true);
 
             // collect all albums:
             let albums = this.library.treeFlat.filter((_node) => _node instanceof Album);
@@ -132,7 +132,7 @@ class LibraryRenderer {
                 console.debug('creating rootNode in populateViewLibrary');
                 let rootNode = new TreeNode('root', 'root');
                 rootNode.children = this.library.getGenres();
-                rootNode.toggleExpanded();
+                rootNode.setExpanded(true);
                 this.library.tree = rootNode;
             }
             if (this.library.treeFlat.length === 0) {
