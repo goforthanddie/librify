@@ -31,7 +31,7 @@ class Artist extends TreeNode {
 	// usages could be slow, check alternatives if necessary
 	getGenres(genresArray) {
 		if(genresArray !== null && genresArray !== undefined) {
-			let genres = genresArray.filter(_genre => _genre.artists.find(_artist => _artist.id === this.id) !== undefined);
+			let genres = genresArray.filter(_genre => _genre.children.find(_artist => _artist.id === this.id) !== undefined);
 			for(let i = 0, I = genres.length; i < I; i++) {
 				//console.debug('adding ' + genres[i].name);
 				this.addGenre(genres[i].name);

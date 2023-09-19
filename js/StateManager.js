@@ -113,13 +113,15 @@ class StateManager {
             }
 
 
-            if(data.treeFlat !== null && data.treeFlat !== undefined) {
+            if (data.treeFlat !== null && data.treeFlat !== undefined) {
                 localStorage.removeItem('treeFlat');
                 localStorage.setItem('treeFlat', JSON.stringify(data.treeFlat));
+                //console.log(JSON.stringify(data.treeFlat));
             } else {
                 console.debug('data.treeFlat === null');
             }
-            if(data.options !== null && data.options !== undefined) {
+
+            if (data.options !== null && data.options !== undefined) {
                 localStorage.removeItem('options');
                 localStorage.setItem('options', JSON.stringify(data.options));
             } else {
@@ -200,12 +202,16 @@ class StateManager {
         if (treeFlat != null) {
             //console.log(treeFlat)
             this.library.treeFlat = JSON.parse(treeFlat, Utils.reviverTreeFlat.bind(this.library));
+            //console.log(this.library.treeFlat)
             for (let i = 0, I = this.library.treeFlat.length; i < I; i++) {
                 for (let j = 0, J = this.library.treeFlat[i].children.length; j < J; j++) {
                     this.library.treeFlat[i].children[j] = this.library.oldNewUniqueId.get(this.library.treeFlat[i].children[j]);
                 }
             }
-            this.library.tree = this.library.treeFlat[0].toggleExpanded();
+
+            if (this.library.treeFlat.length > 0) {
+                this.library.tree = this.library.treeFlat[0].toggleExpanded();
+            }
         } else {
             this.library.tree = null;
             this.library.treeFlat = [];
@@ -235,7 +241,9 @@ class StateManager {
         localStorage.setItem('options', JSON.stringify(this.options));
 
         localStorage.removeItem('treeFlat');
-        localStorage.setItem('treeFlat', JSON.stringify(this.library.treeFlat, Utils.replacerTreeFlat));
+        let stringifiedTreeFlat = JSON.stringify(this.library.treeFlat, Utils.replacerTreeFlat);
+        localStorage.setItem('treeFlat', stringifiedTreeFlat);
+        //console.log(stringifiedTreeFlat);
 
         if (saveCurrentState) {
             this.saveCurrentState();

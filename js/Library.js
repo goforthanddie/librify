@@ -30,11 +30,32 @@ class Library {
 		}
 	}
 
+	getArtists() {
+		return this.treeFlat.filter(_node => _node instanceof Artist);
+	}
+
+	getGenres() {
+		return this.treeFlat.filter(_node => _node instanceof Genre);
+	}
+
 	emptyArtists() {
 		console.debug('emptyArtists()');
 		localStorage.removeItem('artists');
+		this.treeFlat = this.treeFlat.filter(_node => !(_node instanceof Artist));
 		this.artists = [];
 		// this is only called during library updates, so we won't call this.notifyUpdateListeners(); if it would be called, the library empties and we do not have any information about expanded genres, artists and so on
+	}
+
+	emptyAlbums() {
+		console.debug('emptyAlbums()');
+		this.treeFlat = this.treeFlat.filter(_node => !(_node instanceof Album));
+	}
+
+	emptyGenres() {
+		console.debug('emptyGenres()');
+		localStorage.removeItem('genres');
+		this.treeFlat = this.treeFlat.filter(_node => !(_node instanceof Genre));
+		this.genres = [];
 	}
 
 	removeEmptyGenres() {
@@ -297,7 +318,10 @@ class Library {
 		return true;
 	}
 
-	// getNumAlbums() returns the number of unique albums in the library
+	/**
+	 * returns the number of unique Album objects in treeFlat
+	 * @returns {*}
+	 */
 	getNumAlbums() {
 		let albums = [];
 		/*
@@ -318,6 +342,24 @@ class Library {
 			}
 		}
 		return albums.length;
+	}
+
+	/**
+	 * returns the number of all Artist objects in treeFlat
+	 * @returns {*}
+	 */
+	getNumArtists() {
+		let allArtists = this.treeFlat.filter((_node) => _node instanceof Artist);
+		return allArtists.length;
+	}
+
+	/**
+	 * returns the number of all Genre objects in treeFlat
+	 * @returns {*}
+	 */
+	getNumGenres() {
+		let allGenres = this.treeFlat.filter((_node) => _node instanceof Genre);
+		return allGenres.length;
 	}
 
 	getNumAlbumsNonUnique() {

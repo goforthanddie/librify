@@ -148,18 +148,25 @@ class Spotify {
 
 		// if this.library.genres and this.library.artists are already defined, we make an update call on getGenres
 
-		let update = (this.library.genres.length > 0 && this.library.artists.length > 0);
+		let update = this.library.getNumGenres() > 0 && this.library.getNumArtists() > 0;
 		console.debug('update=' + update);
+
+		// initialize tree
+		if(!update && offset === 0) {
+			let rootNode = new TreeNode('root', 'root');
+			this.library.treeFlat.push(rootNode);
+			this.library.tree = rootNode;
+		}
 
 		// only echo stats on first call
 		if(update && offset === 0) {
-			console.debug('getSavedAlbums() update call, previous num of artists=' + this.library.artists.length + ', previous num of albums=' + this.library.getNumAlbums())
-			//console.debug(this.library.artists);
+			console.debug('getSavedAlbums() update call, previous num of artists=' + this.library.getNumArtists() + ', previous num of albums=' + this.library.getNumAlbums())
 		}
 
 		// empty array on first call, also on update in order to also remove 'unliked' albums
 		if(offset === 0) {
 			this.library.emptyArtists();
+			this.library.emptyAlbums();
 		}
 
 		let url = 'https://api.spotify.com/v1/me/albums';
@@ -175,25 +182,35 @@ class Spotify {
 			data.items.forEach(item => {
 				//console.log(item.album);
 				let album = new Album(item.album.id, item.album.name, item.album.release_date, item.album.release_date_precision);
+				this.library.treeFlat.push(album);
 				//console.log(album);
 				// iterate over artists of album
 				item.album.artists.forEach(_artist => {
 					//console.debug('processing album ' + album.name);
 					// test if artist is already in list
-					let artistIdx = this.library.artists.findIndex(element => element.id === _artist.id);
-					if(artistIdx === -1) { // artist id not found, add new artist
+					let artist = this.library.getArtists().find(element => element.id === _artist.id);
+					if(artist === undefined) { // artist id not found, add new artist
 						//console.debug('artist not found ' + _artist.id);
 						let artist = new Artist(_artist.id, _artist.name);
-						//artist.genres = this.getGenres(_artist.id);
-						artist.addAlbum(album);
-						this.library.artists.push(artist);
+						artist.addChild(album);
+						this.library.treeFlat.push(artist);
+
+						// look for parents and replace the old artist object with the new one
+						this.library.treeFlat.forEach(_node => {
+							let artistAsChildIx = _node.children.findIndex(_child => _child instanceof Artist && _child.id === _artist.id);
+							if(artistAsChildIx !== -1) {
+								_node.children[artistAsChildIx] = artist;
+							}
+						});
 					} else { // artist id found, add album to existing artist
 						//console.debug('artist found ' + _artist.id);
-						//console.log(this.library.artists[idArtist]);
-						this.library.artists[artistIdx].addAlbum(album);
+						artist.addChild(album);
 					}
 				});
 			});
+
+			// flatten the tree, so all the nodes which might have been added als childnodes will end up in the treeFlat array
+			//this.library.treeFlat = TreeNode.getAllChildren(this.library.tree);
 
 			console.log(Math.min(offset + limit, data.total) + '/' + data.total + ' albums.');
 			this.statusManager.setStatusText('Loaded ' + Math.min(offset + limit, data.total) + '/' + data.total + ' albums.');
@@ -203,11 +220,7 @@ class Spotify {
 				this.getSavedAlbums(offset + limit, limit, update);
 			} else { // no more albums
 				// it's okay if the num of albums differs from data.total because if an album is linked with two artists, the album is added twice
-				//console.log('got: ' + this.library.artists.length + ' artists, ' + this.library.artists.reduce((numAlbums, _artist) => numAlbums + _artist.albums.length, 0) + ' albums');
-				console.log('got: ' + this.library.artists.length + ' artists, ' + this.library.getNumAlbums() + ' albums');
-				//console.debug(this.library.artists);
-				//console.debug('inside getSavedAlbums()');
-				//console.debug(this.library);
+				console.log('got: ' + this.library.getNumArtists() + ' artists, ' + this.library.getNumAlbums() + ' albums');
 				this.library.notifyUpdateListeners();
 				this.getGenres(0, 50, update);
 			}
@@ -221,11 +234,11 @@ class Spotify {
 	}
 
 	getGenres(offset = 0, limit = 50, update = false) {
-		//console.debug('artists.length=' + this.library.artists.length);
 		console.debug('getGenres(' + offset + ',' + limit + ',' + update + ')');
 
 		if(offset === 0 && update === true) {
-			console.debug('getGenres() update call, previous num of genres=' + this.library.genres.length);
+			console.debug('getGenres() update call, previous num of genres=' + this.library.getNumGenres());
+			/* todo: this should be unnecessary, maybe it needs to be checked if there are 'dead' children in the genre objects
 			// test if all artists in this.library.genres are still existing in this.library.artists (if all albums are unliked the artist still remains in the genres array until a reload)
 			for(let i = 0, I = this.library.genres.length; i < I; i++) {
 				for(let j = 0, J = this.library.genres[i].artists.length; j < J; j++) {
@@ -237,16 +250,16 @@ class Spotify {
 					}
 				}
 			}
+			*/
 		}
 
 		// empty array on first call, only if this is not an update
 		if(offset === 0 && update === false) {
-			localStorage.removeItem('genres');
-			this.library.genres = [];
+			this.library.emptyGenres();
 		}
 
 		let start = offset;
-		let end = Math.min(offset + limit, this.library.artists.length);
+		let end = Math.min(offset + limit, this.library.getNumArtists());
 		//console.debug('start=' + start + ',end=' + end);
 
 		// no artists in the library
@@ -256,7 +269,8 @@ class Spotify {
 		}
 
 		let artistIds = '';
-		this.library.artists.slice(start, end).forEach((artist) => {
+		//this.library.artists.slice(start, end).forEach((artist) => {
+		this.library.getArtists().slice(start, end).forEach((artist) => {
 			artistIds += artist.id + ',';
 		});
 
@@ -268,17 +282,14 @@ class Spotify {
 		let fnSuccess = function(data) {
 			//console.debug('start=' + start + ',end=' + end);
 			data.artists.forEach(_artist => {
-				let artistIdx = this.library.artists.findIndex(element => element.id === _artist.id);
-				if(artistIdx !== -1) { // artist id found
-					let artist = this.library.artists[artistIdx];
-					artist.getGenres(this.library.genres);
+				let artist = this.library.getArtists().find(element => element.id === _artist.id);
+				if(artist !== undefined) { // artist id found
+					artist.getGenres(this.library.getGenres());
 
 					// test if artist is already linked to a genre, if so, skip because it is not a new artist
-					//console.log(this.library.genres);
-					let genreIdx = this.library.genres.findIndex(_genre => _genre.artists.find(__artist => __artist.id === artist.id) !== undefined);
-					//if(this.library.genres.find(_genre => _genre.artists.find(_artist => _artist.id === artist.id) !== undefined) === undefined) {
+					let genre = this.library.getGenres().find(_genre => _genre.children.find(__artist => __artist.id === artist.id) !== undefined);
 					// artist is not linked to a genre, i.e., it is a new artist
-					if(genreIdx === -1) {
+					if(genre === undefined) {
 						console.debug('processing ' + artist.name + ' because it is not already linked to a genre.');
 						// only overwrite the genres attribute if there are existing genres or we overwrite the default genre 'None'
 						if(_artist.genres.length > 0) {
@@ -286,17 +297,17 @@ class Spotify {
 						} else {
 							console.debug('got no genres setting default genre.')
 							artist.addGenre(GENRE_DEFAULT.name);
-							//console.debug(_artist);
 						}
 
 						// if update then add the artist to an existing genre with most artists if possible
 						// needs to differentiate between update and no update because otherwise genres that come first get prioritized
 						if(update) {
-							let existingGenres = this.library.genres.filter(_genre => artist.genres.includes(_genre.name));
+							let existingGenres = this.library.getGenres().filter(_genre => artist.genres.includes(_genre.name));
 							if(existingGenres.length === 0) { // no existing genres, so just pick the first from spotify
 								let genre = new Genre(artist.genres[0]);
-								genre.addArtist(artist);
-								this.library.genres.push(genre);
+								genre.addChild(artist);
+								this.library.treeFlat.push(genre);
+								this.library.treeFlat[0].addChild(genre);
 
 								// set artist.genres to the new genre
 								artist.genres = [genre.name];
@@ -304,10 +315,10 @@ class Spotify {
 								// if there is more than one genre, sort by number of artists
 								if(existingGenres.length > 1) {
 									existingGenres.sort(function(a, b) {
-										if(a.artists.length > b.artists.length) {
+										if(a.children.length > b.children.length) {
 											return -1;
 										}
-										if(a.artists.length < b.artists.length) {
+										if(a.children.length < b.children.length) {
 											return 1;
 										}
 										return 0;
@@ -315,7 +326,7 @@ class Spotify {
 								}
 
 								// add to the genre with most artists
-								existingGenres[0].addArtist(artist);
+								existingGenres[0].addChild(artist);
 
 								// set artist.genres to the selected genre
 								artist.genres = [existingGenres[0].name];
@@ -323,40 +334,37 @@ class Spotify {
 
 						} else {
 							artist.genres.forEach(_genre => {
-								//console.debug(artist);
-								//console.debug('artist.genres.length=' + artist.genres.length);
-								//console.debug('artist.name=' + this.library.artists[artistIdx].name + ' _genre=' + _genre);
-								let genreIdx = this.library.genres.findIndex(element => element.name === _genre);
-								if(genreIdx === -1) { // genre not found
-									console.debug('genre ' + _genre + ' not found, adding to this.library.genres');
+								let genre = this.library.getGenres().find(element => element.name === _genre);
+								if(genre === undefined) { // genre not found
+									console.debug('genre ' + _genre + ' not found, adding to this.library.treeFlat');
 									let genre = new Genre(_genre);
-									genre.addArtist(artist)
-									this.library.genres.push(genre);
+									genre.addChild(artist);
+									this.library.treeFlat.push(genre);
+									this.library.treeFlat[0].addChild(genre);
 								} else { // genre found, add artist to list
-									this.library.genres[genreIdx].addArtist(artist);
+									genre.addChild(artist);
 								}
 							});
 						}
 						// artist is linked to a genre, i.e., we already know this artist. we need to overwrite the artist object in the genres array because library.emptyArtists() has been called in getSavedAlbums()
 					} else {
 						console.debug('Re-adding ' + artist.name + ' because it is already linked to a genre.');
-						let genre = this.library.genres[genreIdx];
-						let artistIdx = genre.artists.findIndex(__artist => __artist.id === artist.id);
-						if(artistIdx !== -1) {
-							genre.artists[artistIdx] = artist;
+						// re-adding is probably unnecessary and probably removing all the genres/artists
+						let artistIx = genre.children.findIndex(__artist => __artist.id === artist.id);
+						if(artistIx !== -1) {
+							genre.children[artistIx] = artist;
 						}
 					}
 				}
 			});
-			console.log(Math.min(offset + limit, this.library.artists.length) + '/' + this.library.artists.length + ' artists.');
-			this.statusManager.setStatusText('Loaded genres for ' + Math.min(offset + limit, this.library.artists.length) + '/' + this.library.artists.length + ' artists.');
+			console.log(Math.min(offset + limit, this.library.getNumArtists()) + '/' + this.library.getNumArtists() + ' artists.');
+			this.statusManager.setStatusText('Loaded genres for ' + Math.min(offset + limit, this.library.getNumArtists()) + '/' + this.library.getNumArtists() + ' artists.');
 
 			// test if there are more genres
-			if(offset + limit < this.library.artists.length) {
+			if(offset + limit < this.library.getNumArtists()) {
 				this.getGenres(offset + limit, limit, update);
 			} else { // no more genres
-				console.log('got: ' + this.library.genres.length + ' genres');
-				//console.log(this.library.genres);
+				console.log('got: ' + this.library.getNumGenres() + ' genres');
 				this.library.notifyUpdateListeners();
 				$('#buttonUpdateLibrary').attr('disabled', false);
 			}

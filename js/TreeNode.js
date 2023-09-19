@@ -67,7 +67,7 @@ class TreeNode {
     }
 
     static getParentNode(nodes, child) {
-        return nodes.find(_node => _node.children.find(_child => _child.uniqueId === child.uniqueId) !== undefined);
+        return nodes.find(_node => _node.children.find(_child => _child instanceof TreeNode && _child.uniqueId === child.uniqueId) !== undefined);
     }
 
     sortChildrenByName() {

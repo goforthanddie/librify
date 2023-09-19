@@ -131,7 +131,7 @@ class LibraryRenderer {
             if (this.library.treeFlat === undefined || this.library.tree === null) {
                 console.debug('creating rootNode in populateViewLibrary');
                 let rootNode = new TreeNode('root', 'root');
-                rootNode.children = this.library.genres;
+                rootNode.children = this.library.getGenres();
                 rootNode.toggleExpanded();
                 this.library.tree = rootNode;
             }

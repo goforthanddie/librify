@@ -62,7 +62,16 @@ class Utils {
 		// todo: maybe dataType can be omitted
 		if(key === 'children') {
 			//console.log(value);
-			return value.map(_child => ({uniqueId: _child.uniqueId}));
+
+			return value.map(_child => {
+				if(_child !== undefined) {
+					return {uniqueId: _child.uniqueId}
+				} else {
+					return {uniqueId: 0}
+				}
+			});
+
+			//return value.map(_child => ({uniqueId: _child.uniqueId}));
 		}
 		// remove artists and albums since they are stored in children, too
 		if(key === 'artists' || key === 'albums') {
