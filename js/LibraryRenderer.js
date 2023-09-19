@@ -135,7 +135,7 @@ class LibraryRenderer {
 			rootNode.children.sort((a, b) => {
 				return b.name.localeCompare(a.name);
 			});
-			console.log(rootNode.children)
+			//console.log(rootNode.children)
 			this.populateViewLibraryByTree(rootNode);
 		}
 

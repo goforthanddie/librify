@@ -5,7 +5,7 @@ const ARRAY_SORTS = [SORT_BY_YEAR, SORT_BY_NAME];
 
 const VIEW_ARTIST = 'artist';
 const VIEW_GENRE = 'genre';
-const VIEW_TREE = 'tree';
+const VIEW_TREE = 'custom';
 
 const VIEW_TROND = 'trond';
 
