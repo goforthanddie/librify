@@ -123,7 +123,7 @@ class LibraryRenderer {
         console.log();
 
         let keyword = $('input#searchKeyword').val();
-        if(keyword.length > 0) {
+        if (keyword.length > 0) {
             this.filterTree(keyword);
         }
 
@@ -148,7 +148,7 @@ class LibraryRenderer {
     makeDropTarget(element) {
         // highlight the potential target
         element.addEventListener('dragenter', (event) => {
-            if(this.dragged.uniqueId !== event.target.objRef.uniqueId) {
+            if (this.dragged.uniqueId !== event.target.objRef.uniqueId) {
                 event.target.classList.add('highlight');
             }
         });
@@ -158,7 +158,7 @@ class LibraryRenderer {
         });
 
         element.addEventListener('dragover', (event) => {
-            if(this.dragged.uniqueId !== event.target.objRef.uniqueId) {
+            if (this.dragged.uniqueId !== event.target.objRef.uniqueId) {
                 // prevent default to allow drop
                 event.preventDefault();
             }
@@ -167,7 +167,6 @@ class LibraryRenderer {
         element.addEventListener('drop', (event) => {
             event.target.classList.remove('highlight');
             console.log(this.dragged.id + ' has been dropped into ' + event.target.objRef.id);
-
 
 
             // find parent node of dragged element
@@ -233,7 +232,7 @@ class LibraryRenderer {
             spanName.objRef = nodes[i];
             spanName.innerText = nodes[i].getInnerText();
 
-            if(this.options.view === VIEW_TREE) {
+            if (this.options.view === VIEW_TREE) {
                 this.makeDraggable(spanName);
             }
 
@@ -258,7 +257,7 @@ class LibraryRenderer {
                     } else {
                         nodes[i].children.sort(Utils.sortByName);
                     }*/
-                    if(this.options.view === VIEW_TREE) {
+                    if (this.options.view === VIEW_TREE) {
                         this.makeDropTarget(spanName);
                     }
             }
@@ -274,18 +273,18 @@ class LibraryRenderer {
                     spanName.classList.toggle('expandable');
                     spanName.classList.toggle('collapsable');
                 });
-                spanName.addEventListener('contextmenu', (e) => {
-                    e.preventDefault();
-                    this.rightClicked = spanName.objRef;
-                    let contextmenu = $('#contextmenu');
-                    contextmenu.css({
-                        display: 'block',//show the menu
-                        top: e.pageY,//make the menu be where you click (y)
-                        left: e.pageX//make the menu be where you click (x)
+                if (this.options.view === VIEW_TREE) {
+                    spanName.addEventListener('contextmenu', (e) => {
+                        e.preventDefault();
+                        this.rightClicked = spanName.objRef;
+                        let contextmenu = $('#contextmenu');
+                        contextmenu.css({
+                            display: 'block', //show the menu
+                            top: e.pageY, //make the menu be where you click (y)
+                            left: e.pageX //make the menu be where you click (x)
+                        });
                     });
-
-
-                });
+                }
             }
             fragment.append(li);
         }
@@ -403,7 +402,7 @@ class LibraryRenderer {
             selectView.append($('<option />').val(_view).text(_view));
         });
 
-        if(ARRAY_VIEWS.find(_view => _view === this.options.view) === undefined) {
+        if (ARRAY_VIEWS.find(_view => _view === this.options.view) === undefined) {
             this.options.view = DEFAULT_VIEW;
         }
 
@@ -419,7 +418,7 @@ class LibraryRenderer {
             selectSortAlbums.append($('<option />').val(_sort).text(_sort));
         });
 
-        if(ARRAY_SORTS.find(_view => _view === this.options.sortAlbums) === undefined) {
+        if (ARRAY_SORTS.find(_view => _view === this.options.sortAlbums) === undefined) {
             this.options.sortAlbums = DEFAULT_SORT;
         }
 
