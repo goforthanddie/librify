@@ -24,7 +24,7 @@ class TreeNode {
     }
 
     addChild(child) {
-        if (this.children.find(element => element.uniqueId === child.uniqueId) === undefined) {
+        if (this.children.find(element => element instanceof TreeNode && element.uniqueId === child.uniqueId) === undefined) {
             this.children.push(child);
             return true;
         }
@@ -50,6 +50,7 @@ class TreeNode {
 
     setExpanded(expanded) {
         this.expanded = expanded;
+        return this;
     }
 
     static getAllChildren(treeNode) {

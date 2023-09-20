@@ -154,8 +154,8 @@ class Spotify {
 		// initialize tree
 		if(!update && offset === 0) {
 			let rootNode = new TreeNode('root', 'root');
-			this.library.treeFlat.push(rootNode);
-			this.library.tree = rootNode;
+			//this.library.tree.treeFlat.push(rootNode);
+			this.library.tree = new Tree(rootNode);
 		}
 
 		// only echo stats on first call
@@ -182,7 +182,7 @@ class Spotify {
 			data.items.forEach(item => {
 				//console.log(item.album);
 				let album = new Album(item.album.id, item.album.name, item.album.release_date, item.album.release_date_precision);
-				this.library.treeFlat.push(album);
+				this.library.tree.addNode(album);
 				//console.log(album);
 				// iterate over artists of album
 				item.album.artists.forEach(_artist => {
@@ -193,10 +193,10 @@ class Spotify {
 						//console.debug('artist not found ' + _artist.id);
 						let artist = new Artist(_artist.id, _artist.name);
 						artist.addChild(album);
-						this.library.treeFlat.push(artist);
+						this.library.tree.addNode(artist);
 
 						// look for parents and replace the old artist object with the new one
-						this.library.treeFlat.forEach(_node => {
+						this.library.tree.treeFlat.forEach(_node => {
 							let artistAsChildIx = _node.children.findIndex(_child => _child instanceof Artist && _child.id === _artist.id);
 							if(artistAsChildIx !== -1) {
 								_node.children[artistAsChildIx] = artist;
@@ -287,7 +287,7 @@ class Spotify {
 					artist.getGenres(genres);
 
 					// test if artist is already linked to a genre, if so, skip because it is not a new artist
-					let genre = genres.find(_genre => _genre.children.find(__artist => __artist.id === artist.id) !== undefined);
+					let genre = genres.find(_genre => _genre.children.find(__artist => __artist instanceof Artist && __artist.id === artist.id) !== undefined);
 					// artist is not linked to a genre, i.e., it is a new artist
 					if(genre === undefined) {
 						console.debug('processing ' + artist.name + ' because it is not already linked to a genre.');
@@ -306,8 +306,8 @@ class Spotify {
 							if(existingGenres.length === 0) { // no existing genres, so just pick the first from spotify
 								let genre = new Genre(artist.genres[0]);
 								genre.addChild(artist);
-								this.library.treeFlat.push(genre);
-								this.library.treeFlat[0].addChild(genre);
+								this.library.tree.addNode(genre, this.library.tree.rootNode);
+								//this.library.rootNode.addChild(genre);
 
 								// set artist.genres to the new genre
 								artist.genres = [genre.name];
@@ -336,11 +336,12 @@ class Spotify {
 							artist.genres.forEach(_genre => {
 								let genre = genres.find(element => element.name === _genre);
 								if(genre === undefined) { // genre not found
-									console.debug('genre ' + _genre + ' not found, adding to this.library.treeFlat');
+									console.debug('genre ' + _genre + ' not found, adding to this.library.tree');
 									let genre = new Genre(_genre);
 									genre.addChild(artist);
-									this.library.treeFlat.push(genre);
-									this.library.treeFlat[0].addChild(genre);
+									this.library.tree.addNode(genre, this.library.tree.rootNode);
+									//this.library.treeFlat.push(genre);
+									//this.library.treeFlat[0].addChild(genre);
 								} else { // genre found, add artist to list
 									genre.addChild(artist);
 								}
@@ -365,6 +366,8 @@ class Spotify {
 				this.getGenres(offset + limit, limit, update);
 			} else { // no more genres
 				console.log('got: ' + this.library.getNumGenres() + ' genres');
+				// we might have some dead children. happens if the last album is removed from an artist and we do not want to display that artist anymore
+				this.library.tree.removeDeadChildren();
 				this.library.notifyUpdateListeners();
 				$('#buttonUpdateLibrary').attr('disabled', false);
 			}

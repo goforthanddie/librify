@@ -31,8 +31,6 @@ class StateManager {
                 return this.states[this.currentStateIdx];
             } else {
                 return {
-                    artists: JSON.parse(this.states[this.currentStateIdx].artists, Utils.reviverArtists),
-                    genres: JSON.parse(this.states[this.currentStateIdx].genres, Utils.reviverGenres.bind(this.library)),
                     treeFlat: JSON.parse(this.states[this.currentStateIdx].treeFlat, Utils.reviverTreeFlat.bind(this.library)),
                     options: JSON.parse(this.states[this.currentStateIdx].options, Utils.reviverOptions)
                 };
@@ -46,16 +44,13 @@ class StateManager {
         let currentState = this.getCurrentState(false);
         console.log(currentState);
         if (currentState !== undefined) {
-            this.library.genres = currentState.genres;
-            this.library.artists = currentState.artists;
-            this.library.treeFlat = currentState.treeFlat;
-
-            for (let i = 0, I = this.library.treeFlat.length; i < I; i++) {
-                for (let j = 0, J = this.library.treeFlat[i].children.length; j < J; j++) {
-                    this.library.treeFlat[i].children[j] = this.library.oldNewUniqueId.get(this.library.treeFlat[i].children[j]);
+            let treeFlat = currentState.treeFlat;
+            for (let i = 0, I = treeFlat.length; i < I; i++) {
+                for (let j = 0, J = treeFlat[i].children.length; j < J; j++) {
+                    treeFlat[i].children[j] = this.library.oldNewUniqueId.get(treeFlat[i].children[j]);
                 }
             }
-            this.library.tree = this.library.treeFlat[0].toggleExpanded();
+            this.library.tree = new Tree(treeFlat[0].setExpanded(true));
 
             this.options.view = currentState.options.view;
             this.options.sortAlbums = currentState.options.sortAlbums;
@@ -66,9 +61,7 @@ class StateManager {
     saveCurrentState() {
         console.debug('saveCurrentState()');
         let currentState = {
-            artists: JSON.stringify(this.library.artists, Utils.replacerArtists),
-            genres: JSON.stringify(this.library.genres, Utils.replacerGenres),
-            treeFlat: JSON.stringify(this.library.treeFlat, Utils.replacerTreeFlat),
+            treeFlat: JSON.stringify(this.library.tree.treeFlat, Utils.replacerTreeFlat),
             options: JSON.stringify(this.options)
         };
 
@@ -97,26 +90,9 @@ class StateManager {
             let data = JSON.parse(fr.result);
             console.log(data);
 
-
-            if (data.artists !== null && data.artists !== undefined) {
-                localStorage.removeItem('artists');
-                localStorage.setItem('artists', JSON.stringify(data.artists));
-            } else {
-                console.debug('data.artists === null');
-            }
-
-            if (data.genres !== null && data.genres !== undefined) {
-                localStorage.removeItem('genres');
-                localStorage.setItem('genres', JSON.stringify(data.genres));
-            } else {
-                console.debug('data.genres === null');
-            }
-
-
             if (data.treeFlat !== null && data.treeFlat !== undefined) {
                 localStorage.removeItem('treeFlat');
                 localStorage.setItem('treeFlat', JSON.stringify(data.treeFlat));
-                //console.log(JSON.stringify(data.treeFlat));
             } else {
                 console.debug('data.treeFlat === null');
             }
@@ -128,65 +104,12 @@ class StateManager {
                 console.debug('data.options === null');
             }
             this.loadFromLocalStorage();
-            /*
-            if(data.artists !== null && data.artists !== undefined) {
-                this.library.artists = JSON.parse(JSON.stringify(data.artists), Utils.reviverArtists);
-            } else {
-                console.debug('data.artists === null');
-            }
-            if(data.genres !== null && data.genres !== undefined) {
-                this.library.genres = JSON.parse(JSON.stringify(data.genres), Utils.reviverGenres.bind(this.library));
-            } else {
-                console.debug('data.genres === null');
-            }
-            if(data.treeFlat !== null && data.treeFlat !== undefined) {
-                this.library.treeFlat = JSON.parse(JSON.stringify(data.treeFlat), Utils.reviverTreeFlat.bind(this.library));
-                // now replace the ids listed in each children property by the corresponding object
-
-                for(let i = 0, I = this.library.treeFlat.length; i<I; i++) {
-                    for(let j = 0, J = this.library.treeFlat[i].children.length; j<J; j++) {
-                        this.library.treeFlat[i].children[j] = this.library.oldNewUniqueId.get(this.library.treeFlat[i].children[j]);
-                    }
-                }
-                // todo: irgendwie fest die rootnode identifizieren und ggf nur treeFlat in library speichern um verwirrung zu vermeiden
-                this.library.tree = this.library.treeFlat[0].toggleExpanded();
-            } else {
-                console.debug('data.treeFlat === null');
-            }
-            if(data.options !== null && data.options !== undefined) {
-                // do not directly set this.options = JSON.parse(options, Utils.reviverOptions); this generates a new object and then there are two differing Options objects in spotify and library
-                let tmpOptions = JSON.parse(JSON.stringify(data.options), Utils.reviverOptions);
-                this.options.view = tmpOptions.view;
-                this.options.sortAlbums = tmpOptions.sortAlbums;
-            } else {
-                console.debug('data.options === null');
-            }
-            this.library.notifyUpdateListeners();
-            */
-
         }.bind(this);
         fr.readAsText(file);
     }
 
     loadFromLocalStorage(saveCurrentState = true) {
         console.debug('loadFromLocalStorage()');
-        let artists = localStorage.getItem('artists');
-        if (artists != null) {
-            this.library.artists = JSON.parse(artists, Utils.reviverArtists);
-        } else {
-            this.library.artists = [];
-        }
-
-        // must parse artists before genres. artists in genres are only identified by an id and retrieved during the revive process.
-        let genres = localStorage.getItem('genres');
-        if (genres != null) {
-            this.library.genres = JSON.parse(genres, Utils.reviverGenres.bind(this.library));
-        } else {
-            // add the default genre so all artists without a genre other than the default genre will end up in this genre
-            //this.library.genres = [GENRE_DEFAULT]; // das hier beim einlesen machen!
-            this.library.genres = []; // the default genre is added in getGenres()
-        }
-
         let options = localStorage.getItem('options');
         if (options != null) {
             // do not directly set this.options = JSON.parse(options, Utils.reviverOptions); this generates a new object and then there are two differing Options objects in spotify and library
@@ -201,20 +124,21 @@ class StateManager {
         let treeFlat = localStorage.getItem('treeFlat');
         if (treeFlat != null) {
             //console.log(treeFlat)
-            this.library.treeFlat = JSON.parse(treeFlat, Utils.reviverTreeFlat.bind(this.library));
+            let treeFlatB = JSON.parse(treeFlat, Utils.reviverTreeFlat.bind(this.library));
             //console.log(this.library.treeFlat)
-            for (let i = 0, I = this.library.treeFlat.length; i < I; i++) {
-                for (let j = 0, J = this.library.treeFlat[i].children.length; j < J; j++) {
-                    this.library.treeFlat[i].children[j] = this.library.oldNewUniqueId.get(this.library.treeFlat[i].children[j]);
+
+            for (let i = 0, I = treeFlatB.length; i < I; i++) {
+                for (let j = 0, J = treeFlatB[i].children.length; j < J; j++) {
+                    treeFlatB[i].children[j] = this.library.oldNewUniqueId.get(treeFlatB[i].children[j]);
                 }
             }
 
-            if (this.library.treeFlat.length > 0) {
-                this.library.tree = this.library.treeFlat[0].toggleExpanded();
+            if (treeFlatB.length > 0) {
+                //this.library.tree = this.library.treeFlat[0].toggleExpanded();
+                this.library.tree = new Tree(treeFlatB[0].setExpanded(true));
             }
         } else {
-            this.library.tree = null;
-            this.library.treeFlat = [];
+            this.library.tree = new Tree(new TreeNode('root', 'root'));
         }
 
         this.library.notifyUpdateListeners(saveCurrentState);
@@ -222,26 +146,12 @@ class StateManager {
 
     saveToLocalStorage(saveCurrentState = true) {
         console.debug('saveToLocalStorage()');
-        // sort genres alphabetically
-        this.library.genres.sort((a, b) => a.name.localeCompare(b.name));
-
-        // sort artists in genres alphabetically
-        this.library.genres.forEach(_genre => _genre.sortArtists());
-
-        localStorage.removeItem('genres');
-        localStorage.setItem('genres', JSON.stringify(this.library.genres, Utils.replacerGenres));
-
-        // sort artists alphabetically
-        this.library.artists.sort((a, b) => a.name.localeCompare(b.name));
-
-        localStorage.removeItem('artists');
-        localStorage.setItem('artists', JSON.stringify(this.library.artists, Utils.replacerArtists));
 
         localStorage.removeItem('options');
         localStorage.setItem('options', JSON.stringify(this.options));
 
         localStorage.removeItem('treeFlat');
-        let stringifiedTreeFlat = JSON.stringify(this.library.treeFlat, Utils.replacerTreeFlat);
+        let stringifiedTreeFlat = JSON.stringify(this.library.tree.treeFlat, Utils.replacerTreeFlat);
         localStorage.setItem('treeFlat', stringifiedTreeFlat);
         //console.log(stringifiedTreeFlat);
 

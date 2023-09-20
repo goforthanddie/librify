@@ -43,30 +43,23 @@ class LibraryRenderer {
         console.debug('this.options.view=' + this.options.view);
 
         if (this.options.view === VIEW_ARTIST) {
-            //this.populateViewLibraryByArtists(this.library.artists);
-            //this.filterViewLibrary();
-
             let rootNode = new TreeNode('root', 'root');
             rootNode.children = this.library.getArtists();
             rootNode.setExpanded(true);
 
-            this.populateViewLibraryByTree(rootNode);
+            this.populateViewLibraryByTree(new Tree(rootNode));
         } else if (this.options.view === VIEW_GENRE) {
-            //this.populateViewLibraryByGenres(this.library.genres);
-            //this.filterViewLibrary();
-            // todo: test for undefined
-
             let rootNode = new TreeNode('root', 'root');
             rootNode.children = this.library.getGenres();
             rootNode.setExpanded(true);
 
-            this.populateViewLibraryByTree(rootNode);
+            this.populateViewLibraryByTree(new Tree(rootNode));
         } else if (this.options.view === VIEW_TROND) {
             let rootNode = new TreeNode('root', 'root');
             rootNode.setExpanded(true);
 
             // collect all albums:
-            let albums = this.library.treeFlat.filter((_node) => _node instanceof Album);
+            let albums = this.library.tree.treeFlat.filter((_node) => _node instanceof Album);
 
             // collect all years
             let years = new Map();
@@ -86,8 +79,8 @@ class LibraryRenderer {
 
                 _albums.forEach((_album) => {
                     // get parent artist
-                    let parentArtistNode = TreeNode.getParentNode(this.library.treeFlat, _album);
-                    let parentGenreNode = TreeNode.getParentNode(this.library.treeFlat, parentArtistNode);
+                    let parentArtistNode = TreeNode.getParentNode(this.library.tree.treeFlat, _album);
+                    let parentGenreNode = TreeNode.getParentNode(this.library.tree.treeFlat, parentArtistNode);
                     //console.log(parentNode);
                     /*
                     console.log(parentNode instanceof Genre);
@@ -124,22 +117,9 @@ class LibraryRenderer {
                 return b.name.localeCompare(a.name);
             });
             //console.log(rootNode.children)
-            this.populateViewLibraryByTree(rootNode);
+            this.populateViewLibraryByTree(new Tree(rootNode));
         } else {//} if (this.options.view === VIEW_TREE) {
             this.options.view = VIEW_TREE;
-            // todo: cleanup
-            if (this.library.treeFlat === undefined || this.library.tree === null) {
-                console.debug('creating rootNode in populateViewLibrary');
-                let rootNode = new TreeNode('root', 'root');
-                rootNode.children = this.library.getGenres();
-                rootNode.setExpanded(true);
-                this.library.tree = rootNode;
-            }
-            if (this.library.treeFlat.length === 0) {
-                console.log('flattening the tree');
-                this.library.treeFlat = TreeNode.getAllChildren(this.library.tree);
-
-            }
             console.debug('in options.view === VIEW_TREE')
             this.populateViewLibraryByTree(this.library.tree);
         }
@@ -147,131 +127,14 @@ class LibraryRenderer {
         $('div#viewStats').text('Holding: ' + this.library.getNumGenres() + ' Genres, ' + this.library.getNumArtists() + ' Artists, ' + this.library.getNumAlbums() + ' Albums');
     }
 
-    populateViewLibraryByArtists(artists) {
-        console.debug('populateViewLibraryByArtists()');
-        if (artists === null) {
-            console.debug('artists === null')
-            return false;
-        }
-        const ulLibraryNew = this.generateUlFromArtists(artists);
-
-        // switch content of old ul to new ul because we need to keep the expanded items expanded
-        const divLibrary = $('#divLibrary');
-        divLibrary.empty();
-        divLibrary.append(ulLibraryNew);
-    }
-
-    populateViewLibraryByGenres(genres) {
-        console.debug('populateViewLibraryByGenres()');
-        if (genres === null) {
-            console.debug('genres === null')
-            return false;
-        }
-
-        const ulLibraryNew = document.createElement('ul');
-        ulLibraryNew.id = 'ulLibrary';
-
-        //console.log(genres);
-        for (let i = 0, I = genres.length; i < I; i++) {
-            let genre = genres[i];
-            let ulArtists = this.generateUlFromArtists(genre.artists);
-            ulArtists.classList.add('inactive');
-
-            let liGenre = document.createElement('li');
-
-            let spanGenreName = document.createElement('span');
-            spanGenreName.textContent = genre.name + ' (' + genre.artists.length + ')';
-            spanGenreName.id = genre.id;
-            spanGenreName.classList.add('caret', 'genre');
-            spanGenreName.draggable = true;
-
-            spanGenreName.addEventListener('dragstart', (event) => {
-                this.dragged = event.target.id;
-            });
-
-            spanGenreName.addEventListener('dragenter', (event) => {
-                event.target.classList.add('highlight');
-            });
-
-            spanGenreName.addEventListener('dragover', (event) => {
-                if (typeof this.dragged === 'string') {
-                    if (this.dragged !== event.target.id) {
-                        event.preventDefault();
-                    }
-                } else if (this.dragged instanceof Array) {
-                    if (this.dragged[0] !== event.target.id) {
-                        event.preventDefault();
-                    }
-                }
-            });
-
-            spanGenreName.addEventListener('dragleave', (event) => {
-                event.target.classList.remove('highlight');
-            });
-
-            spanGenreName.addEventListener('drop', (event) => {
-                event.target.classList.remove('highlight');
-                //console.log(this.dragged);
-                let newGenreId = event.target.id;
-                let newGenre = this.library.genres.find(element => element.id === newGenreId);
-                //console.log('newGenreId=' + newGenreId);
-
-                // dragging a genre into a genre
-                if (typeof this.dragged === 'string') {
-                    let res = this.library.moveArtistsFromGenreToGenre(newGenre, this.dragged);
-                    if (res.status) {
-                        console.debug('sub genre ' + res.oldGenreName + ' has been dragged to ' + newGenre.name + '.');
-                        this.spotify.statusManager.setStatusText('Moved artists from "' + res.oldGenreName + '" to "' + newGenre.name + '".');
-                    }
-                    // dragging a single artist into a new genre
-                } else if (this.dragged instanceof Array) {
-                    let res = this.library.moveArtistToGenre(newGenre, this.dragged[0], this.dragged[1]);
-                    if (res.status) {
-                        this.spotify.statusManager.setStatusText('Moved artist "' + res.artistName + '" to genre "' + newGenre.name + '".');
-                        console.log('single artist ' + res.artistName + ' has been dragged to ' + newGenre.name + '.');
-                    }
-                }
-            });
-
-            // test if span already exists
-            let existingSpanGenreName = $('span#' + genre.id);
-            if (existingSpanGenreName.length > 0 && existingSpanGenreName.hasClass('collapsable')) {
-                //console.log('existingSpanArtistName' + ' span#'+artist.id);
-                // restore expanded state
-                spanGenreName.classList.add('collapsable');
-                ulArtists.classList.add('active');
-            } else {
-                //console.log('existingSpanArtistName existiert nicht');
-                spanGenreName.classList.add('expandable');
-            }
-
-            spanGenreName.addEventListener('click', () => {
-                //console.log('addEventListener call');
-                ulArtists.classList.toggle('active');
-                spanGenreName.classList.toggle('expandable');
-                spanGenreName.classList.toggle('collapsable');
-            });
-
-            liGenre.append(spanGenreName);
-            ulLibraryNew.appendChild(liGenre);
-            liGenre.appendChild(ulArtists);
-            //});
-        }
-        // switch content of old ul to new ul because we need to keep the expanded items expanded
-        const divLibrary = $('#divLibrary');
-        divLibrary.empty();
-        divLibrary.append(ulLibraryNew);
-    }
-
-
-    populateViewLibraryByTree(treeNode) {
+    populateViewLibraryByTree(tree) {
         console.debug('populateViewLibraryByTree()');
-        if (treeNode === null || treeNode === undefined) {
+        if (tree === null || tree === undefined) {
             console.debug('tree === null || tree === undefined')
             return false;
         }
 
-        const ulLibraryNew = this.generateUlFromTreeNodes([treeNode], true);
+        const ulLibraryNew = this.generateUlFromTreeNodes([tree.rootNode], true);
 
         // switch content of old ul to new ul because we need to keep the expanded items expanded
         const divLibrary = $('#divLibrary');
@@ -299,7 +162,7 @@ class LibraryRenderer {
             console.log(this.dragged.id + ' has been dropped into ' + event.target.objRef.id);
 
             // find parent node of dragged element
-            let parentNode = TreeNode.getParentNode(this.library.treeFlat, this.dragged);
+            let parentNode = TreeNode.getParentNode(this.library.tree.treeFlat, this.dragged);
             console.log(this.dragged);
             console.log(parentNode);
 
@@ -419,19 +282,19 @@ class LibraryRenderer {
 
     filterTree(keyword) {
         //console.log('filterTree('+keyword+')');
-        this.library.treeFlat.map(_child => {
+        this.library.tree.treeFlat.map(_child => {
             _child.setVisible(false);
         })
-        this.library.treeFlat.map(_child => {
+        this.library.tree.treeFlat.map(_child => {
             let isMatch = _child.name.toLowerCase().includes(keyword.toLowerCase());
             if (isMatch) {
                 _child.setVisible(true);
                 //_child.setExpanded(true);
-                let parentNode = TreeNode.getParentNode(this.library.treeFlat, _child);
+                let parentNode = TreeNode.getParentNode(this.library.tree.treeFlat, _child);
                 while (parentNode !== undefined) {
                     parentNode.setVisible(true);
                     //parentNode.setExpanded(true);
-                    parentNode = TreeNode.getParentNode(this.library.treeFlat, parentNode);
+                    parentNode = TreeNode.getParentNode(this.library.tree.treeFlat, parentNode);
                 }
                 let children = TreeNode.getAllChildren(_child);
                 children.map(__child => {
@@ -448,11 +311,11 @@ class LibraryRenderer {
         let selectGenresSub = $('select#genresSub');
         let inputGenresSubKeyword = $('input#genresSubKeyword');
 
-        let size = (this.library.genres.length <= 100) ? 10 : Math.ceil(this.library.genres.length / 10);
+        let size = (this.library.getNumGenres() <= 100) ? 10 : Math.ceil(this.library.getNumGenres() / 10);
         selectGenresSub.attr('size', size);
         selectGenresSub.empty();
         let selectedGenreMainValue = selectGenreMain.children(':selected').attr('value');
-        this.library.genres.forEach(_genre => {
+        this.library.getGenres().forEach(_genre => {
             //console.log(inputGenresSubKeyword.val());
             if (selectedGenreMainValue !== _genre.id && _genre.name.includes(inputGenresSubKeyword.val())) {
                 selectGenresSub.append($('<option />').val(_genre.id).text(_genre.name));
@@ -477,7 +340,7 @@ class LibraryRenderer {
             });
 
 
-            this.library.genres.forEach(_genre => {
+            this.library.getGenres().forEach(_genre => {
                 selectGenreMain.append($('<option />').val(_genre.id).text(_genre.name));
             });
 
@@ -590,16 +453,10 @@ class LibraryRenderer {
                 let inputFolderName = $('#dialogInputAddFolder');
                 let folderName = inputFolderName.val();
                 if (this.rightClicked !== undefined && this.rightClicked !== null) {
-                    // check if any child has the same name already
-                    if (this.rightClicked.children.find(_child => _child.name === folderName) === undefined) {
-                        let folder = new Folder(folderName.toLowerCase(), folderName);
-                        this.rightClicked.addChild(folder);
-                        this.library.addFolder(folder); // calls notifyUpdateListeners
+                    if (this.library.addFolderByName(this.rightClicked, folderName)) {
                         this.spotify.statusManager.setStatusText('Added new folder "' + folderName + '".');
-
                     } else {
                         this.spotify.statusManager.setStatusText('Did not add folder "' + folderName + '", possible duplicate.');
-
                     }
                 }
                 inputFolderName.val('');
@@ -835,94 +692,4 @@ class LibraryRenderer {
         ulLibraryNew.appendChild(fragment);
         return ulLibraryNew;
     }
-
-    filterViewLibrary() {
-        console.debug('filterViewLibrary()');
-
-        // apply filter
-        let keyword = $('input#searchKeyword').val();
-
-        // select only the not inactive lis
-        //let lis = $('ul#ulLibrary > li:not(.caret)');
-        // select all lis which leads to filtering also artists
-        let lis = $('ul#ulLibrary > li');
-        lis.hide();
-
-        //let filteredSpansAlbum = $('ul#ulLibrary > li > span.album:icontains(' + keyword + ')');
-        let filteredSpansAlbum = $('span.album:icontains(' + keyword + ')');
-        //let filteredSpansAlbum = lis.find('span.album:icontains(' + keyword + ')');
-        //console.log(filteredSpansAlbum);
-        filteredSpansAlbum.each(function () {
-            $(this).parents('li').css('display', 'block');
-            //$(this).parents('li').show();
-        });
-
-        //let filteredSpansArtist = $('ul#ulLibrary > li > span.artist:icontains(' + keyword + ')');
-        let filteredSpansArtist = $('span.artist:icontains(' + keyword + ')');
-        filteredSpansArtist.each(function () {
-            // test if parent li is not visible. if it is not visible make all parent lis visible
-            if ($(this).parent('li').css('display') === 'none') {
-                $(this).parents('li').css('display', 'block');
-                //$(this).parents('li').show();
-                //$(this).siblings('ul').find('li').show();
-            }
-            // make all albums visible
-            $(this).siblings('ul').find('li').css('display', 'block');
-        });
-
-        //let filteredSpansGenre = $('ul#ulLibrary > li > span.genre:icontains(' + keyword + ')');
-        let filteredSpansGenre = $('span.genre:icontains(' + keyword + ')');
-        filteredSpansGenre.each(function () {
-            if ($(this).parent('li').css('display') === 'none') {
-                $(this).parents('li').css('display', 'block');
-                $(this).siblings('ul').find('li').css('display', 'block');
-                //$(this).parents('li').show();
-                //$(this).siblings('ul').find('li').show();
-            }
-        });
-
-
-        /*
-                let filteredSpansa = document.querySelectorAll('ul#ulLibrary > li > span.album,span.artist,span.genre');
-
-                console.time('b');
-                let filteredSpansb = document.evaluate("//span[(contains(@class, 'album') or contains(@class, 'artist') or contains(@class, 'genre') ) and contains(translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), '"+keyword+"')]", document, null, XPathResult.ANY_TYPE, null)
-                console.timeEnd('b');
-                console.time('c');
-                let filteredSpansc = $('span.album:icontains(' + keyword + '),.artist:icontains(' + keyword + '),.genre:icontains(' + keyword + ')');
-                console.timeEnd('c');
-         */
-        /*
-                //let filteredSpans = $('span.album:icontains(' + keyword + '),.artist:icontains(' + keyword + '),.genre:icontains(' + keyword + ')');
-                let filteredSpans = document.evaluate("//span[(contains(@class, 'album') or contains(@class, 'artist') or contains(@class, 'genre') ) and contains(translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), '"+keyword+"')]", document, null, XPathResult.ANY_TYPE, null)
-                //let filteredSpans = document.querySelectorAll('span.album,span.artist,span.genre');
-                console.debug('filteredSpans.length=' + filteredSpans.length);
-                //for(let i=0, I = filteredSpans.length; i < I; i++) {
-                let filteredSpan = filteredSpans.iterateNext();
-                while(filteredSpan) {
-                    //let filteredSpan = filteredSpans[i];
-                    if(filteredSpan.classList.contains('album')) {
-                        $(filteredSpan).parents('li').css('display', 'block');
-                    } else if(filteredSpan.classList.contains('artist')) {
-                        if($(filteredSpan).parent('li').css('display') === 'none') {
-                            $(filteredSpan).parents('li').css('display', 'block');
-                            $(filteredSpan).siblings('ul').find('li').css('display', 'block');
-                            //$(this).parents('li').show();
-                            //$(this).siblings('ul').find('li').show();
-                        }
-                    } else if(filteredSpan.classList.contains('genre')) {
-                        if($(filteredSpan).parent('li').css('display') === 'none') {
-                            $(filteredSpan).parents('li').css('display', 'block');
-                            $(filteredSpan).siblings('ul').find('li').css('display', 'block');
-                            //$(this).parents('li').show();
-                            //$(this).siblings('ul').find('li').show();
-                        }
-                    }
-                    filteredSpan = filteredSpans.iterateNext();
-                }
-                */
-
-        //console.timeEnd('a');
-    }
-
 }
