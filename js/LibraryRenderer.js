@@ -6,6 +6,9 @@ class LibraryRenderer {
     stateManager;
     searchTimeout;
 
+    // the renderedTree is required, to apply filter operations
+    renderedTree;
+
     dragged;
     rightClicked;
 
@@ -72,7 +75,6 @@ class LibraryRenderer {
                 }
 
             }
-            //years = years.filter(Utils.onlyUnique);
 
             years.forEach((_albums, _year) => {
                 let folder = new Folder(_year, _year);
@@ -81,13 +83,6 @@ class LibraryRenderer {
                     // get parent artist
                     let parentArtistNode = TreeNode.getParentNode(this.library.tree.treeFlat, _album);
                     let parentGenreNode = TreeNode.getParentNode(this.library.tree.treeFlat, parentArtistNode);
-                    //console.log(parentNode);
-                    /*
-                    console.log(parentNode instanceof Genre);
-                    while(!(parentNode instanceof Genre)) {
-                        parentNode = TreeNode.getParentNode(this.library.treeFlat, parentNode);
-                    }*/
-
 
                     let genre = folder.children.find(_child => _child instanceof Genre && _child.id === parentGenreNode.id);
                     if (genre === undefined && parentGenreNode instanceof TreeNode) {
@@ -125,10 +120,18 @@ class LibraryRenderer {
         }
 
         $('div#viewStats').text('Holding: ' + this.library.getNumGenres() + ' Genres, ' + this.library.getNumArtists() + ' Artists, ' + this.library.getNumAlbums() + ' Albums');
+        console.log();
+
+        let keyword = $('input#searchKeyword').val();
+        if(keyword.length > 0) {
+            this.filterTree(keyword);
+        }
+
     }
 
     populateViewLibraryByTree(tree) {
         console.debug('populateViewLibraryByTree()');
+        this.renderedTree = tree;
         if (tree === null || tree === undefined) {
             console.debug('tree === null || tree === undefined')
             return false;
@@ -293,19 +296,19 @@ class LibraryRenderer {
 
     filterTree(keyword) {
         //console.log('filterTree('+keyword+')');
-        this.library.tree.treeFlat.map(_child => {
+        this.renderedTree.treeFlat.map(_child => {
             _child.setVisible(false);
-        })
-        this.library.tree.treeFlat.map(_child => {
+        });
+        this.renderedTree.treeFlat.map(_child => {
             let isMatch = _child.name.toLowerCase().includes(keyword.toLowerCase());
             if (isMatch) {
                 _child.setVisible(true);
                 //_child.setExpanded(true);
-                let parentNode = TreeNode.getParentNode(this.library.tree.treeFlat, _child);
+                let parentNode = TreeNode.getParentNode(this.renderedTree.treeFlat, _child);
                 while (parentNode !== undefined) {
                     parentNode.setVisible(true);
                     //parentNode.setExpanded(true);
-                    parentNode = TreeNode.getParentNode(this.library.tree.treeFlat, parentNode);
+                    parentNode = TreeNode.getParentNode(this.renderedTree.treeFlat, parentNode);
                 }
                 let children = TreeNode.getAllChildren(_child);
                 children.map(__child => {
@@ -313,7 +316,8 @@ class LibraryRenderer {
                 });
             }
         });
-        this.populateViewLibrary();
+        this.populateViewLibraryByTree(this.renderedTree);
+        //this.populateViewLibrary();
     }
 
     populateSelectGenresSub() {
@@ -620,87 +624,4 @@ class LibraryRenderer {
         });
     }
 
-    generateUlFromArtists(artists) {
-        //console.debug('generateUlFromArtists()');
-        if (artists === null) {
-            console.debug('artists === null')
-            return false;
-        }
-        const ulLibraryNew = document.createElement('ul');
-        ulLibraryNew.id = 'ulLibrary';
-
-        let fragment = document.createDocumentFragment();
-        for (let i = 0, I = artists.length; i < I; i++) {
-            let artist = artists[i];
-
-            let ulAlbums = document.createElement('ul');
-            ulAlbums.id = 'ulLibrary';
-            ulAlbums.classList.add('inactive');
-
-            let liArtist = document.createElement('li');
-            //liArtist.classList.add('caret');
-
-            let spanArtistName = document.createElement('span');
-            spanArtistName.textContent = artist.name;
-            spanArtistName.id = artist.id;
-            spanArtistName.classList.add('caret', 'artist');
-            spanArtistName.draggable = true;
-
-            // test if span already exists
-            let existingSpanArtistName = document.getElementById(artist.id);
-            if (existingSpanArtistName !== null && existingSpanArtistName.classList.contains('collapsable')) {
-                // restore expanded state
-                spanArtistName.classList.add('collapsable');
-                ulAlbums.classList.add('active');
-            } else {
-                //console.log('existingSpanArtistName existiert nicht');
-                spanArtistName.classList.add('expandable');
-            }
-
-            spanArtistName.addEventListener('click', () => {
-                //console.log('addEventListener call');
-                ulAlbums.classList.toggle('active');
-                spanArtistName.classList.toggle('expandable');
-                spanArtistName.classList.toggle('collapsable');
-            });
-
-            spanArtistName.addEventListener('dragstart', (event) => {
-                // traverse DOM tree back to the genre span and read the id
-                let genreId = event.target.parentNode.parentNode.parentNode.children[0].id;
-                this.dragged = [genreId, event.target.id];
-                //console.log(this.dragged);
-            });
-
-            liArtist.appendChild(spanArtistName);
-            //ulLibraryNew.appendChild(liArtist);
-            fragment.appendChild(liArtist);
-
-            // sort albums for visualization
-            if (this.options.sortAlbums === SORT_BY_YEAR) {
-                artist.albums.sort((a, b) => new Date(a.releaseDate) < new Date(b.releaseDate) ? -1 : 1);
-            } else {
-                artist.albums.sort((a, b) => a.name.localeCompare(b.name));
-            }
-
-            let fragmentAlbums = document.createDocumentFragment();
-            for (let j = 0, J = artist.albums.length; j < J; j++) {
-
-                let album = artist.albums[j];
-                let liAlbum = document.createElement('li');
-                let spanAlbum = document.createElement('span');
-                spanAlbum.classList.add('album');
-                spanAlbum.innerText = new Date(album.releaseDate).getFullYear() + ' ' + album.name;
-                spanAlbum.addEventListener('click', () => {
-                    this.spotify.startPlayback(album.id);
-                });
-                liAlbum.appendChild(spanAlbum);
-                fragmentAlbums.appendChild(liAlbum);
-            }
-            ulAlbums.appendChild(fragmentAlbums);
-            liArtist.appendChild(ulAlbums);
-
-        }
-        ulLibraryNew.appendChild(fragment);
-        return ulLibraryNew;
-    }
 }
