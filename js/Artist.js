@@ -2,8 +2,13 @@ class Artist extends TreeNode {
 
 	dataType = Artist.name;
 
+	genres;
+
 	constructor(id, name) {
 		super(id, name);
+		// add default genre where the artist gets listed even if spotify does not return any genre
+		//this.genres = [GENRE_DEFAULT.name]; not necessary, getGenres sets the default genre if necessary.
+		this.genres = [];
 	}
 
 	addGenre(genreName) {
