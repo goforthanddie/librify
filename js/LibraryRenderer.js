@@ -145,7 +145,9 @@ class LibraryRenderer {
     makeDropTarget(element) {
         // highlight the potential target
         element.addEventListener('dragenter', (event) => {
-            event.target.classList.add('highlight');
+            if(this.dragged.uniqueId !== event.target.objRef.uniqueId) {
+                event.target.classList.add('highlight');
+            }
         });
 
         element.addEventListener('dragleave', (event) => {
@@ -153,18 +155,22 @@ class LibraryRenderer {
         });
 
         element.addEventListener('dragover', (event) => {
-            // prevent default to allow drop
-            event.preventDefault();
+            if(this.dragged.uniqueId !== event.target.objRef.uniqueId) {
+                // prevent default to allow drop
+                event.preventDefault();
+            }
         });
 
         element.addEventListener('drop', (event) => {
             event.target.classList.remove('highlight');
             console.log(this.dragged.id + ' has been dropped into ' + event.target.objRef.id);
 
+
+
             // find parent node of dragged element
             let parentNode = TreeNode.getParentNode(this.library.tree.treeFlat, this.dragged);
-            console.log(this.dragged);
-            console.log(parentNode);
+            //console.log(this.dragged);
+            //console.log(parentNode);
 
             // test if the target is dragged into its old parent node
             if (parentNode !== undefined && parentNode.uniqueId !== event.target.objRef.uniqueId) {
@@ -224,7 +230,10 @@ class LibraryRenderer {
             spanName.objRef = nodes[i];
             spanName.innerText = nodes[i].getInnerText();
 
-            this.makeDraggable(spanName);
+            if(this.options.view === VIEW_TREE) {
+                this.makeDraggable(spanName);
+            }
+
             switch (true) {
                 case nodes[i] instanceof Album:
                     spanName.classList.add('caret');
@@ -246,7 +255,9 @@ class LibraryRenderer {
                     } else {
                         nodes[i].children.sort(Utils.sortByName);
                     }*/
-                    this.makeDropTarget(spanName);
+                    if(this.options.view === VIEW_TREE) {
+                        this.makeDropTarget(spanName);
+                    }
             }
 
             if (nodes[i].children.length > 0) {
