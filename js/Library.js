@@ -1,15 +1,12 @@
 class Library {
 
     tree;
-    //treeFlat;
     updateListeners;
     oldNewUniqueId;
 
     constructor() {
         this.oldNewUniqueId = new Map();
-
-        //this.tree.treeFlat = [];
-        //this.tree = new Tree(new TreeNode('root', 'root'));
+        // tree is initialized by the stateManager
         this.updateListeners = [];
     }
 
@@ -39,7 +36,6 @@ class Library {
         console.debug('emptyArtists()');
         localStorage.removeItem('artists');
         this.tree.treeFlat = this.tree.treeFlat.filter(_node => !(_node instanceof Artist));
-        this.artists = [];
         // this is only called during library updates, so we won't call this.notifyUpdateListeners(); if it would be called, the library empties and we do not have any information about expanded genres, artists and so on
     }
 
@@ -52,7 +48,6 @@ class Library {
         console.debug('emptyGenres()');
         localStorage.removeItem('genres');
         this.tree.treeFlat = this.tree.treeFlat.filter(_node => !(_node instanceof Genre));
-        this.genres = [];
     }
 
     removeEmptyGenres() {
@@ -77,59 +72,6 @@ class Library {
 
         //return oldLength - this.genres.length;
         return oldLength - this.getNumGenres();
-    }
-
-    moveArtistToGenre(newGenre, oldGenreId, artistId) {
-        console.debug('moveArtistToGenre()');
-        let artist;
-        if (newGenre !== undefined) {
-            //console.log('moving to ' + genreMain.id);
-            // aus gedraggtem genre entfernen.
-            let oldGenreIdx = this.genres.findIndex(element => element.id === oldGenreId);
-            if (oldGenreIdx !== -1) {
-                let artistIdx = this.genres[oldGenreIdx].artists.findIndex(element => element.id === artistId);
-                if (artistIdx !== -1) {
-                    // add artist to newGenre
-                    artist = this.genres[oldGenreIdx].artists[artistIdx];
-                    newGenre.addArtist(artist);
-                    // remove artist from oldGenre
-                    this.genres[oldGenreIdx].artists.splice(artistIdx, 1);
-                }
-                // if for some reason there is no match for the oldGenreId, we look for the artist in the this.artist array
-            } else {
-                artist = this.artists.find(element => element.id === artistId);
-                if (artist !== undefined) {
-                    newGenre.addArtist(artist);
-                }
-            }
-
-            this.notifyUpdateListeners();
-            return {status: true, artistName: artist.name};
-        }
-        return {status: false, artistName: null};
-    }
-
-    moveArtistsFromGenreToGenre(newGenre, oldGenreId) {
-        console.debug('moveArtistsFromGenreToGenre()');
-        // need the genre index to remove the item from the this.genres array
-        let oldGenreIdx = this.genres.findIndex(element => element.id === oldGenreId);
-
-        //console.log(this.library.genres[oldGenreIdx]);
-        if (newGenre !== undefined && oldGenreIdx !== -1 && newGenre.id !== oldGenreId) {
-            let oldGenre = this.genres[oldGenreIdx];
-
-            // add artists from oldGenre to newGenre
-            oldGenre.artists.forEach(_artist => {
-                newGenre.addArtist(_artist);
-            });
-
-            // remove oldGenre from this.genres
-            this.genres.splice(oldGenreIdx, 1);
-
-            this.notifyUpdateListeners();
-            return {status: true, oldGenreName: oldGenre.name};
-        }
-        return {status: false, oldGenreName: null};
     }
 
     reduceGenres() {
@@ -304,23 +246,6 @@ class Library {
 
                     this.tree.removeNodeAndReferences(genreSub);
                     this.tree.updateTreeFlat();
-/*
-                    // remove subgenre from main array
-                    for (let I = this.tree.treeFlat.length - 1; I >= 0; I--) {
-                        if(this.tree.treeFlat[I].uniqueId === genreSub.uniqueId) {
-                            this.tree.treeFlat.splice(I, 1);
-                        }
-                    }
-
-                    // remove genreSub object from children
-                    for (let I = this.tree.treeFlat.length - 1; I >= 0; I--) {
-                        let childIdx = this.tree.treeFlat[I].children.findIndex(_child => _child.uniqueId === genreSub.uniqueId);
-                        if (childIdx !== -1) {
-                            this.tree.treeFlat[I].children.splice(childIdx, 1);
-                        }
-                    }
-
- */
                 }
             });
 
@@ -369,16 +294,6 @@ class Library {
      */
     getNumAlbums() {
         let albums = [];
-        /*
-        for(let i = 0, I = this.artists.length; i < I; i++) {
-            let _albums = this.artists[i].children;
-            for(let j = 0, J = _albums.length; j < J; j++) {
-                let album = _albums[j];
-                if(albums.find(element => element === album.id) === undefined) {
-                    albums.push(album.id);
-                }
-            }
-        }*/
         let allAlbums = this.tree.treeFlat.filter((_node) => _node instanceof Album);
         for (let j = 0, J = allAlbums.length; j < J; j++) {
             let album = allAlbums[j];
