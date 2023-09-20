@@ -269,7 +269,6 @@ class Spotify {
 		}
 
 		let artistIds = '';
-		//this.library.artists.slice(start, end).forEach((artist) => {
 		this.library.getArtists().slice(start, end).forEach((artist) => {
 			artistIds += artist.id + ',';
 		});
@@ -284,10 +283,11 @@ class Spotify {
 			data.artists.forEach(_artist => {
 				let artist = this.library.getArtists().find(element => element.id === _artist.id);
 				if(artist !== undefined) { // artist id found
-					artist.getGenres(this.library.getGenres());
+					let genres = this.library.getGenres();
+					artist.getGenres(genres);
 
 					// test if artist is already linked to a genre, if so, skip because it is not a new artist
-					let genre = this.library.getGenres().find(_genre => _genre.children.find(__artist => __artist.id === artist.id) !== undefined);
+					let genre = genres.find(_genre => _genre.children.find(__artist => __artist.id === artist.id) !== undefined);
 					// artist is not linked to a genre, i.e., it is a new artist
 					if(genre === undefined) {
 						console.debug('processing ' + artist.name + ' because it is not already linked to a genre.');
@@ -302,7 +302,7 @@ class Spotify {
 						// if update then add the artist to an existing genre with most artists if possible
 						// needs to differentiate between update and no update because otherwise genres that come first get prioritized
 						if(update) {
-							let existingGenres = this.library.getGenres().filter(_genre => artist.genres.includes(_genre.name));
+							let existingGenres = genres.filter(_genre => artist.genres.includes(_genre.name));
 							if(existingGenres.length === 0) { // no existing genres, so just pick the first from spotify
 								let genre = new Genre(artist.genres[0]);
 								genre.addChild(artist);
@@ -334,7 +334,7 @@ class Spotify {
 
 						} else {
 							artist.genres.forEach(_genre => {
-								let genre = this.library.getGenres().find(element => element.name === _genre);
+								let genre = genres.find(element => element.name === _genre);
 								if(genre === undefined) { // genre not found
 									console.debug('genre ' + _genre + ' not found, adding to this.library.treeFlat');
 									let genre = new Genre(_genre);

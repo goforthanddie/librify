@@ -572,16 +572,10 @@ class LibraryRenderer {
                 let inputGenreName = $('#dialogInputAddGenre');
                 let genreName = inputGenreName.val();
                 if (this.rightClicked !== undefined && this.rightClicked !== null) {
-                    // check if any child has the same name already
-                    if (this.rightClicked.children.find(_child => _child.name === genreName) === undefined) {
-                        let genre = new Genre(genreName.toLowerCase(), genreName);
-                        this.rightClicked.addChild(genre);
-                        this.library.addGenre(genre); // calls notifyUpdateListeners
+                    if (this.library.addGenreByName(this.rightClicked, genreName)) {
                         this.spotify.statusManager.setStatusText('Added new genre "' + genreName + '".');
-
                     } else {
                         this.spotify.statusManager.setStatusText('Did not add genre "' + genreName + '", possible duplicate.');
-
                     }
                 }
                 inputGenreName.val('');
@@ -717,22 +711,6 @@ class LibraryRenderer {
             $('#fieldsetClusterGenres').toggle();
             this.populateClusterGenres();
         });
-
-        {
-            let button = $('#buttonAddGenre');
-            button.on('click', () => {
-                button.attr('disabled', true);
-                let inputGenreName = $('input#addGenre');
-                let genreName = inputGenreName.val();
-                if (this.library.addGenreByName(genreName)) {
-                    this.spotify.statusManager.setStatusText('Added new genre "' + genreName + '".');
-                } else {
-                    this.spotify.statusManager.setStatusText('Did not add genre "' + genreName + '", possible duplicate.');
-                }
-                inputGenreName.val('');
-                button.attr('disabled', false);
-            });
-        }
 
         {
             let button = $('#buttonRemoveEmptyGenres');
