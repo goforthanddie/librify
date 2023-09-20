@@ -316,33 +316,36 @@ class Library {
     }
 
     addGenreByName(parentNode, genreName) {
-        if (this.treeFlat.children.find(_child => _child instanceof Genre && _child.name === genreName) === undefined) {
+        if (this.treeFlat.find(_child => _child instanceof Genre && _child.name === genreName) === undefined) {
             let genre = new Genre(genreName.toLowerCase(), genreName);
-            this.addGenre(parentNode, genre); // calls notifyUpdateListeners
-            this.spotify.statusManager.setStatusText('Added new genre "' + genreName + '".');
+            this.addNode(parentNode, genre); // calls notifyUpdateListeners
             return true;
         } else {
-            this.spotify.statusManager.setStatusText('Did not add genre "' + genreName + '", possible duplicate.');
             return false;
         }
     }
 
-    addGenre(parentNode, genre) {
-        this.treeFlat.push(genre);
-        if(parentNode !== undefined && parentNode !== null) {
-            parentNode.children.push(genre);
+    addFolderByName(parentNode, folderName) {
+        if (this.treeFlat.find(_child => _child instanceof Folder && _child.name === folderName) === undefined) {
+            let folder = new Folder(folderName.toLowerCase(), folderName);
+            this.addNode(parentNode, folder); // calls notifyUpdateListeners
+            return true;
         } else {
-            console.debug('addGenre() parentNode null or undefined');
+            return false;
+        }
+    }
+
+    addNode(parentNode, node) {
+        this.treeFlat.push(node);
+        if (parentNode !== undefined && parentNode !== null) {
+            parentNode.children.push(node);
+        } else {
+            console.debug('addNode() parentNode null or undefined');
         }
         this.notifyUpdateListeners();
         return true;
     }
 
-    addFolder(folder) {
-        this.treeFlat.push(folder);
-        this.notifyUpdateListeners();
-        return true;
-    }
 
     /**
      * returns the number of unique Album objects in treeFlat
