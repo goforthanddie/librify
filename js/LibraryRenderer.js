@@ -554,8 +554,8 @@ class LibraryRenderer {
             button.on('click', () => {
                 button.attr('disabled', true);
                 let currentState = this.stateManager.getCurrentState(true);
-                let data = "data:text/json;charset=utf-8," + encodeURIComponent('{"genres": ' + currentState.genres + ', "artists":' + currentState.artists + ', "treeFlat":' + currentState.treeFlat + ', "options": ' + currentState.options + '}');
-                //let data = "data:text/json;charset=utf-8," + encodeURIComponent('{"treeFlat":' + currentState.treeFlat + ', "options": ' + currentState.options + '}');
+                //let data = "data:text/json;charset=utf-8," + encodeURIComponent('{"genres": ' + currentState.genres + ', "artists":' + currentState.artists + ', "treeFlat":' + currentState.treeFlat + ', "options": ' + currentState.options + '}');
+                let data = "data:text/json;charset=utf-8," + encodeURIComponent('{"treeFlat":' + currentState.treeFlat + ', "options": ' + currentState.options + '}');
                 let aSaveData = document.getElementById('aSaveData');
                 aSaveData.href = data;
                 aSaveData.download = 'librify.json';
