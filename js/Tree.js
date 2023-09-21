@@ -18,6 +18,9 @@ class Tree {
         return false;
     }
 
+    /**
+     * iterates the flat tree and removes children which are not existing in the flat tree anymore
+     */
     removeDeadChildren() {
         for (let I = this.treeFlat.length - 1; I >= 0; I--) {
             for (let J = this.treeFlat[I].children.length - 1; J >= 0; J--) {

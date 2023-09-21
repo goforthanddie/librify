@@ -257,7 +257,7 @@ class Library {
     }
 
     addGenreByName(parentNode, genreName) {
-        if (this.tree.treeFlat.find(_child => _child instanceof Genre && _child.name === genreName) === undefined) {
+        if (genreName.trim() != '' && this.tree.treeFlat.find(_child => _child instanceof Genre && _child.name === genreName) === undefined) {
             let genre = new Genre(genreName.toLowerCase(), genreName);
             this.addNode(parentNode, genre); // calls notifyUpdateListeners
             return true;
@@ -267,7 +267,7 @@ class Library {
     }
 
     addFolderByName(parentNode, folderName) {
-        if (this.tree.treeFlat.find(_child => _child instanceof Folder && _child.name === folderName) === undefined) {
+        if (folderName.trim() != '' && this.tree.treeFlat.find(_child => _child instanceof Folder && _child.name === folderName) === undefined) {
             let folder = new Folder(folderName.toLowerCase(), folderName);
             this.addNode(parentNode, folder); // calls notifyUpdateListeners
             return true;

@@ -249,7 +249,7 @@ class LibraryRenderer {
                     } else {
                         spanName.classList.add('expandable');
                     }
-                    // sort albums for visualization todo: vllt umbenennen in sortFolders oder so
+                    // sort children for visualization
                     nodes[i].sortChildren(this.options.sortAlbums, this.options.view);
                     /*
                     if(this.options.sortAlbums === SORT_BY_YEAR) {
@@ -442,6 +442,20 @@ class LibraryRenderer {
                 $('#contextmenu').hide();
                 document.getElementById('dialogAddFolder').showModal();
             });
+
+            let entryRename = $('#cmRename');
+            entryRename.on('click', () => {
+                $('#contextmenu').hide();
+                $('#dialogInputRename').val(this.rightClicked.name);
+                document.getElementById('dialogRename').showModal();
+            });
+
+            let entryRemove = $('#cmRemove');
+            entryRemove.on('click', () => {
+                $('#contextmenu').hide();
+                $('#nodeName').text(this.rightClicked.name);
+                document.getElementById('dialogRemove').showModal();
+            });
         }
     }
 
@@ -456,7 +470,7 @@ class LibraryRenderer {
                     if (this.library.addGenreByName(this.rightClicked, genreName)) {
                         this.spotify.statusManager.setStatusText('Added new genre "' + genreName + '".');
                     } else {
-                        this.spotify.statusManager.setStatusText('Did not add genre "' + genreName + '", possible duplicate.');
+                        this.spotify.statusManager.setStatusText('Did not add genre "' + genreName + '", possible duplicate or empty name.');
                     }
                 }
                 inputGenreName.val('');
@@ -474,7 +488,7 @@ class LibraryRenderer {
                     if (this.library.addFolderByName(this.rightClicked, folderName)) {
                         this.spotify.statusManager.setStatusText('Added new folder "' + folderName + '".');
                     } else {
-                        this.spotify.statusManager.setStatusText('Did not add folder "' + folderName + '", possible duplicate.');
+                        this.spotify.statusManager.setStatusText('Did not add folder "' + folderName + '", possible duplicate or empty name.');
                     }
                 }
                 inputFolderName.val('');
@@ -482,6 +496,29 @@ class LibraryRenderer {
                 document.getElementById('dialogAddFolder').close();
             });
         }
+        {
+            let button = $('#buttonDialogRename');
+            button.on('click', () => {
+                button.attr('disabled', true);
+                let inputRename = $('#dialogInputRename');
+                let newName = inputRename.val();
+                let oldName = this.rightClicked.name;
+                if (this.rightClicked !== undefined && this.rightClicked !== null) {
+                    // todo: think about only allowing unique names
+                    if (this.rightClicked.name = newName) {
+                        this.spotify.statusManager.setStatusText('Renamed "' + oldName + '" to "' + newName + '".');
+                    } else {
+                        this.spotify.statusManager.setStatusText('Renaming "' + oldName + '"to"' + newName + '" failed.');
+                    }
+                }
+                inputRename.val('');
+                button.attr('disabled', false);
+                document.getElementById('dialogRename').close();
+                this.library.notifyUpdateListeners();
+            });
+        }
+
+
         {
             let button = $('#buttonUpdateLibrary');
             button.on('click', () => {
