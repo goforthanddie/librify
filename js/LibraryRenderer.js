@@ -273,18 +273,22 @@ class LibraryRenderer {
                     spanName.classList.toggle('expandable');
                     spanName.classList.toggle('collapsable');
                 });
-                if (this.options.view === VIEW_TREE) {
-                    spanName.addEventListener('contextmenu', (e) => {
-                        e.preventDefault();
-                        this.rightClicked = spanName.objRef;
-                        let contextmenu = $('#contextmenu');
-                        contextmenu.css({
-                            display: 'block', //show the menu
-                            top: e.pageY, //make the menu be where you click (y)
-                            left: e.pageX //make the menu be where you click (x)
-                        });
+            } else {
+                spanName.classList.add('empty');
+            }
+
+            if (this.options.view === VIEW_TREE) {
+                spanName.classList.add('caret');
+                spanName.addEventListener('contextmenu', (e) => {
+                    e.preventDefault();
+                    this.rightClicked = spanName.objRef;
+                    let contextmenu = $('#contextmenu');
+                    contextmenu.css({
+                        display: 'block', //show the menu
+                        top: e.pageY, //make the menu be where you click (y)
+                        left: e.pageX //make the menu be where you click (x)
                     });
-                }
+                });
             }
             fragment.append(li);
         }

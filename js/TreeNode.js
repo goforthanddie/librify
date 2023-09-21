@@ -77,15 +77,15 @@ class TreeNode {
 
     sortChildren(sortAlbums, view) {
         // folders / genres first, then artists, then albums, then others
-        let genres = [];
+        let genresAndFolders = [];
         let artists = [];
         let albums = [];
         let others = [];
         for (let i = 0, I = this.children.length; i < I; i++) {
             let currentChild = this.children[i];
             switch (true) {
-                case currentChild instanceof Genre:
-                    genres.push(currentChild);
+                case currentChild instanceof Genre || currentChild instanceof Folder:
+                    genresAndFolders.push(currentChild);
                     break;
                 case currentChild instanceof Artist:
                     artists.push(currentChild);
@@ -97,15 +97,15 @@ class TreeNode {
                     others.push(currentChild);
             }
         }
-        genres.sort(Utils.sortByName);
-        artists.sort(Utils.sortByName);
 
         if(view === VIEW_TROND) {
-            others.sort(Utils.sortByNameDesc);
+            genresAndFolders.sort(Utils.sortByNameDesc);
         } else {
-            others.sort(Utils.sortByName);
+            genresAndFolders.sort(Utils.sortByName);
         }
 
+        artists.sort(Utils.sortByName);
+        others.sort(Utils.sortByName);
 
         switch (sortAlbums) {
             case SORT_BY_YEAR:
@@ -118,8 +118,7 @@ class TreeNode {
                 albums.sort(Utils.sortByName);
         }
 
-
-        this.children = [...genres, ...artists, ...albums, ...others];
+        this.children = [...genresAndFolders, ...artists, ...albums, ...others];
     }
 }
 

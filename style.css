@@ -29,6 +29,10 @@ li {
     content: '- ';
 }
 
+.empty::before {
+    content: '. ';
+}
+
 html {
     position: relative;
     min-height: 100%;
