@@ -518,6 +518,32 @@ class LibraryRenderer {
             });
         }
 
+        {
+            let button = $('#buttonDialogRemoveYes');
+            button.on('click', () => {
+                button.attr('disabled', true);
+                let oldName = this.rightClicked.name;
+                if (this.rightClicked !== undefined && this.rightClicked !== null) {
+                    // todo: think about only allowing unique names
+                    if (this.rightClicked.children.length <= 0) {
+                        this.library.tree.removeNodeAndReferences(this.rightClicked);
+                        this.spotify.statusManager.setStatusText('Removed "' + oldName + '".');
+                    } else {
+                        this.spotify.statusManager.setStatusText('"' + oldName + '" contains children. Please remove the children first.');
+                    }
+                }
+                button.attr('disabled', false);
+                document.getElementById('dialogRemove').close();
+                this.library.notifyUpdateListeners();
+            });
+        }
+
+        {
+            let button = $('#buttonDialogRemoveNo');
+            button.on('click', () => {
+                document.getElementById('dialogRemove').close();
+            });
+        }
 
         {
             let button = $('#buttonUpdateLibrary');

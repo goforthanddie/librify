@@ -259,8 +259,13 @@ class Library {
     addGenreByName(parentNode, genreName) {
         if (genreName.trim() != '' && this.tree.treeFlat.find(_child => _child instanceof Genre && _child.name === genreName) === undefined) {
             let genre = new Genre(genreName.toLowerCase(), genreName);
-            this.addNode(parentNode, genre); // calls notifyUpdateListeners
-            return true;
+            //this.addNode(parentNode, genre); // calls notifyUpdateListeners
+            if(this.tree.addNode(genre, parentNode)) {
+                this.notifyUpdateListeners();
+                return true;
+            } else {
+                return false;
+            }
         } else {
             return false;
         }
@@ -269,24 +274,17 @@ class Library {
     addFolderByName(parentNode, folderName) {
         if (folderName.trim() != '' && this.tree.treeFlat.find(_child => _child instanceof Folder && _child.name === folderName) === undefined) {
             let folder = new Folder(folderName.toLowerCase(), folderName);
-            this.addNode(parentNode, folder); // calls notifyUpdateListeners
-            return true;
+            //this.addNode(parentNode, folder); // calls notifyUpdateListeners
+            if(this.tree.addNode(folder, parentNode)) {
+                this.notifyUpdateListeners();
+                return true;
+            } else {
+                return false;
+            }
         } else {
             return false;
         }
     }
-
-    addNode(parentNode, node) {
-        this.tree.treeFlat.push(node);
-        if (parentNode !== undefined && parentNode !== null) {
-            parentNode.children.push(node);
-        } else {
-            console.debug('addNode() parentNode null or undefined');
-        }
-        this.notifyUpdateListeners();
-        return true;
-    }
-
 
     /**
      * returns the number of unique Album objects in treeFlat
