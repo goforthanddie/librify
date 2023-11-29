@@ -162,66 +162,6 @@ class Library {
         return numReduced;
     }
 
-    reduceGenresFurther() {
-        console.debug('reduceGenresFurther()');
-        let foundMainGenres = [];
-        let foundSubGenres = [];
-        console.log(this.genres);
-        // identify sub genres, i.e., genres where the name of another genre is part of the name
-        this.genres.forEach(_genre => {
-            let subGenres = this.genres.filter(element => element.name.includes(_genre.name) && element.id !== _genre.id);
-            // test for length > 1 because it will always find itself
-            if (subGenres.length > 0) {
-                subGenres.forEach(_subgenre => {
-                    console.log('subgenre ' + _subgenre.name);
-                    // add all the artists of the found sub genres to the main genre
-                    _subgenre.artists.forEach(_artist => {
-                        _genre.addArtist(_artist);
-                    });
-
-                    //_genre.addSubGenre(_subgenre);
-                    // test if the sub genre is already in the foundSubGenres array, if not, add it
-                    if (foundSubGenres.findIndex(element => element.id === _subgenre.id) === -1) {
-                        foundSubGenres.push(_subgenre);
-                    }
-                });
-            }
-        });
-        // identify main genres, i.e., genres that are not sub genres
-        this.genres.forEach(_genre => {
-            if (foundSubGenres.findIndex(element => element.id === _genre.id) === -1) {
-                // test if the main genre is already in the foundMainGenres array, if not, add it
-                if (foundMainGenres.findIndex(element => element.id === _genre.id) === -1) {
-                    foundMainGenres.push(_genre);
-                }
-            }
-        });
-        console.log(foundMainGenres);
-        console.log(foundSubGenres);
-        foundMainGenres.forEach(_genre => {
-            _genre.sortArtists();
-        });
-        this.genres = foundMainGenres;
-
-        // test if we still got all the artists
-        /*
-        let compArtists = [];
-        this.genres.forEach(_genre => {
-            _genre.artists.forEach(_artist => {
-                if(compArtists.findIndex(element => element.id === _artist.id) === -1) {
-                    compArtists.push(_artist)
-                }
-            })
-        });
-        console.log('compArtists.length=' + compArtists.length);*/
-        //console.log(compArtists.sort((a, b) => a.name.localeCompare(b.name)));
-        /*
-                this.storeGenres();
-                this.populateViewLibrary();*/
-        //this.saveToLocalStorage();
-        this.notifyUpdateListeners();
-    }
-
     clusterGenres() {
         console.debug('clusterGenres()');
         let oldLength = this.getNumGenres();
@@ -328,20 +268,5 @@ class Library {
          */
         let allAlbums = this.tree.treeFlat.filter((_node) => _node instanceof Album);
         return allAlbums.length;
-    }
-
-    // todo: adapt for new tree technology
-    getCount() {
-        let count = 0;
-        for (let i = 0, I = this.genres.length; i < I; i++) {
-            count++;
-            for (let j = 0, J = this.genres[i].artists.length; j < J; j++) {
-                count++;
-                for (let k = 0, K = this.genres[i].artists[j].albums.length; k < K; k++) {
-                    count++;
-                }
-            }
-        }
-        return count;
     }
 }
