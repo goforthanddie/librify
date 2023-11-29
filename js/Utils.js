@@ -91,7 +91,6 @@ class Utils {
                     this.oldNewUniqueId.set(value.uniqueId, treeNode);
                     treeNode.children = JSON.parse(JSON.stringify(value.children), Utils.reviverUniqueIds);
                     return treeNode;
-                    break;
                 case Folder.name:
                     //console.log('got folder');
                     if (value.name !== undefined && value.name !== null) {
@@ -102,7 +101,6 @@ class Utils {
                         return folder;
                     }
                     return undefined;
-                    break;
                 case Genre.name:
                     if (value.name !== undefined && value.name !== null) {
                         let genre = new Genre(value.name);
@@ -111,7 +109,6 @@ class Utils {
                         return genre;
                     }
                     return undefined;
-                    break;
                 case Artist.name:
                     if (value.name !== undefined && value.name !== null) {
                         let artist = new Artist(value.id, value.name);
@@ -120,7 +117,6 @@ class Utils {
                         return artist;
                     }
                     return undefined;
-                    break;
                 case Album.name:
                     if (value.name !== undefined && value.name !== null) {
                         let album = new Album(value.id, value.name, value.releaseDate, value.releaseDatePrecision);
@@ -128,7 +124,6 @@ class Utils {
                         return album;
                     }
                     return undefined;
-                    break;
             }
         }
         return value;
