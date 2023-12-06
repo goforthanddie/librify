@@ -349,11 +349,13 @@ class Spotify {
 						}
 						// artist is linked to a genre, i.e., we already know this artist. we need to overwrite the artist object in the genres array because library.emptyArtists() has been called in getSavedAlbums()
 					} else {
-						console.debug('Re-adding ' + artist.name + ' because it is already linked to a genre.');
+						console.debug('Re-adding ' + artist.name + ' to ' + genre.name + ' because it is already linked to a genre.');
 						// re-adding is probably unnecessary and probably removing all the genres/artists
 						let artistIx = genre.children.findIndex(__artist => __artist.id === artist.id);
 						if(artistIx !== -1) {
 							genre.children[artistIx] = artist;
+						} else {
+							console.log('Could not add ' + artist.name + ' to ' + genre);
 						}
 					}
 				}
