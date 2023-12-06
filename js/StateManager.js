@@ -128,8 +128,22 @@ class StateManager {
             //console.log(this.library.treeFlat)
 
             for (let i = 0, I = treeFlatB.length; i < I; i++) {
-                for (let j = 0, J = treeFlatB[i].children.length; j < J; j++) {
-                    treeFlatB[i].children[j] = this.library.oldNewUniqueId.get(treeFlatB[i].children[j]);
+                for (let J = treeFlatB[i].children.length; J >= 0; J--) {
+                //for (let j = 0, J = treeFlatB[i].children.length; j < J; j++) {
+                    let mapObj = this.library.oldNewUniqueId.get(treeFlatB[i].children[J]);
+                    if(treeFlatB[i].children[J] == 0) {
+                        console.log(treeFlatB[i].children[J]);
+                        console.log(mapObj);
+                    }
+
+                    if(mapObj !== undefined) { // test if we can resolve the child id to an object, and only if so, replace the current "oldId" which is the value of children[j] with the real object
+                        treeFlatB[i].children[J] = mapObj;
+                    } else {
+                        // remove the unavailable id from children array
+                        treeFlatB[i].children.splice(J, 1);
+                        console.log(treeFlatB[i].children);
+                    }
+                    //treeFlatB[i].children[j] = this.library.oldNewUniqueId.get(treeFlatB[i].children[j]);
                 }
             }
 
