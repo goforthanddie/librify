@@ -144,6 +144,10 @@ input::placeholder {
     display: inline-block;
 }
 
+#viewButtons {
+    display: inline-block;
+}
+
 #viewLoadSave {
     display: inline-block;
 }
