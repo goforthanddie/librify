@@ -573,6 +573,10 @@ class LibraryRenderer {
             $('#viewManageGenres').toggle()
         });
 
+        $('#buttonStartTutorial').on('click', () => {
+            driverObj.drive();
+        });
+
         {
             let button = $('#buttonStoreGenresSub');
             button.on('click', () => {
