@@ -39,7 +39,6 @@ html {
     margin: 1vh 2vw;
 }
 
-/* Set font to monospace */
 body {
     margin: auto auto 150px;
     max-width: 1024px;
@@ -51,7 +50,6 @@ body {
 a {
     font-family: monospace, monospace;
     color: gray;
-
     text-decoration: underline dotted;
 }
 

@@ -201,6 +201,17 @@ class LibraryRenderer {
 
     generateUlFromTreeNodes(nodes, parentExpanded) {
         const fragment = new DocumentFragment();
+
+        const imgSptfIcon = document.createElement('img');
+        imgSptfIcon.src = 'Spotify_Icon_RGB_White.png';
+        imgSptfIcon.style.height = '21px';
+        imgSptfIcon.style.width = '21px';
+
+        const aLinkToSptf = document.createElement('a');
+        aLinkToSptf.style.marginLeft = '5px';
+        aLinkToSptf.target = '_blank';
+        aLinkToSptf.append(imgSptfIcon.cloneNode(true));
+
         const ul = document.createElement('ul');
 
         if (parentExpanded) {
@@ -238,11 +249,18 @@ class LibraryRenderer {
 
             switch (true) {
                 case nodes[i] instanceof Album:
+                    aLinkToSptf.href = 'https://open.spotify.com/album/' + nodes[i].id;
+                    li.append(aLinkToSptf.cloneNode(true));
+
                     spanName.classList.add('caret');
                     spanName.addEventListener('click', () => {
                         this.spotify.startPlayback(nodes[i].id);
                     });
                     break;
+                case nodes[i] instanceof Artist:
+                    console.log('Artist ' + nodes[i]);
+                    aLinkToSptf.href = 'https://open.spotify.com/artist/' + nodes[i].id;
+                    li.append(aLinkToSptf.cloneNode(true));
                 default:
                     if (nodes[i].expanded) {
                         spanName.classList.add('collapsable');
@@ -284,9 +302,9 @@ class LibraryRenderer {
                     this.rightClicked = spanName.objRef;
                     let contextmenu = $('#contextmenu');
                     contextmenu.css({
-                        display: 'block', //show the menu
-                        top: e.pageY, //make the menu be where you click (y)
-                        left: e.pageX //make the menu be where you click (x)
+                        display: 'block', // show the menu
+                        top: e.pageY, // display menu at clicked x coord
+                        left: e.pageX // display menu at clicked y coord
                     });
                 });
             }
@@ -570,7 +588,8 @@ class LibraryRenderer {
         }
 
         $('#buttonManageGenres').on('click', () => {
-            $('#viewManageGenres').toggle()
+            $('#viewManageGenres').toggle();
+            driverManageGenresObj.drive();
         });
 
         $('#buttonStartTutorial').on('click', () => {

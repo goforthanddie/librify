@@ -1,15 +1,47 @@
-const driver = window.driver.js.driver;
+function openContextmenu() {
+    // get root node from tree
+    let elRoot= document.getElementById('root');
+    let rectRoot= elRoot.getBoundingClientRect();
+    // event to trigger contextmenu
+    let e = new Event('contextmenu');
+    e.pageX = rectRoot.right;
+    e.pageY = rectRoot.bottom;
+    elRoot.dispatchEvent(e);
+}
 
-const driverManageGenres = driver({
-    animate: false,
+const driver = window.driver.js.driver;
+const driverObj = driver({
+    animate: true,
     showProgress: false,
     showButtons: ['next', 'previous', 'close'],
     steps: [
         {
+            element: '#buttonUpdateLibrary',
+            popover: {
+                title: 'Update your library',
+                description: 'This function reads your library from Spotify and updates your customized library when new albums have been added on Spotify.',
+                side: 'bottom',
+                align: 'start'
+            }
+        },
+        {
+            element: '#buttonManageGenres',
+            popover: {
+                title: 'Manage your genres',
+                description: 'This function allows you to manage the genres of your library.',
+                side: 'bottom',
+                align: 'start',
+                onNextClick: () => {
+                    $('#viewManageGenres').show();
+                    driverObj.moveNext();
+                }
+            }
+        },
+        {
             element: '#buttonReduceGenres',
             popover: {
                 title: 'Reduce the amount of genres',
-                description: 'Imported artists can be linked to multiple genres. This function identifies the genres that contain the most artists and retains only the strongest link for each artist.',
+                description: 'Artists can be linked to multiple genres. This function identifies the genres that contain the most artists and retains only the link to the largest genre for each artist.',
                 side: 'bottom',
                 align: 'start'
             }
@@ -22,31 +54,18 @@ const driverManageGenres = driver({
                 side: 'bottom',
                 align: 'start'
             }
-        }
-    ]
-});
-
-const driverObj = driver({
-    animate: false,
-    showProgress: false,
-    showButtons: ['next', 'previous', 'close'],
-    steps: [
-        {
-            element: '#buttonUpdateLibrary',
-            popover: {
-                title: 'Update your library',
-                description: 'This function reads your library from Spotify and updates your customized library accordingly. Use this button to initially load your library from Spotify.',
-                side: 'bottom',
-                align: 'start'
-            }
         },
         {
-            element: '#buttonManageGenres',
+            element: '#buttonRemoveEmptyGenres',
             popover: {
-                title: 'Manage your genres',
-                description: 'This function allows you to manage the genres of your library.',
+                title: 'Remove empty genres',
+                description: 'Click here to remove empty genres from the library.',
                 side: 'bottom',
-                align: 'start'
+                align: 'start',
+                onNextClick: () => {
+                    $('#viewManageGenres').hide();
+                    driverObj.moveNext();
+                }
             }
         },
         {
@@ -71,7 +90,7 @@ const driverObj = driver({
             element: '#buttonLoadData',
             popover: {
                 title: 'Load your library from a file',
-                description: 'Click here to import your library from a file.',
+                description: 'Click here to import your customized library from a file.',
                 side: 'bottom',
                 align: 'start'
             }
@@ -80,7 +99,16 @@ const driverObj = driver({
             element: '#buttonSaveData',
             popover: {
                 title: 'Save your library to a file',
-                description: 'Click here to export your library to a file.',
+                description: 'Click here to export your customized library to a file.',
+                side: 'bottom',
+                align: 'start'
+            }
+        },
+        {
+            element: '#viewStatus',
+            popover: {
+                title: 'Status display',
+                description: 'Status messages are displayed here.',
                 side: 'bottom',
                 align: 'start'
             }
@@ -97,19 +125,42 @@ const driverObj = driver({
         {
             element: '#buttonReloadDevices',
             popover: {
-                title: 'Reload active devices using Spotify',
+                title: 'Reload active devices',
                 description: 'Click here to reload the list of active devices that are currently using your Spotify account.',
                 side: 'bottom',
-                align: 'start'
+                align: 'start',
+                onNextClick: () => {
+                    // select custom view
+                    $('#selectView').val(VIEW_TREE).change();
+                    driverObj.moveNext();
+                }
             }
         },
         {
             element: '#selectView',
             popover: {
                 title: 'Change the library view',
-                description: 'Chose between various library views. We got artist-based, genre-based, year-based and a completely customizable view with individual folders.',
+                description: 'Chose between various library views. We got artist-based, genre-based, year-based and a completely customizable view with individual folders. The custom view allows you to adjust folder and genre names.',
                 side: 'bottom',
-                align: 'start'
+                align: 'start',
+                onNextClick: () => {
+                    openContextmenu();
+                    driverObj.moveNext();
+                }
+            }
+        },
+        {
+            element: '#contextmenu',
+            popover: {
+                title: 'Context menu (custom view only)',
+                description: 'The custom view allows you to adjust your library via the context menu.',
+                side: 'bottom',
+                align: 'start',
+                onNextClick: () => {
+                    // close context menu
+                    $('#contextmenu').css({display: 'none'});
+                    driverObj.moveNext();
+                }
             }
         },
         {
@@ -118,7 +169,11 @@ const driverObj = driver({
                 title: 'Change sorting of albums',
                 description: 'Chose between year-based and name-based sorting of albums.',
                 side: 'bottom',
-                align: 'start'
+                align: 'start',
+                onPrevClick: () => {
+                    openContextmenu();
+                    driverObj.movePrevious();
+                },
             }
         },
         {
@@ -140,9 +195,12 @@ const driverObj = driver({
             }
         },
         {
+            element: '#buttonStartTutorial',
             popover: {
-                title: 'Happy Coding',
-                description: 'And that is all, go ahead and start adding tours to your applications.'
+                title: 'Tutorial',
+                description: 'Click here to start the tutorial again :).',
+                side: 'top',
+                align: 'start'
             }
         }
     ]

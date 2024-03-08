@@ -117,8 +117,9 @@ class StateManager {
             this.options.view = tmpOptions.view;
             this.options.sortAlbums = tmpOptions.sortAlbums;
         } else {
-            this.options.sortAlbums = SORT_BY_YEAR;
-            this.options.view = VIEW_GENRE;
+            // default initialization
+            this.options.sortAlbums = DEFAULT_SORT;
+            this.options.view = DEFAULT_VIEW;
         }
 
         let treeFlat = localStorage.getItem('treeFlat');

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <title>librify</title>
     <link rel="stylesheet" href="style.css?v={HASH}"/>
     <script src="js/jquery-3.6.4.min.js?v={HASH}"></script>
@@ -46,7 +46,7 @@
     <p>
         <i>librify</i> is based on <a href="https://html.spec.whatwg.org" target="_blank"><i>HTML</i></a>, <a
             href="https://www.ecma-international.org/publications-and-standards/standards/ecma-262/" target="_blank"><i>JavaScript</i></a>,
-        <a href="https://jquery.com" target="_blank"><i>jQuery</i></a>, and the <a
+        <a href="https://jquery.com" target="_blank"><i>jQuery</i></a>, <a href="https://driverjs.com" target="_blank"><i>driver.js</i></a> and the <a
             href="https://developer.spotify.com/documentation/web-api" target="_blank"><i>Spotify Web API</i></a>.
         Once retrieved, the data of your library is stored in the local storage of your browser and <b>NOT</b> on the
         server.
@@ -62,9 +62,10 @@
     <div id="viewStatusPreLogin"></div>
 </div>
 <div id="postLogin" class="hidden">
-    <button id="buttonStartTutorial">Tutorial</button>
-    <button id="buttonUpdateLibrary">Update library</button>
-    <button id="buttonManageGenres">Manage genres</button>
+    <span id="viewButtons">
+        <button id="buttonUpdateLibrary">Update library</button>
+        <button id="buttonManageGenres">Manage genres</button>
+    </span>
     <span id="viewUndoRedo">
         <button id="buttonUndo">Undo</button>
         <button id="buttonRedo">Redo</button>
@@ -113,7 +114,8 @@
                 <label for="genresSub">Subgenre(s)</label><br/><select multiple id="genresSub"></select>
                 <br/><br/>
                 <button id="buttonStoreGenresSub" disabled
-                        title="Move all artists from the selected subgenre(s) to the selected main genre.">Cluster genres
+                        title="Move all artists from the selected subgenre(s) to the selected main genre.">Cluster
+                    genres
                 </button>
             </fieldset>
 
@@ -126,7 +128,11 @@
         <ul id="ulLibrary"></ul>
     </div>
 </div>
-<footer id="footer"><img height="70" src="Spotify_Logo_RGB_White.png"><br /><a href="imprint.html">imprint</a></footer>
+<footer id="footer">
+    <a href="https://spotify.com" target="_blank"><img height="70" src="Spotify_Logo_RGB_White.png"></a><br/>
+    <button id="buttonStartTutorial">Tutorial</button><br/>
+    <a href="imprint.html">imprint</a><br/>
+</footer>
 
 <div id="contextmenu">
     <ul class="contextmenu">
@@ -153,7 +159,7 @@
 </dialog>
 
 <dialog id="dialogRemove">
-    Are you sure you want to remove "<span id="nodeName"></span>"?<br /><br />
+    Are you sure you want to remove "<span id="nodeName"></span>"?<br/><br/>
     <button style="margin-left:10px;float:right;" id="buttonDialogRemoveYes">Yes</button>
     <button style="float:right;" id="buttonDialogRemoveNo">No</button>
 </dialog>
