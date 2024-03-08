@@ -82,27 +82,38 @@ class LibraryRenderer {
                 _albums.forEach((_album) => {
                     // get parent artist
                     let parentArtistNode = TreeNode.getParentNode(this.library.tree.treeFlat, _album);
-                    let parentGenreNode = TreeNode.getParentNode(this.library.tree.treeFlat, parentArtistNode);
+                    if (parentArtistNode !== undefined && parentArtistNode !== null) {
+                        let parentGenreNode = TreeNode.getParentNode(this.library.tree.treeFlat, parentArtistNode);
+                        if (parentGenreNode !== undefined && parentGenreNode !== null) {
+                            let genre = folder.children.find(_child => _child instanceof Genre && _child.id === parentGenreNode.id);
+                            console.log(genre);
+                            console.log(parentGenreNode);
+                            if (genre === undefined) {
+                                if(parentGenreNode instanceof TreeNode) {
+                                    genre = new Genre(parentGenreNode.name);
+                                } else {
+                                    console.debug('parentGenreNode is not an instanceof TreeNode which it should be.')
+                                    genre = new Genre('Temp');
+                                }
+                                folder.addChild(genre);
+                            } else {
+                                folder.addChild(genre);
+                            }
 
-                    let genre = folder.children.find(_child => _child instanceof Genre && _child.id === parentGenreNode.id);
-                    if (genre === undefined && parentGenreNode instanceof TreeNode) {
-                        genre = new Genre(parentGenreNode.name);
-                        folder.addChild(genre);
-                    } else {
-                        folder.addChild(genre);
+                            if (genre !== null && genre !== undefined) {
+                                let artist = genre.children.find(_child => _child instanceof Artist && _child.id === parentArtistNode.id);
+                                if (artist === undefined) {
+                                    artist = new Artist(parentArtistNode.id, parentArtistNode.name);
+                                    artist.addChild(_album);
+                                    genre.addChild(artist);
+                                } else {
+                                    artist.addChild(_album);
+                                }
+                            }
+
+                            //folder.addChild(genre);
+                        }
                     }
-
-                    let artist = genre.children.find(_child => _child instanceof Artist && _child.id === parentArtistNode.id);
-                    if (artist === undefined) {
-                        artist = new Artist(parentArtistNode.id, parentArtistNode.name);
-                        artist.addChild(_album);
-                        genre.addChild(artist);
-                    } else {
-                        artist.addChild(_album);
-                    }
-
-                    folder.addChild(genre);
-
                 });
 
                 rootNode.addChild(folder);
@@ -258,7 +269,6 @@ class LibraryRenderer {
                     });
                     break;
                 case nodes[i] instanceof Artist:
-                    console.log('Artist ' + nodes[i]);
                     aLinkToSptf.href = 'https://open.spotify.com/artist/' + nodes[i].id;
                     li.append(aLinkToSptf.cloneNode(true));
                 default:

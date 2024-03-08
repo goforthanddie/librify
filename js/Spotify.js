@@ -214,6 +214,8 @@ class Spotify {
 
 			console.log(Math.min(offset + limit, data.total) + '/' + data.total + ' albums.');
 			this.statusManager.setStatusText('Loaded ' + Math.min(offset + limit, data.total) + '/' + data.total + ' albums.');
+			// trigger refresh ob lib
+			//this.library.notifyUpdateListeners();
 
 			// test if there are more albums
 			if(data.next != null) {
