@@ -5,6 +5,8 @@ if(window.location.hostname === 'localhost') {
 	tmp_uri_redirect = 'http://localhost:63342/SpotifyTree/index.html';
 } else if(window.location.hostname === 'librify.coderbutze.de') {
 	tmp_uri_redirect = 'https://librify.coderbutze.de';
+} else if(window.location.hostname === 'librify.app') {
+	tmp_uri_redirect = 'https://librify.app';
 } else {
 	tmp_uri_redirect = '';
 	console.debug(window.location.hostname + ' is not a valid hostname.');
