@@ -4,6 +4,7 @@ class Utils {
         console.debug('login()');
         $('#preLogin').hide();
         $('#postLogin').show();
+        $('#buttonStartTutorial').show();
 
 
         const options = new Options();
@@ -47,6 +48,7 @@ class Utils {
         localStorage.clear();
         $('#preLogin').show();
         $('#postLogin').hide();
+        $('#buttonStartTutorial').hide();
     }
 
     static replacerTreeFlat(key, value) {
