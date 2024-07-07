@@ -8,3 +8,6 @@ Having always used a distinct structure for my music library, I slowly figured t
 
 ## Important
 The app is still in developer mode since *Spotify* says that the app does not yet require a quota extension. This means that I have to add your mail address that is connected to your *Spotify* account in the backend of the *Spotify* development dashboard in order to make it work. If you are interested please send a mail to info@librify.app containing your name and the corresponding mail address. I will then get back to you once I have added the address in the backend.
+
+## What it looks like
+![Sample](https://github.com/goforthanddie/librify/blob/master/img/sample_a.jpg?raw=true)
